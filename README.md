@@ -1,10 +1,13 @@
 #AccumuloGraph
 =============
 
-*NOTE* Current documentation is a rough and will be finished in near future
+**NOTE** Current documentation is a rough and will be finished in near future
 
 ## Introduction
- This is an implementation of [TinkerPop Blueprints](http://tinkerpop.com) API using [Apache Accumulo](http://apache.accumulo.com) as the back end. This implementation is an easy to use, easy to write, and easy to read access to an Arbitrarily Large Graph that is store in Accumulo.
+ This is an implementation of [TinkerPop Blueprints](http://tinkerpop.com)
+ API using [Apache Accumulo](http://apache.accumulo.com) as the back end.
+ This implementation is an easy to use, easy to write, and easy to read 
+ access to an Arbitrarily Large Graph that is stored in Accumulo.
  
  We implement the following Blueprints interfaces
 	<br>1. Graph
@@ -17,7 +20,8 @@
 ###Creating a new graph
 
     Configuration cfg = new AccumuloGraphConfiguration()
-	    .instance("accumulo").user("user").zkHosts("zk1")	.password("password".getBytes()).name("myGraph");
+	    .instance("accumulo").user("user").zkHosts("zk1")
+        .password("password".getBytes()).name("myGraph");
     Graph graph = GraphFactory.open(cfg);
 
 
@@ -54,4 +58,18 @@
     public void map(Text k, Vertex v, Context c){
         System.out.println(v.getId().toString());
     }
+    
+##Table Design
+Row ID | Column Family | Column Qualifier | Value
+VertexID | Label Flag | Exists Flag | [empty]
+VertexID | INVERTEX | OutVertexID_EdgeID | Edge Label
+VertexID | OUTVERTEX | InVertexID_EdgeID | Edge Label
+VertexID | Property Key | [empty] | Serialized Value
+
+##Advanced Configuration
+###Basic Accumulo Control
+###Advance Accumulo Control
+###Cacheing
+###Preloading
+
 
