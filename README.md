@@ -1,5 +1,9 @@
 AccumuloGraph
 =============
+
+NOTE Current documentation is a rough and will be finished in near future
+
+
 Creating a new graph
 
     Configuration cfg = new AccumuloGraphConfiguration()
@@ -24,4 +28,19 @@ Creating indexes
     ((KeyIndexableGraph)graph)
 	    .createKeyIndex("name", Vertex.class);
 
+MapReduce Integration
+
+In the tool
+    Job j = new Job();
+    j.setInputFormatClass(VertexInputFormat.class);
+    VertexInputFormat.setAccumuloGraphConfiguration(
+        new AccumuloGraphConfiguration()
+        .instance(“accumulo").zkHosts(“zk1").user("root")
+        .password(“secret".getBytes()).name("myGraph"));
+	
+In the mapper
+
+    public void map(Text k, Vertex v, Context c){
+        System.out.println(v.getId().toString());
+    }
 
