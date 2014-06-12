@@ -31,7 +31,7 @@ import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 
 public abstract class MapReduceElement implements Element,
-		WritableComparable<MapReduceVertex> {
+		WritableComparable<MapReduceElement> {
 
 	protected String id;
 
@@ -117,7 +117,7 @@ public abstract class MapReduceElement implements Element,
 	}
 
 	@Override
-	public int compareTo(MapReduceVertex other) {
+	public int compareTo(MapReduceElement other) {
 		int val = this.id.compareTo(other.id);
 		if (val != 0) {
 			return val;
