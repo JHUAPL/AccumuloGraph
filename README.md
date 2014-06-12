@@ -51,8 +51,8 @@
     j.setInputFormatClass(VertexInputFormat.class);
     VertexInputFormat.setAccumuloGraphConfiguration(
         new AccumuloGraphConfiguration()
-        .instance(“accumulo").zkHosts(“zk1").user("root")
-        .password(“secret".getBytes()).name("myGraph"));
+        .instance("accumulo").zkHosts(“zk1").user("root")
+        .password("secret".getBytes()).name("myGraph"));
 ```
 ####In the mapper
 ```java
@@ -62,6 +62,7 @@
  ``` 
 ##Table Design
 Row ID | Column Family | Column Qualifier | Value
+---|---|---|---
 VertexID | Label Flag | Exists Flag | [empty]
 VertexID | INVERTEX | OutVertexID_EdgeID | Edge Label
 VertexID | OUTVERTEX | InVertexID_EdgeID | Edge Label
