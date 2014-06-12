@@ -18,15 +18,15 @@
 
 ##Code Examples
 ###Creating a new graph
-
+```java
     Configuration cfg = new AccumuloGraphConfiguration()
 	    .instance("accumulo").user("user").zkHosts("zk1")
         .password("password".getBytes()).name("myGraph");
     Graph graph = GraphFactory.open(cfg);
-
+```
 
 ###Accessing a graph
-
+```java
     Vertex v1 = graph.addVertex("1");
     v1.setProperty("name", "Alice");
     Vertex v2 = graph.addVertex("2");
@@ -34,31 +34,32 @@
 
     Edge e1 = graph.addEdge("E1", v1, v2, "knows");
     e1.setProperty("since", new Date());
-
+ ```
 
 
 ###Creating indexes
 
+```java
     ((KeyIndexableGraph)graph)
 	    .createKeyIndex("name", Vertex.class);
-
+```
 ###MapReduce Integration
 
 ####In the tool
-
+```java
     Job j = new Job();
     j.setInputFormatClass(VertexInputFormat.class);
     VertexInputFormat.setAccumuloGraphConfiguration(
         new AccumuloGraphConfiguration()
         .instance(“accumulo").zkHosts(“zk1").user("root")
         .password(“secret".getBytes()).name("myGraph"));
-	
+```
 ####In the mapper
-
+```java
     public void map(Text k, Vertex v, Context c){
         System.out.println(v.getId().toString());
     }
-    
+ ``` 
 ##Table Design
 Row ID | Column Family | Column Qualifier | Value
 VertexID | Label Flag | Exists Flag | [empty]
