@@ -31,6 +31,7 @@ Creating indexes
 MapReduce Integration
 
 In the tool
+
     Job j = new Job();
     j.setInputFormatClass(VertexInputFormat.class);
     VertexInputFormat.setAccumuloGraphConfiguration(
