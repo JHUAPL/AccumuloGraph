@@ -41,8 +41,12 @@ import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.rexster.config.GraphConfiguration;
+import com.tinkerpop.rexster.config.GraphConfigurationException;
+
 public class AccumuloGraphConfiguration extends AbstractConfiguration implements
-		Serializable {
+		Serializable, GraphConfiguration {
 
 	public static final String ACCUMULO_GRAPH_CLASSNAME = AccumuloGraph.class
 			.getCanonicalName();
@@ -582,7 +586,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		return values.isEmpty();
 	}
 
-	String getVertexTable() {
+	public String getVertexTable() {
 		return getName() + "_vertex";
 	}
 
@@ -668,5 +672,14 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	String getKeyEdgeIndexTable() {
 		return getName() + "_edge_index_key";
 	}
+
+	@Override
+	public Graph configureGraphInstance(Configuration properties)
+			throws GraphConfigurationException {
+		
+		return new AccumuloGraph(properties);
+	}
+
+
 
 }

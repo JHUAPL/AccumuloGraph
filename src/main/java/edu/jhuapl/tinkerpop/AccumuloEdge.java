@@ -83,7 +83,12 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
 			throw new RuntimeException("Unexpected direction: " + direction);
 		}
 	}
-
+	public String getOutId(){
+		return outId;
+	}
+	public String getInId(){
+		return inId;
+	}
 	public String getLabel() {
 		// TODO less special treatment for "LABEL" property...
 		if (label != null) {
