@@ -4,7 +4,7 @@
 *NOTE* Current documentation is a rough and will be finished in near future
 
 ## Introduction
- This is an implementation of [TinkerPop Blueprints](tinkerpop.com) API using [Apache Accumulo](apache.accumulo.com) as the back end.
+ This is an implementation of [TinkerPop Blueprints](http://tinkerpop.com) API using [Apache Accumulo](apache.accumulo.com) as the back end.
  
  We implement the following Blueprints interfaces
 	<br>1. [KeyIndexableGraph]()
