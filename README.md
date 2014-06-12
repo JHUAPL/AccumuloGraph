@@ -1,14 +1,14 @@
 #AccumuloGraph
 =============
 
-NOTE Current documentation is a rough and will be finished in near future
+*NOTE* Current documentation is a rough and will be finished in near future
 
 ## Introduction
  This is an implementation of [TinkerPop Blueprints](tinkerpop.com) API using [Apache Accumulo](apache.accumulo.com) as the back end.
  
  We implement the following Blueprints interfaces
-	1. [KeyIndexableGraph]()
-	2. [IndexableGraph]()
+	<br>1. [KeyIndexableGraph]()
+	<br>2. [IndexableGraph]()
  
 
 
