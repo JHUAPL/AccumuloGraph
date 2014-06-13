@@ -59,6 +59,7 @@ e1.setProperty("since", new Date());
 Job j = new Job();
 j.setInputFormatClass(VertexInputFormat.class);
 VertexInputFormat.setAccumuloGraphConfiguration(
+	j,
 	new AccumuloGraphConfiguration()
     .instance("accumulo").zkHosts("zk1").user("root")
     .password("secret".getBytes()).name("myGraph"));
