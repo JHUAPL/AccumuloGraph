@@ -60,7 +60,7 @@ Job j = new Job();
 j.setInputFormatClass(VertexInputFormat.class);
 VertexInputFormat.setAccumuloGraphConfiguration(
 	new AccumuloGraphConfiguration()
-    .instance("accumulo").zkHosts(“zk1").user("root")
+    .instance("accumulo").zkHosts("zk1").user("root")
     .password("secret".getBytes()).name("myGraph"));
 ```
 ####In the mapper
