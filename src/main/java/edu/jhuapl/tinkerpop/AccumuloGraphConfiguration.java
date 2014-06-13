@@ -44,11 +44,25 @@ import org.apache.hadoop.io.Text;
 public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		Serializable {
 
+	/**
+	 * The fully-qualified class name of the class that implements the TinkerPop
+	 * Graph interface. This is used in a configuration object to tell the
+	 * GraphFactory which type to instantiate.
+	 */
 	public static final String ACCUMULO_GRAPH_CLASSNAME = AccumuloGraph.class
 			.getCanonicalName();
 
 	private static final long serialVersionUID = 7024072260167873696L;
 
+	/**
+	 * An enumeration used by
+	 * {@link AccumuloGraphConfiguration#instanceType(InstanceType)} to specify
+	 * the backing Accumulo instance type. See the <A HREF=
+	 * "http://accumulo.apache.org/1.6/accumulo_user_manual.html#_development_clients"
+	 * >Accumulo Users' Guide</A> for more information on the differnent types
+	 * of develoment clients.
+	 * 
+	 */
 	public static enum InstanceType {
 		Distributed, Mini, Mock
 	};
@@ -78,6 +92,9 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	public static final String VERTEX_CACHE_TIMEOUT = "blueprints.accumulo.vertexCacheTimeout";
 	public static final String PRELOAD_EDGES = "blueprints.accumulo.edge.preload";
 
+	/**
+	 * Backing store that maintains configuration values.
+	 */
 	private Map<String, Object> values;
 
 	private transient ColumnVisibility cachedColVis = null;
@@ -203,7 +220,8 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	/**
 	 * Sets the number of milliseconds since retrieval that a property value
 	 * will be maintained in a RAM cache before that value is expired. If this
-	 * value is set to 0 (or a negative number) no caching will be performed.
+	 * value is unset or set to 0 (or a negative number) no caching will be
+	 * performed.
 	 * <P>
 	 * A round-trip to Accumulo to retrieve a property value is an expensive
 	 * operation. Setting this value to a positive number allows the
@@ -216,6 +234,8 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 * The default is unset (no caching).
 	 * 
 	 * @param millis
+	 *            the maximum number of milliseconds properties can be held in
+	 *            RAM
 	 * @return
 	 */
 	public AccumuloGraphConfiguration propertyCacheTimeout(int millis) {
@@ -227,6 +247,27 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		return this;
 	}
 
+	/**
+	 * Sets the number of milliseconds since retrieval that a Vertex instance
+	 * will be maintained in a RAM cache before that value is expired. If this
+	 * value is unset or set to 0 (or a negative number) no caching will be
+	 * performed.
+	 * <P>
+	 * A round-trip to Accumulo to retrieve a Vertex is an expensive operation.
+	 * Setting this value to a positive number allows the AccumuloGraph to cache
+	 * retrieved Vertices and use those references (without re-consulting the
+	 * backing Accumulo store) for the specified time. In situations where the
+	 * graph is changing slowly and/or Vertices are revisited frequently, this
+	 * can achieve a significant reduction in latency at the expense of
+	 * consistency.
+	 * <P>
+	 * The default is unset (no caching).
+	 * 
+	 * @param millis
+	 *            the maximum number of milliseconds a Vertex should be held in
+	 *            RAM
+	 * @return
+	 */
 	public AccumuloGraphConfiguration vertexCacheTimeout(int millis) {
 		if (millis <= 0) {
 			clearProperty(VERTEX_CACHE_TIMEOUT);
@@ -235,7 +276,27 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		}
 		return this;
 	}
-	
+
+	/**
+	 * Sets the number of milliseconds since retrieval that an Edge instance
+	 * will be maintained in a RAM cache before that value is expired. If this
+	 * value is unset or set to 0 (or a negative number) no caching will be
+	 * performed.
+	 * <P>
+	 * A round-trip to Accumulo to retrieve an Edge is an expensive operation.
+	 * Setting this value to a positive number allows the AccumuloGraph to cache
+	 * retrieved Edges and use those references (without re-consulting the
+	 * backing Accumulo store) for the specified time. In situations where the
+	 * graph is changing slowly and/or Edges are revisited frequently, this can
+	 * achieve a significant reduction in latency at the expense of consistency.
+	 * <P>
+	 * The default is unset (no caching).
+	 * 
+	 * @param millis
+	 *            the maximum number of milliseconds an Edge should be held in
+	 *            RAM
+	 * @return
+	 */
 	public AccumuloGraphConfiguration edgeCacheTimeout(int millis) {
 		if (millis <= 0) {
 			clearProperty(EDGE_CACHE_TIMEOUT);
@@ -245,6 +306,14 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		return this;
 	}
 
+	/**
+	 * The number of query threads to use when accessing the backing Accumulo
+	 * store. This value must be greater than or equal to one or an
+	 * IllegalArgumentException will be thrown.
+	 * 
+	 * @param threads
+	 * @return
+	 */
 	public AccumuloGraphConfiguration queryThreads(int threads) {
 		if (threads < 1) {
 			throw new IllegalArgumentException(
@@ -301,6 +370,20 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		return this;
 	}
 
+	/**
+	 * A flag if the AccumuloGraph should immediately flush each update to the
+	 * backing AccumuloStore (true) or not (false). The TinkerPop API expects
+	 * immediate consistency requiring each individual update to be immediately
+	 * flushed to Accumulo. However, this incurs significant overhead. For
+	 * applications at scale that do not require immediate consistency, this
+	 * flag allows the user to lessen the TinkerPop restriction.
+	 * <P>
+	 * To support the expected TinkerPop behavior, the default value is true.
+	 * However, it is strongly recommended that this option be disabled.
+	 * 
+	 * @param autoFlush
+	 * @return
+	 */
 	public AccumuloGraphConfiguration autoFlush(boolean autoFlush) {
 		setProperty(AUTO_FLUSH, autoFlush);
 		return this;
@@ -460,7 +543,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	public Integer edgeCacheTimeoutMillis() {
 		return getInteger(EDGE_CACHE_TIMEOUT, 30000);
 	}
-	
+
 	public Integer vertexCacheTimeoutMillis() {
 		return getInteger(VERTEX_CACHE_TIMEOUT, 30000);
 	}

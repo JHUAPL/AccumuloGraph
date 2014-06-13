@@ -48,8 +48,6 @@ import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
  * TODO define the properties that will be used (vs. those that are ignored)
  * from the provided AccumuloGraphConfiguration.
  * 
- * @author Dennis Patrone
- * 
  */
 public final class AccumuloBulkIngester {
 
@@ -321,8 +319,6 @@ public final class AccumuloBulkIngester {
 	 * builder.add(&quot;propertyKey3&quot;, &quot;propertyValue3&quot;);
 	 * builder.finish();
 	 * </PRE>
-	 * 
-	 * @author Dennis Patrone
 	 */
 	public final class PropertyBuilder {
 
