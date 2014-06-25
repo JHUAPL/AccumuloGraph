@@ -26,12 +26,14 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		for (String table : cfg.getTableNames()) {
 			assertEquals(0, cfg.getConnector().tableOperations().listSplits(table).size());
 		}
+		graph.shutdown();
 
 		cfg = AccumuloGraphTestUtils.generateGraphConfig("emptySplits").splits("");
 		graph = (AccumuloGraph) GraphFactory.open(cfg);
 		for (String table : cfg.getTableNames()) {
 			assertEquals(0, cfg.getConnector().tableOperations().listSplits(table).size());
 		}
+		graph.shutdown();
 
 		cfg = AccumuloGraphTestUtils.generateGraphConfig("threeSplits").splits(" a b c ");
 		graph = (AccumuloGraph) GraphFactory.open(cfg);
@@ -43,6 +45,6 @@ public class AccumuloGraphTestSuite extends TestSuite {
 			assertEquals("b", arr.get(1).toString());
 			assertEquals("c", arr.get(2).toString());
 		}
+		graph.shutdown();
 	}
-
 }

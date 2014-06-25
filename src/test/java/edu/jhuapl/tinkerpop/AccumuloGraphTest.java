@@ -121,8 +121,9 @@ public class AccumuloGraphTest extends GraphTest {
 	}
 
 	public void dropGraph(final String graphDirectoryName) {
-		System.out.println(graphDirectoryName);
-		((AccumuloGraph) generateGraph(graphDirectoryName)).clear();
+		if (graphDirectoryName != null) {
+			((AccumuloGraph) generateGraph(graphDirectoryName)).clear();
+		}
 	}
 
 	public Object convertId(final Object id) {
