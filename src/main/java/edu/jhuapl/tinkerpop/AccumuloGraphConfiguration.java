@@ -577,7 +577,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 			return null;
 		}
 		SortedSet<Text> splits = new TreeSet<Text>();
-		for (String s : val.split(" ")) {
+		for (String s : val.trim().split(" ")) {
 			splits.add(new Text(s));
 		}
 		return splits;
