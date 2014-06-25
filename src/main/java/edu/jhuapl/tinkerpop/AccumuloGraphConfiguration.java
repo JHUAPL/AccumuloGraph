@@ -361,7 +361,14 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 * @return
 	 */
 	public AccumuloGraphConfiguration splits(String splits) {
-		setProperty(SPLITS, splits);
+		if (splits == null || splits.trim().isEmpty()) {
+			return this;
+		}
+		return splits(splits.trim().split(" "));
+	}
+
+	public AccumuloGraphConfiguration splits(String[] splits) {
+		setProperty(SPLITS, splits != null ? Arrays.asList(splits) : null);
 		return this;
 	}
 
@@ -572,12 +579,12 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	}
 
 	public SortedSet<Text> getSplits() {
-		String val = getString(SPLITS);
-		if ((val == null) || (val.trim().equals(""))) {
+		String[] val = getStringArray(SPLITS);
+		if ((val == null) || (val.length == 0)) {
 			return null;
 		}
 		SortedSet<Text> splits = new TreeSet<Text>();
-		for (String s : val.trim().split(" ")) {
+		for (String s : val) {
 			splits.add(new Text(s));
 		}
 		return splits;
@@ -698,7 +705,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 
 	@Override
 	protected void addPropertyDirect(String key, Object value) {
-		if ((key.equals(PRELOAD_PROPERTIES)) || (key.equals(PRELOAD_EDGES))) {
+		if ((key.equals(PRELOAD_PROPERTIES)) || (key.equals(PRELOAD_EDGES)) || (key.equals(SPLITS))) {
 			List<String> list = (List<String>) values.get(key);
 			if (list == null) {
 				list = new ArrayList<String>();

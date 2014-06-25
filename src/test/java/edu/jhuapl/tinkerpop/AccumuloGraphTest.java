@@ -32,7 +32,7 @@ import com.tinkerpop.blueprints.util.io.graphson.GraphSONReaderTestSuite;
 
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
-public class TinkerGraphTest extends GraphTest {
+public class AccumuloGraphTest extends GraphTest {
 
 	ThreadLocal<String> testGraphName = new ThreadLocal<String>();
 
@@ -117,10 +117,11 @@ public class TinkerGraphTest extends GraphTest {
 	static {
 		// So setting up the Accumulo Mock Cluster does not affect the test
 		// times
-		new TinkerGraphTest().generateGraph();
+		new AccumuloGraphTest().generateGraph();
 	}
 
 	public void dropGraph(final String graphDirectoryName) {
+		System.out.println(graphDirectoryName);
 		((AccumuloGraph) generateGraph(graphDirectoryName)).clear();
 	}
 
@@ -130,13 +131,8 @@ public class TinkerGraphTest extends GraphTest {
 
 	@Override
 	public Graph generateGraph(String graphDirectoryName) {
-		AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration();
-		cfg.instance("instanceName").zkHosts("ZookeeperHostsString");
-		cfg.user("root").password("".getBytes());
-		cfg.name(graphDirectoryName).create(true).autoFlush(true)
-				.instanceType(InstanceType.Mock).lruMaxCapacity(10)
-				.propertyCacheTimeout(10000);
-
+		AccumuloGraphConfiguration cfg =
+				AccumuloGraphTestUtils.generateGraphConfig(graphDirectoryName);
 		testGraphName.set(graphDirectoryName);
 		return GraphFactory.open(cfg);
 	}
