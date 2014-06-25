@@ -95,6 +95,14 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
 	public void remove() {
 		parent.removeEdge(this);
 	}
+	
+	public String getInId(){
+		return inId;
+	}
+	
+	public String getOutId(){
+		return outId;
+	}
 
 	public String toString() {
 		return "[" + getId() + ":" + getVertex(Direction.OUT) + " -> "
