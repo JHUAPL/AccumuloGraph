@@ -24,6 +24,7 @@ import com.tinkerpop.blueprints.Vertex;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class VertexInputFormat extends InputFormatBase<Text, Vertex> {
 	static AccumuloGraphConfiguration conf;
@@ -116,7 +117,11 @@ public class VertexInputFormat extends InputFormatBase<Text, Vertex> {
 		
 		VertexInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
 		VertexInputFormat.setInputTableName(job,cfg.getVertexTable());
-		VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
+		if(cfg.getInstanceType().equals(InstanceType.Mock)){
+			VertexInputFormat.setMockInstance(job, cfg.getInstance());
+		}else{
+			VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
+		}
 		
 	}
 

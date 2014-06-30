@@ -590,7 +590,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		return getName() + "_vertex";
 	}
 
-	String getEdgeTable() {
+	public String getEdgeTable() {
 		return getName() + "_edge";
 	}
 
