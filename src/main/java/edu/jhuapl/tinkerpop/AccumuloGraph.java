@@ -317,7 +317,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 	}
 
 	protected Scanner getEdgeIndexScanner() {
-		return getScanner(config.getVertexIndexTable());
+		return getScanner(config.getEdgeIndexTable());
 	}
 
 	protected BatchWriter getVertexIndexWriter() {
@@ -902,20 +902,26 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public Iterable<Edge> getEdges(String key, Object value) {
 		 nullCheckProperty(key, value);
-/*
-		if (getIndexedKeys(Edge.class).contains(key)) {
-			// Use the index
-			Scanner s = getEdgeIndexScanner();
-			byte[] val = AccumuloByteSerializer.serialize(value);
-			Text tVal = new Text(val);
-			s.setRange(new Range(tVal, tVal));
-			s.fetchColumnFamily(new Text(key));
-			return new EdgeIterable<Edge>(this, s, EntryLocation.ColQ,false);
-		}else{
-*/		boolean verts =false;
-		 if(key.compareToIgnoreCase("l") == 0){
-			 verts=true;
-		 }
+		 if (getIndexedKeys(Edge.class).contains(key)) {
+				// Use the index
+				Scanner s = getEdgeIndexScanner();
+				byte[] val = AccumuloByteSerializer.serialize(value);
+				Text tVal = new Text(val);
+				s.setRange(new Range(tVal, tVal));
+				s.fetchColumnFamily(new Text(key));
+
+				return new ScannerIterable<Edge>(this, s) {
+					@Override
+					public Edge next(Iterator<Entry<Key, Value>> iterator) {
+						// TODO better use of information readily available...
+						// TODO could also check local cache before creating a new
+						// instance?
+						return new AccumuloEdge(AccumuloGraph.this, iterator
+								.next().getKey().getColumnQualifier().toString());
+					}
+				};
+			} else {
+
 		BatchScanner scan = getEdgeBatchScanner();
 		scan.fetchColumnFamily(new Text(key));
 
@@ -947,6 +953,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			throw new UnsupportedOperationException(
 					"Filtering on binary data not currently supported.");
 		}
+			}
 	}
 	//TODO Eventually
 	public GraphQuery query() {
@@ -1123,10 +1130,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 			if (getIndexedKeys(type).contains(key)) {
 				BatchWriter bw = getIndexBatchWriter(type);
-				Pair<Integer, Object> old = getProperty(type, id, key);
+				Object old = getProperty(type, id, key).getSecond();
 				if (old != null) {
-					byte[] oldByteVal = AccumuloByteSerializer.serialize(old
-							.getSecond());
+					byte[] oldByteVal = AccumuloByteSerializer.serialize(old);
 					m = new Mutation(oldByteVal);
 					m.putDelete(key, id);
 					bw.addMutation(m);
