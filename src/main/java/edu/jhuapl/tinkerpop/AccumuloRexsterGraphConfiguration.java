@@ -14,18 +14,19 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import org.apache.commons.configuration.Configuration;
-
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.rexster.config.GraphConfiguration;
+import com.tinkerpop.rexster.config.GraphConfigurationContext;
 import com.tinkerpop.rexster.config.GraphConfigurationException;
 
 public class AccumuloRexsterGraphConfiguration implements GraphConfiguration {
 
-	public Graph configureGraphInstance(Configuration conf)
+	@Override
+	public Graph configureGraphInstance(GraphConfigurationContext context)
 			throws GraphConfigurationException {
-		return GraphFactory.open(conf);
+		AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration(context.getProperties());
+		return GraphFactory.open(cfg);
 	}
 	
 	
