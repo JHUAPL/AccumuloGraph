@@ -1,5 +1,6 @@
 AccumuloGraph
 =============
+[![Build Status](https://travis-ci.org/JHUAPL/AccumuloGraph.svg?branch=master)](https://travis-ci.org/JHUAPL/AccumuloGraph)
 
 **NOTE:** The current documentation is rough and will be finished in the
 near future.
