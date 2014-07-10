@@ -2,21 +2,15 @@ AccumuloGraph
 =============
 [![Build Status](https://travis-ci.org/JHUAPL/AccumuloGraph.svg?branch=master)](https://travis-ci.org/JHUAPL/AccumuloGraph)
 
-**NOTE:** The current documentation is rough and will be finished in the
-near future.
-
-## Introduction
- This is an implementation of the [TinkerPop Blueprints](http://tinkerpop.com)
- API using [Apache Accumulo](http://apache.accumulo.com) as the backend.
- This implementation provides easy to use, easy to write, and easy to read 
- access to an arbitrarily large graph that is stored in Accumulo.
+This is an implementation of the [TinkerPop Blueprints](http://tinkerpop.com)
+API using [Apache Accumulo](http://apache.accumulo.com) as the backend.
+This implementation provides easy to use, easy to write, and easy to read 
+access to an arbitrarily large graph that is stored in Accumulo.
  
- We implement the following Blueprints interfaces:
+We implement the following Blueprints interfaces:
 	<br>1. Graph
 	<br>2. KeyIndexableGraph
 	<br>3. IndexableGraph
- 
-
 
 ##Code Examples
 ###Creating a new distributed graph
@@ -59,15 +53,14 @@ e1.setProperty("since", new Date());
 ```java
 Job j = new Job();
 j.setInputFormatClass(VertexInputFormat.class);
-VertexInputFormat.setAccumuloGraphConfiguration(
-	j,
+VertexInputFormat.setAccumuloGraphConfiguration(j,
 	new AccumuloGraphConfiguration()
-    .instance("accumulo").zkHosts("zk1").user("root")
-    .password("secret".getBytes()).name("myGraph"));
+	.instance("accumulo").zkHosts("zk1").user("root")
+	.password("secret".getBytes()).name("myGraph"));
 ```
 ####In the mapper
 ```java
-public void map(Text k, Vertex v, Context c){
+public void map(Text k, Vertex v, Context c) {
     System.out.println(v.getId().toString());
 }
  ``` 
@@ -95,8 +88,10 @@ Row ID | Column Family | Column Qualifier | Value
 Index Name| Index Class |[empty]|[empty]
 ##Advanced Configuration
 ###Basic Accumulo Control
+TODO
 ###Advanced Accumulo Control
+TODO
 ###Caching
+TODO
 ###Preloading
-
-
+TODO
