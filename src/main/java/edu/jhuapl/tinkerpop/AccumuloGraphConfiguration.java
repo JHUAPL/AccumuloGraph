@@ -110,7 +110,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		// set some defaults
 		maxWriteLatency(60000L).maxWriteMemory(1024L * 1024 * 20)
 				.maxWriteThreads(3).maxWriteTimeout(Long.MAX_VALUE)
-				.autoFlush(false).create(false)
+				.autoFlush(true).create(false)
 				.instanceType(InstanceType.Distributed)
 				.authorizations(Constants.NO_AUTHS).queryThreads(3)
 				.skipExistenceChecks(false);
