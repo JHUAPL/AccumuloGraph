@@ -22,6 +22,8 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Date;
 
+import javax.xml.namespace.QName;
+
 public final class AccumuloByteSerializer {
 
 	static final int NULL = 'n';
@@ -38,6 +40,7 @@ public final class AccumuloByteSerializer {
 	static final int ENUM = 'e';
 	static final int STRING = 'a';
 	static final int SERIALIZABLE = 'x';
+	static final int QNAME = 'q';
 
 	private AccumuloByteSerializer() {
 
@@ -93,6 +96,8 @@ public final class AccumuloByteSerializer {
 			return (T) new Date(millis);
 		case STRING:
 			return (T) new String(target, 1, target.length - 1);
+		case QNAME:
+			return (T) QName.valueOf(new String(target, 1, target.length - 1));
 		case ENUM:
 			try {
 				String[] s = new String(target, 1, target.length - 1)
@@ -171,6 +176,9 @@ public final class AccumuloByteSerializer {
 				break;
 			case "String":
 				type = STRING;
+				break;
+			case "QName":
+				type = QNAME;
 				break;
 			default:
 				if (o instanceof Enum) {
