@@ -33,6 +33,9 @@ import com.tinkerpop.blueprints.util.io.graphson.GraphSONReaderTestSuite;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloGraphTest extends GraphTest {
+    
+    // Breaking build on purpose to test jenkins server
+    broken
 
 	ThreadLocal<String> testGraphName = new ThreadLocal<String>();
 
