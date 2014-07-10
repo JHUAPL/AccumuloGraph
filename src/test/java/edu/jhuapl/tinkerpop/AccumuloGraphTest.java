@@ -30,13 +30,8 @@ import com.tinkerpop.blueprints.util.io.gml.GMLReaderTestSuite;
 import com.tinkerpop.blueprints.util.io.graphml.GraphMLReaderTestSuite;
 import com.tinkerpop.blueprints.util.io.graphson.GraphSONReaderTestSuite;
 
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
-
 public class AccumuloGraphTest extends GraphTest {
     
-    // Breaking build on purpose to test jenkins server
-    broken
-
 	ThreadLocal<String> testGraphName = new ThreadLocal<String>();
 
 	public void testVertexTestSuite() throws Exception {
