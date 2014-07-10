@@ -18,10 +18,13 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.TestSuite;
+import com.tinkerpop.blueprints.Vertex;
 
 public class AccumuloGraphTestSuite extends TestSuite {
 
@@ -82,5 +85,15 @@ public class AccumuloGraphTestSuite extends TestSuite {
 			assertEquals("f", arr.get(2).toString());
 		}
 		graph.shutdown();
+	}
+
+	public void testPropertyValues() throws Exception {
+		AccumuloGraph graph = new AccumuloGraph(AccumuloGraphTestUtils.generateGraphConfig("propertyValues"));
+		// Tests for serialization/deserialization of properties.
+		QName qname = new QName("ns", "prop");
+		Vertex v = graph.addVertex(null);
+		v.setProperty("qname", qname);
+		assertTrue(v.getProperty("qname") instanceof QName);
+		assertTrue(qname.equals(v.getProperty("qname")));
 	}
 }
