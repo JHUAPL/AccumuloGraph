@@ -8,6 +8,7 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
+import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
@@ -24,6 +25,7 @@ import com.tinkerpop.blueprints.Edge;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 	static AccumuloGraphConfiguration conf;
@@ -53,11 +55,15 @@ public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 			currentK = new Text();
 		
 			try {
-				conf = new AccumuloGraphConfiguration().name(EdgeInputFormat.getInputTableName(attempt).split("_")[0]);
+				conf = new AccumuloGraphConfiguration();
 				conf.zkHosts(EdgeInputFormat.getInstance(attempt).getZooKeepers());
 				conf.instance(EdgeInputFormat.getInstance(attempt).getInstanceName());
 				conf.user(EdgeInputFormat.getPrincipal(attempt));
 				conf.password(EdgeInputFormat.getToken(attempt));
+				conf.name(attempt.getConfiguration().get("blueprints.accumulo.name"));
+				if(VertexInputFormat.getInstance(attempt) instanceof MockInstance){
+					conf.instanceType(InstanceType.Mock);
+				}
 				parent = AccumuloGraph.open(conf);
 			} catch (AccumuloException e) {
 				// TODO Auto-generated catch block
@@ -84,8 +90,8 @@ public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 						currentK.set(eid);
 						edge.prepareId(eid);
 						String[] ids = currentKey.getColumnQualifier().toString().split(parent.IDDELIM);
-						edge.setSourceId(ids[0]);
-						edge.setDestId(ids[1]);
+						edge.setSourceId(ids[1]);
+						edge.setDestId(ids[0]);
 						edge.setLabel( AccumuloByteSerializer
 								.desserialize(entry.getValue().get()).toString());
 						break;
@@ -109,7 +115,12 @@ public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 		
 		EdgeInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
 		EdgeInputFormat.setInputTableName(job,cfg.getEdgeTable());
-		EdgeInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
+		if(cfg.getInstanceType().equals(InstanceType.Mock)){
+			VertexInputFormat.setMockInstance(job, cfg.getInstance());
+		}else{
+			VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
+		}
+		job.getConfiguration().set("blueprints.accumulo.name", cfg.getName());
 		
 	}
 

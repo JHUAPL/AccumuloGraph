@@ -8,6 +8,7 @@ import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
+import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
@@ -54,11 +55,16 @@ public class VertexInputFormat extends InputFormatBase<Text, Vertex> {
 			currentK = new Text();
 		
 			try {
-				conf = new AccumuloGraphConfiguration().name(VertexInputFormat.getInputTableName(attempt).split("_")[0]);
+				conf = new AccumuloGraphConfiguration();
 				conf.zkHosts(VertexInputFormat.getInstance(attempt).getZooKeepers());
 				conf.instance(VertexInputFormat.getInstance(attempt).getInstanceName());
 				conf.user(VertexInputFormat.getPrincipal(attempt));
 				conf.password(VertexInputFormat.getToken(attempt));
+				conf.name(attempt.getConfiguration().get("blueprints.accumulo.name"));
+				if(VertexInputFormat.getInstance(attempt) instanceof MockInstance){
+					conf.instanceType(InstanceType.Mock);
+				}
+				
 				parent = AccumuloGraph.open(conf);
 			} catch (AccumuloException e) {
 				// TODO Auto-generated catch block
@@ -122,7 +128,7 @@ public class VertexInputFormat extends InputFormatBase<Text, Vertex> {
 		}else{
 			VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
 		}
-		
+		job.getConfiguration().set("blueprints.accumulo.name", cfg.getName());
 	}
 
 }

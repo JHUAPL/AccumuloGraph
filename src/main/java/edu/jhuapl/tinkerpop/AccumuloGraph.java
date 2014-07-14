@@ -506,8 +506,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 				if (!iter.hasNext()) {
 					return null;
 				}
-
-				int timeout = config.propertyCacheTimeoutMillis();
+				
+				
+				Integer timeout = config.propertyCacheTimeoutMillis();
 				while (iter.hasNext()) {
 					Entry<Key, Value> entry = iter.next();
 					String attr = entry.getKey().getColumnFamily().toString();

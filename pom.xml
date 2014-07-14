@@ -44,11 +44,7 @@
 			<artifactId>accumulo-core</artifactId>
 			<version>1.5.1</version>
 		</dependency>
-		<dependency>
-			<groupId>org.apache.hadoop</groupId>
-			<artifactId>hadoop-client</artifactId>
-			<version>2.2.0</version>
-		</dependency>
+		
 		<dependency>
 			<groupId>com.tinkerpop.blueprints</groupId>
 			<artifactId>blueprints-core</artifactId>
@@ -65,16 +61,36 @@
 			<version>3.2.1</version>
 		</dependency>
 		<dependency>
+			<groupId>com.tinkerpop.rexster</groupId>
+			<artifactId>rexster-server</artifactId>
+			<version>2.4.0</version>
+		</dependency>
+		<dependency>
 			<groupId>com.tinkerpop.blueprints</groupId>
 			<artifactId>blueprints-test</artifactId>
 			<version>2.4.0</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
-			<groupId>com.tinkerpop.rexster</groupId>
-			<artifactId>rexster-server</artifactId>
-			<version>2.4.0</version>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-client</artifactId>
+			<version>2.2.0</version>
+			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.apache.hadoop</groupId>
+			<artifactId>hadoop-minicluster</artifactId>
+			<version>2.2.0</version>
+			<scope>test</scope>
+		</dependency>
+		
+		<dependency>
+			<groupId>commons-httpclient</groupId>
+			<artifactId>commons-httpclient</artifactId>
+			<version>3.1</version>
+			<scope>test</scope>
+		</dependency>
+
 	</dependencies>
 
 	<properties>
