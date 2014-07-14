@@ -189,5 +189,5 @@ public class MapReduceVertex extends MapReduceElement implements Vertex {
 			out.writeUTF(mre.getVertexId(Direction.IN));
 		}
 	}
-
+	
 }

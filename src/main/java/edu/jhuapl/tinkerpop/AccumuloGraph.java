@@ -506,7 +506,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 					return null;
 				}
 
-				int timeout = config.propertyCacheTimeoutMillis();
+				
+				Integer timeout = config.propertyCacheTimeoutMillis();
 				while (iter.hasNext()) {
 					Entry<Key, Value> entry = iter.next();
 					String attr = entry.getKey().getColumnFamily().toString();
@@ -745,9 +746,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 		try {
 			Mutation m = new Mutation(myID);
-			m.put(OUTEDGE, outVertex.getId().toString().getBytes(), EMPTY);
-			m.put(INEDGE, inVertex.getId().toString().getBytes(), EMPTY);
-			m.put(LABEL, (inVertex.getId().toString() + IDDELIM + outVertex.getId().toString()).getBytes(), AccumuloByteSerializer.serialize(label));
+			m.put(LABEL, (inVertex.getId().toString() + IDDELIM + outVertex
+					.getId().toString()).getBytes(), AccumuloByteSerializer
+					.serialize(label));
 			edgeBW.addMutation(m);
 			m = new Mutation(inVertex.getId().toString());
 			m.put(INEDGE,
@@ -829,12 +830,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		while (iter.hasNext()) {
 			Entry<Key, Value> e = iter.next();
 			Key k = e.getKey();
-			if (k.getColumnFamily().equals(TINEDGE)) {
-				inVert = k.getColumnQualifier();
-			} else if (k.getColumnFamily().equals(TLABEL)) {
-				// ignore
-			} else if (k.getColumnFamily().equals(TOUTEDGE)) {
-				outVert = k.getColumnQualifier();
+			if (k.getColumnFamily().equals(TLABEL)) {
+				String[] ids = k.getColumnQualifier().toString().split(IDDELIM);
+				inVert = new Text(ids[0]);
+				outVert = new Text(ids[1]);
 			} else {
 				Mutation m = new Mutation(k.getColumnQualifier());
 				m.putDelete(k.getColumnFamily(), k.getRow());
@@ -858,7 +857,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 					.toString()).getBytes());
 			vertexBW.addMutation(m);
 			m = new Mutation(edge.getId().toString());
-			m.putDelete(LABEL, (inVert.toString() + IDDELIM +  outVert.toString()).getBytes());
+			m.putDelete(LABEL, (inVert.toString() + IDDELIM + outVert
+					.toString()).getBytes());
 			edgeBW.addMutation(m);
 
 			checkedFlush();
@@ -922,6 +922,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 				};
 			} else {
 
+		
 		BatchScanner scan = getEdgeBatchScanner();
 		scan.fetchColumnFamily(new Text(key));
 
@@ -1279,13 +1280,21 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		Scanner s = getEdgeScanner();
 		try {
 			s.setRange(new Range(edgeId));
-			s.fetchColumnFamily(new Text(toTag(direction)));
+			s.fetchColumnFamily(TLABEL);
 			Iterator<Entry<Key, Value>> iter = s.iterator();
 			if (!iter.hasNext()) {
 				return null;
 			}
-			return new AccumuloVertex(this, iter.next().getKey()
-					.getColumnQualifier().toString());
+			String id;
+			String val = iter.next().getKey().getColumnQualifier().toString();
+			if(direction == Direction.IN){
+				id = val.split(IDDELIM)[0];
+			}else{
+				id = val.split(IDDELIM)[1];
+			}
+			
+			return new AccumuloVertex(this, id);
+			
 		} finally {
 			s.close();
 		}

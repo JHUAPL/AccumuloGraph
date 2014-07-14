@@ -1,39 +1,35 @@
-/* Copyright 2014 The Johns Hopkins University Applied Physics Laboratory
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package edu.jhuapl.tinkerpop.mapreduce;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.mapreduce.InputFormatBase;
+import org.apache.accumulo.core.client.mock.MockInstance;
+import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
+import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
+import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class VertexInputFormat extends InputFormatBase<Text, Vertex> {
-
+	static AccumuloGraphConfiguration conf;
+	
 	@Override
 	public RecordReader<Text, Vertex> createRecordReader(InputSplit split,
 			TaskAttemptContext attempt) throws IOException,
@@ -52,12 +48,28 @@ public class VertexInputFormat extends InputFormatBase<Text, Vertex> {
 		@Override
 		public void initialize(InputSplit inSplit, TaskAttemptContext attempt)
 				throws IOException {
+			
 			super.initialize(inSplit, attempt);
 			rowIterator = new RowIterator(scannerIterator);
-			
+		
 			currentK = new Text();
-
-			// TODO - initialize parent based on attempt config!
+		
+			try {
+				conf = new AccumuloGraphConfiguration();
+				conf.zkHosts(VertexInputFormat.getInstance(attempt).getZooKeepers());
+				conf.instance(VertexInputFormat.getInstance(attempt).getInstanceName());
+				conf.user(VertexInputFormat.getPrincipal(attempt));
+				conf.password(VertexInputFormat.getToken(attempt));
+				conf.name(attempt.getConfiguration().get("blueprints.accumulo.name"));
+				if(VertexInputFormat.getInstance(attempt) instanceof MockInstance){
+					conf.instanceType(InstanceType.Mock);
+				}
+				
+				parent = AccumuloGraph.open(conf);
+			} catch (AccumuloException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
 		}
 
@@ -99,11 +111,24 @@ public class VertexInputFormat extends InputFormatBase<Text, Vertex> {
 						vertex.prepareProperty(propertyKey, propertyValue);
 					}
 				}
+				currentV = vertex;
 				return true;
 			}
 			return false;
 		}
 
+	}
+	
+	public static void setAccumuloGraphConfiguration(Job job, AccumuloGraphConfiguration cfg) throws AccumuloSecurityException{
+		
+		VertexInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
+		VertexInputFormat.setInputTableName(job,cfg.getVertexTable());
+		if(cfg.getInstanceType().equals(InstanceType.Mock)){
+			VertexInputFormat.setMockInstance(job, cfg.getInstance());
+		}else{
+			VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
+		}
+		job.getConfiguration().set("blueprints.accumulo.name", cfg.getName());
 	}
 
 }

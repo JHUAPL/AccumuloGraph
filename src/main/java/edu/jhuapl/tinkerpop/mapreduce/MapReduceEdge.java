@@ -26,7 +26,18 @@ public class MapReduceEdge extends MapReduceElement implements Edge {
 	String sourceId;
 	String label;
 	String destinationId;
-
+	
+	MapReduceEdge(AccumuloGraph parent){
+		super(parent);
+	}
+	
+	void setSourceId(String id){
+		sourceId = id;
+	}
+	
+	void setDestId(String id){
+		destinationId = id;
+	}
 	MapReduceEdge(AccumuloGraph parent, String id, String src, String label,
 			String dest) {
 		super(parent);
@@ -58,6 +69,10 @@ public class MapReduceEdge extends MapReduceElement implements Edge {
 		default:
 			throw ExceptionFactory.bothIsNotSupported();
 		}
+	}
+
+	public void setLabel(String label) {
+		this.label = label; 
 	}
 
 }

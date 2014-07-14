@@ -672,11 +672,11 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		return values.isEmpty();
 	}
 
-	String getVertexTable() {
+	public String getVertexTable() {
 		return getName() + "_vertex";
 	}
 
-	String getEdgeTable() {
+	public String getEdgeTable() {
 		return getName() + "_edge";
 	}
 
@@ -758,5 +758,8 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	String getKeyEdgeIndexTable() {
 		return getName() + "_edge_index_key";
 	}
+
+
+
 
 }

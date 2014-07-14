@@ -206,9 +206,7 @@ public final class AccumuloBulkIngester {
 	public PropertyBuilder addEdge(String id, String src, String dest,
 			String label) throws MutationsRejectedException {
 		Mutation m = new Mutation(id);
-		m.put(AccumuloGraph.OUTEDGE, src.getBytes(), AccumuloGraph.EMPTY);
-		m.put(AccumuloGraph.INEDGE, dest.getBytes(), AccumuloGraph.EMPTY);
-		m.put(AccumuloGraph.LABEL, AccumuloGraph.EMPTY,
+		m.put(AccumuloGraph.LABEL, (dest+ "_" + src).getBytes(),
 				AccumuloByteSerializer.serialize(label));
 		edgeWriter.addMutation(m);
 
