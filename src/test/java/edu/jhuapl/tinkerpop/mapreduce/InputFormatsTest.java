@@ -113,24 +113,22 @@ public class InputFormatsTest {
 			Job job = Job.getInstance(getConf(), this.getClass()
 					.getSimpleName() + "_" + System.currentTimeMillis());
 			job.setJarByClass(this.getClass());
+			AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration().setInstanceName(instanceName)
+					.setUser(user).setPassword(pass.getBytes())
+					.setGraphName(table).setInstanceType(InstanceType.Mock);
 			if (Boolean.parseBoolean(args[4])) {
 
 				job.setInputFormatClass(EdgeInputFormat.class);
 
 				EdgeInputFormat.setAccumuloGraphConfiguration(
-						job,
-						new AccumuloGraphConfiguration().instance(instanceName)
-								.user(user).password(pass.getBytes())
-								.name(table).instanceType(InstanceType.Mock));
+						job,cfg);
+						
 				job.setMapperClass(TestEdgeMapper.class);
 			} else {
 				job.setInputFormatClass(VertexInputFormat.class);
 
 				VertexInputFormat.setAccumuloGraphConfiguration(
-						job,
-						new AccumuloGraphConfiguration().instance(instanceName)
-								.user(user).password(pass.getBytes())
-								.name(table).instanceType(InstanceType.Mock));
+						job,cfg);
 				job.setMapperClass(TestVertexMapper.class);
 			}
 
@@ -158,9 +156,9 @@ public class InputFormatsTest {
 
 		if (!System.getProperty("os.name").startsWith("Windows")) {
 			Graph g = GraphFactory.open(new AccumuloGraphConfiguration()
-					.instance(INSTANCE_NAME).user("root")
-					.password("".getBytes()).name(TEST_TABLE_1)
-					.instanceType(InstanceType.Mock));
+					.setInstanceName(INSTANCE_NAME).setUser("root")
+					.setPassword("".getBytes()).setGraphName(TEST_TABLE_1)
+					.setInstanceType(InstanceType.Mock).getConfiguration());
 			for (int i = 0; i < 100; i++) {
 				g.addVertex(i + "");
 			}
@@ -180,9 +178,9 @@ public class InputFormatsTest {
 
 		if (!System.getProperty("os.name").startsWith("Windows")) {
 			Graph g = GraphFactory.open(new AccumuloGraphConfiguration()
-					.instance(INSTANCE_NAME).user("root")
-					.password("".getBytes()).name(TEST_TABLE_1)
-					.instanceType(InstanceType.Mock).autoFlush(true));
+					.setInstanceName(INSTANCE_NAME).setUser("root")
+					.setPassword("".getBytes()).setGraphName(TEST_TABLE_1)
+					.setInstanceType(InstanceType.Mock).autoFlush(true).getConfiguration());
 			for (int i = 0; i < 100; i++) {
 				g.addEdge(null, g.addVertex(i + ""), g.addVertex(i + "a"),
 						"knows");

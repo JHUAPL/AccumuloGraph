@@ -280,7 +280,7 @@ public final class AccumuloBulkIngester {
 		mtbw.close();
 		mtbw = null;
 
-		AccumuloGraph g = (AccumuloGraph) GraphFactory.open(config);
+		AccumuloGraph g = (AccumuloGraph) GraphFactory.open(config.getConfiguration());
 		for (String key : g.getIndexedKeys(Type.Vertex)) {
 			g.dropKeyIndex(key, Vertex.class);
 			g.createKeyIndex(key, Vertex.class);

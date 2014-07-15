@@ -25,8 +25,7 @@ public class AccumuloRexsterGraphConfiguration implements GraphConfiguration {
 
 	public Graph configureGraphInstance(Configuration conf)
 			throws GraphConfigurationException {
-		AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration(conf);
-		return GraphFactory.open(cfg);
+		return GraphFactory.open(conf);
 	}
 	
 	

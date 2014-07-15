@@ -228,10 +228,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		if (config.useLruCache()) {
 			vertexCache = new LruElementCache<Vertex>(
 					config.getLruMaxCapacity(),
-					config.vertexCacheTimeoutMillis());
+					config.getVertexCacheTimeoutMillis());
 
 			edgeCache = new LruElementCache<Edge>(config.getLruMaxCapacity(),
-					config.edgeCacheTimeoutMillis());
+					config.getEdgeCacheTimeoutMillis());
 		}
 
 		try {
@@ -487,7 +487,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 				scan.setRange(new Range(myID));
 				scan.fetchColumn(TLABEL, TEXISTS);
 
-				String[] preload = config.preloadProperties();
+				String[] preload = config.getPreloadedProperties();
 				if (preload != null) {
 					// user has requested specific properties...
 					Text colf = new Text("");
@@ -507,7 +507,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 				}
 
 				
-				Integer timeout = config.propertyCacheTimeoutMillis();
+				Integer timeout = config.getPropertyCacheTimeoutMillis();
 				while (iter.hasNext()) {
 					Entry<Key, Value> entry = iter.next();
 					String attr = entry.getKey().getColumnFamily().toString();
@@ -1060,11 +1060,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 					.get());
 		}
 		s.close();
-		return new Pair<Integer, T>(config.propertyCacheTimeoutMillis(), toRet);
+		return new Pair<Integer, T>(config.getPropertyCacheTimeoutMillis(), toRet);
 	}
 
 	void preloadProperties(AccumuloElement element, Type type) {
-		String[] toPreload = config.preloadProperties();
+		String[] toPreload = config.getPreloadedProperties();
 		if (toPreload == null) {
 			return;
 		}
@@ -1084,7 +1084,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		}
 
 		Iterator<Entry<Key, Value>> iter = s.iterator();
-		int timeout = config.propertyCacheTimeoutMillis();
+		int timeout = config.getPropertyCacheTimeoutMillis(); //Change this
 		while (iter.hasNext()) {
 			Entry<Key, Value> entry = iter.next();
 			Object val = AccumuloByteSerializer.desserialize(entry.getValue()
@@ -1152,7 +1152,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		} catch (MutationsRejectedException e) {
 			e.printStackTrace();
 		}
-		return config.propertyCacheTimeoutMillis();
+		return config.getPropertyCacheTimeoutMillis();
 	}
 
 	private BatchWriter getBatchWriter(Type type) {

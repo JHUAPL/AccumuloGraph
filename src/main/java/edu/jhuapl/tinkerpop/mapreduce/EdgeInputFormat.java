@@ -56,15 +56,15 @@ public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 		
 			try {
 				conf = new AccumuloGraphConfiguration();
-				conf.zkHosts(EdgeInputFormat.getInstance(attempt).getZooKeepers());
-				conf.instance(EdgeInputFormat.getInstance(attempt).getInstanceName());
-				conf.user(EdgeInputFormat.getPrincipal(attempt));
-				conf.password(EdgeInputFormat.getToken(attempt));
-				conf.name(attempt.getConfiguration().get("blueprints.accumulo.name"));
+				conf.setZookeeperHosts(EdgeInputFormat.getInstance(attempt).getZooKeepers());
+				conf.setInstanceName(EdgeInputFormat.getInstance(attempt).getInstanceName());
+				conf.setUser(EdgeInputFormat.getPrincipal(attempt));
+				conf.setPassword(EdgeInputFormat.getToken(attempt));
+				conf.setGraphName(attempt.getConfiguration().get(AccumuloGraphConfiguration.GRAPH_NAME));
 				if(VertexInputFormat.getInstance(attempt) instanceof MockInstance){
-					conf.instanceType(InstanceType.Mock);
+					conf.setInstanceType(InstanceType.Mock);
 				}
-				parent = AccumuloGraph.open(conf);
+				parent = AccumuloGraph.open(conf.getConfiguration());
 			} catch (AccumuloException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -120,7 +120,7 @@ public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 		}else{
 			VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
 		}
-		job.getConfiguration().set("blueprints.accumulo.name", cfg.getName());
+		job.getConfiguration().set(AccumuloGraphConfiguration.GRAPH_NAME, cfg.getName());
 		
 	}
 
