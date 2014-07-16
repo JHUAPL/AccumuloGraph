@@ -1347,6 +1347,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public <T extends Element> Index<T> createIndex(String indexName,
 			Class<T> indexClass, Parameter... indexParameters) {
+		if(indexClass == null){
+			throw ExceptionFactory.classForElementCannotBeNull();
+		}
+		
 		Scanner s = this.getMetadataScanner();
 		try {
 			s.setRange(new Range(indexName, indexName));
@@ -1370,6 +1374,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public <T extends Element> Index<T> getIndex(String indexName,
 			Class<T> indexClass) {
+		if(indexClass == null){
+			throw ExceptionFactory.classForElementCannotBeNull();
+		}
+		
 		Scanner scan = getScanner(config.getMetadataTable());
 		try {
 			scan.setRange(new Range(indexName, indexName));
