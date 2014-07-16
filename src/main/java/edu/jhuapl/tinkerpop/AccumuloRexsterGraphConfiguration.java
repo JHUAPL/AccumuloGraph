@@ -46,11 +46,11 @@ public class AccumuloRexsterGraphConfiguration implements GraphConfiguration {
 
 		AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration(conf);
 		if(cfg.getInstanceType().equals(InstanceType.Mock)){
-			cfg.password("".getBytes());
-			cfg.user("root");
+			cfg.setPassword("".getBytes());
+			cfg.setUser("root");
 		}
-		cfg.name(context.getProperties().getString(Tokens.REXSTER_GRAPH_NAME));
-		return GraphFactory.open(cfg);
+		cfg.setGraphName(context.getProperties().getString(Tokens.REXSTER_GRAPH_NAME));
+		return GraphFactory.open(cfg.getConfiguration());
 	}
 
 }
