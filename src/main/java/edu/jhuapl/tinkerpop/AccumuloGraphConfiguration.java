@@ -39,11 +39,17 @@ import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.ConfigurationFactory;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
 
-public class AccumuloGraphConfiguration extends AbstractConfiguration implements
-		Serializable {
+public class AccumuloGraphConfiguration  implements	Serializable {
 
+	
+	
+	private Configuration conf; 
+	
+	
 	/**
 	 * The fully-qualified class name of the class that implements the TinkerPop
 	 * Graph interface. This is used in a configuration object to tell the
@@ -103,46 +109,53 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	private transient Boolean cachedSkipChecks = null;
 
 	public AccumuloGraphConfiguration() {
+		conf = new PropertiesConfiguration();
 		values = new HashMap<String, Object>();
 
 		values.put(GRAPH_CLASS, ACCUMULO_GRAPH_CLASSNAME);
-
+		conf.addProperty(GRAPH_CLASS, ACCUMULO_GRAPH_CLASSNAME);
 		// set some defaults
-		maxWriteLatency(60000L).maxWriteMemory(1024L * 1024 * 20)
-				.maxWriteThreads(3).maxWriteTimeout(Long.MAX_VALUE)
+		setMaxWriteLatency(60000L).setMaxWriteMemory(1024L * 1024 * 20)
+				.setMaxWriteThreads(3).setMaxWriteTimeout(Long.MAX_VALUE)
 				.autoFlush(true).create(false)
-				.instanceType(InstanceType.Distributed)
-				.authorizations(Constants.NO_AUTHS).queryThreads(3)
+				.setInstanceType(InstanceType.Distributed)
+				.setAuthorizations(Constants.NO_AUTHS).setQueryThreads(3)
 				.skipExistenceChecks(false);
 	}
 
 	public AccumuloGraphConfiguration(Configuration config) {
-		this();
+		conf = new PropertiesConfiguration();
 
 		Iterator<String> keys = config.getKeys();
 		while (keys.hasNext()) {
 			String key = keys.next();
-			this.addProperty(key, config.getProperty(key));
+			conf.addProperty(key, config.getProperty(key));
 		}
 	}
 
+	
+
 	public AccumuloGraphConfiguration create(boolean create) {
-		setProperty(CREATE, create);
+		conf.setProperty(CREATE, create);
+		return this;
+	}
+	
+	public Configuration getConfiguration(){
+		return conf;
+	}
+
+	public AccumuloGraphConfiguration setZookeeperHosts(String zookeeperHosts) {
+		conf.setProperty(ZK_HOSTS, zookeeperHosts);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration zkHosts(String zookeeperHosts) {
-		setProperty(ZK_HOSTS, zookeeperHosts);
+	public AccumuloGraphConfiguration setInstanceName(String instance) {
+		conf.setProperty(INSTANCE, instance);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration instance(String instance) {
-		setProperty(INSTANCE, instance);
-		return this;
-	}
-
-	public AccumuloGraphConfiguration user(String user) {
-		setProperty(USER, user);
+	public AccumuloGraphConfiguration setUser(String user) {
+		conf.setProperty(USER, user);
 		return this;
 	}
 
@@ -213,7 +226,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 * @return
 	 */
 	public AccumuloGraphConfiguration skipExistenceChecks(boolean skip) {
-		setProperty(SKIP_CHECKS, skip);
+		conf.setProperty(SKIP_CHECKS, skip);
 		return this;
 	}
 
@@ -238,11 +251,11 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 *            RAM
 	 * @return
 	 */
-	public AccumuloGraphConfiguration propertyCacheTimeout(int millis) {
+	public AccumuloGraphConfiguration setPropertyCacheTimeout(int millis) {
 		if (millis <= 0) {
-			clearProperty(PROPERTY_CACHE_TIMEOUT);
+			conf.clearProperty(PROPERTY_CACHE_TIMEOUT);
 		} else {
-			setProperty(PROPERTY_CACHE_TIMEOUT, millis);
+			conf.setProperty(PROPERTY_CACHE_TIMEOUT, millis);
 		}
 		return this;
 	}
@@ -268,11 +281,11 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 *            RAM
 	 * @return
 	 */
-	public AccumuloGraphConfiguration vertexCacheTimeout(int millis) {
+	public AccumuloGraphConfiguration setVertexCacheTimeout(int millis) {
 		if (millis <= 0) {
-			clearProperty(VERTEX_CACHE_TIMEOUT);
+			conf.clearProperty(VERTEX_CACHE_TIMEOUT);
 		} else {
-			setProperty(VERTEX_CACHE_TIMEOUT, millis);
+			conf.setProperty(VERTEX_CACHE_TIMEOUT, millis);
 		}
 		return this;
 	}
@@ -297,11 +310,11 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 *            RAM
 	 * @return
 	 */
-	public AccumuloGraphConfiguration edgeCacheTimeout(int millis) {
+	public AccumuloGraphConfiguration setEdgeCacheTimeout(int millis) {
 		if (millis <= 0) {
-			clearProperty(EDGE_CACHE_TIMEOUT);
+			conf.clearProperty(EDGE_CACHE_TIMEOUT);
 		} else {
-			setProperty(EDGE_CACHE_TIMEOUT, millis);
+			conf.setProperty(EDGE_CACHE_TIMEOUT, millis);
 		}
 		return this;
 	}
@@ -314,25 +327,22 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 * @param threads
 	 * @return
 	 */
-	public AccumuloGraphConfiguration queryThreads(int threads) {
+	public AccumuloGraphConfiguration setQueryThreads(int threads) {
 		if (threads < 1) {
 			throw new IllegalArgumentException(
 					"You must provide at least 1 query thread.");
 		}
-		setProperty(QUERY_THREADS, threads);
+		conf.setProperty(QUERY_THREADS, threads);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration instanceType(InstanceType type) {
-		setProperty(INSTANCE_TYPE, type.toString());
-		if (type == InstanceType.Mock) {
-			user("root").password("".getBytes());
-		}
+	public AccumuloGraphConfiguration setInstanceType(InstanceType type) {
+		conf.setProperty(INSTANCE_TYPE, type.toString());
 		return this;
 	}
 
-	public AccumuloGraphConfiguration columnVisibility(ColumnVisibility colVis) {
-		setProperty(COLVIS, new String(colVis.flatten()));
+	public AccumuloGraphConfiguration setColumnVisibility(ColumnVisibility colVis) {
+		conf.setProperty(COLVIS, new String(colVis.flatten()));
 		return this;
 	}
 
@@ -347,8 +357,8 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 * @param maxSize
 	 * @return
 	 */
-	public AccumuloGraphConfiguration lruMaxCapacity(int max) {
-		setProperty(LRU_MAX_CAP, max);
+	public AccumuloGraphConfiguration setLruMaxCapacity(int max) {
+		conf.setProperty(LRU_MAX_CAP, max);
 		return this;
 	}
 
@@ -360,20 +370,24 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 * @param splits
 	 * @return
 	 */
-	public AccumuloGraphConfiguration splits(String splits) {
+	public AccumuloGraphConfiguration setSplits(String splits) {
 		if (splits == null || splits.trim().isEmpty()) {
 			return this;
 		}
-		return splits(splits.trim().split(" "));
+		return setSplits(splits.trim().split(" "));
 	}
 
-	public AccumuloGraphConfiguration splits(String[] splits) {
-		setProperty(SPLITS, splits != null ? Arrays.asList(splits) : null);
+	public AccumuloGraphConfiguration setSplits(String[] splits) {
+		conf.setProperty(SPLITS, splits != null ? Arrays.asList(splits) : null);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration password(byte[] password) {
-		setProperty(PASSWORD, new String(password));
+	public AccumuloGraphConfiguration setPassword(byte[] password) {
+		conf.setProperty(PASSWORD, new String(password));
+		return this;
+	}
+	public AccumuloGraphConfiguration setPassword(String password) {
+		conf.setProperty(PASSWORD, password);
 		return this;
 	}
 
@@ -392,34 +406,34 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 * @return
 	 */
 	public AccumuloGraphConfiguration autoFlush(boolean autoFlush) {
-		setProperty(AUTO_FLUSH, autoFlush);
+		conf.setProperty(AUTO_FLUSH, autoFlush);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration name(String name) {
-		setProperty(GRAPH_NAME, name);
+	public AccumuloGraphConfiguration setGraphName(String name) {
+		conf.setProperty(GRAPH_NAME, name);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration maxWriteLatency(long latency) {
+	public AccumuloGraphConfiguration setMaxWriteLatency(long latency) {
 		if (latency < 0) {
 			throw new IllegalArgumentException(
 					"Maximum write latency must be a postive number, "
 							+ "or '0' for no maximum.");
 		}
 
-		setProperty(MAX_WRITE_LATENCY, latency);
+		conf.setProperty(MAX_WRITE_LATENCY, latency);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration maxWriteTimeout(long timeout) {
+	public AccumuloGraphConfiguration setMaxWriteTimeout(long timeout) {
 		if (timeout < 0) {
 			throw new IllegalArgumentException(
 					"Maximum write timeout must be a postive number, "
 							+ "or '0' for no maximum.");
 		}
 
-		setProperty(MAX_WRITE_TIMEOUT, timeout);
+		conf.setProperty(MAX_WRITE_TIMEOUT, timeout);
 		return this;
 	}
 
@@ -445,74 +459,74 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	 * @param propertyKeys
 	 * @return
 	 */
-	public AccumuloGraphConfiguration preloadProperties(String[] propertyKeys) {
+	public AccumuloGraphConfiguration setPreloadedProperties(String[] propertyKeys) {
 		if (propertyKeys == null) {
 			throw new NullPointerException("Property keys cannot be null.");
 		}
 
-		Integer timeout = propertyCacheTimeoutMillis();
-		if (timeout == null) {
+		Integer timeout = getPropertyCacheTimeoutMillis();
+		if (timeout < 0) {
 			throw new IllegalArgumentException(
 					"You cannot preload properties "
 							+ "without first setting #propertyCacheTimeout(int millis) "
 							+ "to a positive value.");
 		}
 
-		setProperty(PRELOAD_PROPERTIES, propertyKeys);
+		conf.setProperty(PRELOAD_PROPERTIES, propertyKeys);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration preloadEdges(String[] edgeLabels) {
+	public AccumuloGraphConfiguration setPreloadedEdgeLabels(String[] edgeLabels) {
 		if (edgeLabels == null) {
 			throw new NullPointerException("Edge labels cannot be null.");
 		}
 
-		Integer timeout = edgeCacheTimeoutMillis();
+		Integer timeout = getEdgeCacheTimeoutMillis();
 		if (timeout == null) {
 			throw new IllegalArgumentException("You cannot preload edges "
 					+ "without first setting #edgeCacheTimeout(int millis) "
 					+ "to a positive value.");
 		}
 
-		setProperty(PRELOAD_EDGES, edgeLabels);
+		conf.setProperty(PRELOAD_EDGES, edgeLabels);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration maxWriteMemory(long mem) {
+	public AccumuloGraphConfiguration setMaxWriteMemory(long mem) {
 		if (mem <= 0) {
 			throw new IllegalArgumentException(
 					"Maximum write memory must be a postive number.");
 		}
-		setProperty(MAX_WRITE_MEMORY, mem);
+		conf.setProperty(MAX_WRITE_MEMORY, mem);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration maxWriteThreads(int threads) {
+	public AccumuloGraphConfiguration setMaxWriteThreads(int threads) {
 		if (threads < 1) {
 			throw new IllegalArgumentException(
 					"Maximum write threads must be a postive number.");
 		}
-		setProperty(MAX_WRITE_THREADS, threads);
+		conf.setProperty(MAX_WRITE_THREADS, threads);
 		return this;
 	}
 
-	public AccumuloGraphConfiguration authorizations(Authorizations auths) {
+	public AccumuloGraphConfiguration setAuthorizations(Authorizations auths) {
 		byte[] data = auths.getAuthorizationsArray();
-		setProperty(AUTHORIZATIONS, new String(data));
+		conf.setProperty(AUTHORIZATIONS, new String(data));
 		return this;
 	}
 
 	public boolean isCreate() {
-		return getBoolean(CREATE);
+		return conf.getBoolean(CREATE);
 	}
 
 	public InstanceType getInstanceType() {
-		return InstanceType.valueOf(getString(INSTANCE_TYPE));
+		return InstanceType.valueOf(conf.getString(INSTANCE_TYPE));
 	}
 
 	public Authorizations getAuthorizations() {
 		if (cachedAuths == null) {
-			String auths = getString(AUTHORIZATIONS);
+			String auths = conf.getString(AUTHORIZATIONS);
 			if (auths != null) {
 				cachedAuths = new Authorizations(auths.getBytes());
 			}
@@ -521,53 +535,53 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	}
 
 	public String getUser() {
-		return getString(USER);
+		return conf.getString(USER);
 	}
 
 	public ByteBuffer getPassword() {
-		return ByteBuffer.wrap(getString(PASSWORD).getBytes());
+		return ByteBuffer.wrap(conf.getString(PASSWORD).getBytes());
 	}
 
 	public String getInstance() {
-		return getString(INSTANCE);
+		return conf.getString(INSTANCE);
 	}
 
 	public String getZooKeeperHosts() {
-		return getString(ZK_HOSTS);
+		return conf.getString(ZK_HOSTS);
 	}
 
 	public boolean isAutoFlush() {
 		if (cachedAutoFlush == null) {
-			cachedAutoFlush = getBoolean(AUTO_FLUSH);
+			cachedAutoFlush = conf.getBoolean(AUTO_FLUSH);
 		}
 		return cachedAutoFlush;
 	}
 
-	public Integer propertyCacheTimeoutMillis() {
-		return getInteger(PROPERTY_CACHE_TIMEOUT, null);
+	public Integer getPropertyCacheTimeoutMillis() {
+		return conf.getInteger(PROPERTY_CACHE_TIMEOUT, -1);
 	}
 
-	public Integer edgeCacheTimeoutMillis() {
-		return getInteger(EDGE_CACHE_TIMEOUT, 30000);
+	public Integer getEdgeCacheTimeoutMillis() {
+		return conf.getInteger(EDGE_CACHE_TIMEOUT, 30000);
 	}
 
-	public Integer vertexCacheTimeoutMillis() {
-		return getInteger(VERTEX_CACHE_TIMEOUT, 30000);
+	public Integer getVertexCacheTimeoutMillis() {
+		return conf.getInteger(VERTEX_CACHE_TIMEOUT, 30000);
 	}
 
 	public boolean skipExistenceChecks() {
 		if (cachedSkipChecks == null) {
-			cachedSkipChecks = getBoolean(SKIP_CHECKS);
+			cachedSkipChecks = conf.getBoolean(SKIP_CHECKS);
 		}
 		return cachedSkipChecks;
 	}
 
 	public long getMaxWriteMemory() {
-		return getLong(MAX_WRITE_MEMORY);
+		return conf.getLong(MAX_WRITE_MEMORY);
 	}
 
 	public long getMaxWriteTimeout() {
-		return getLong(MAX_WRITE_TIMEOUT);
+		return conf.getLong(MAX_WRITE_TIMEOUT);
 	}
 
 	public BatchWriterConfig getBatchWriterConfig() {
@@ -579,7 +593,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	}
 
 	public SortedSet<Text> getSplits() {
-		String[] val = getStringArray(SPLITS);
+		String[] val = conf.getStringArray(SPLITS);
 		if ((val == null) || (val.length == 0)) {
 			return null;
 		}
@@ -591,15 +605,15 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	}
 
 	public long getMaxWriteLatency() {
-		return getLong(MAX_WRITE_LATENCY);
+		return conf.getLong(MAX_WRITE_LATENCY);
 	}
 
 	public int getMaxWriteThreads() {
-		return getInt(MAX_WRITE_THREADS);
+		return conf.getInt(MAX_WRITE_THREADS);
 	}
 
 	public String getName() {
-		return getString(GRAPH_NAME);
+		return conf.getString(GRAPH_NAME);
 	}
 
 	public boolean useLruCache() {
@@ -607,12 +621,12 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 	}
 
 	public int getLruMaxCapacity() {
-		return getInt(LRU_MAX_CAP, -1);
+		return conf.getInt(LRU_MAX_CAP, -1);
 	}
 
 	public ColumnVisibility getColumnVisibility() {
 		if (cachedColVis == null) {
-			cachedColVis = new ColumnVisibility(getString(COLVIS).getBytes());
+			cachedColVis = new ColumnVisibility(conf.getString(COLVIS).getBytes());
 		}
 		return cachedColVis;
 	}
@@ -632,44 +646,36 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		default:
 			throw new RuntimeException("Unexpected instance type: " + inst);
 		}
-
+		
 		Connector c = inst.getConnector(getUser(), new PasswordToken(
 				getPassword()));
 		return c;
 	}
 
-	public String[] preloadProperties() {
+	public String[] getPreloadedProperties() {
 		if (containsKey(PRELOAD_PROPERTIES)) {
-			return getStringArray(PRELOAD_PROPERTIES);
+			return conf.getStringArray(PRELOAD_PROPERTIES);
 		}
 		return null;
 	}
 
-	public String[] preloadEdges() {
+	public String[] getPreloadedEdges() {
 		if (containsKey(PRELOAD_EDGES)) {
-			return getStringArray(PRELOAD_EDGES);
+			return conf.getStringArray(PRELOAD_EDGES);
 		}
 		return null;
 	}
 
 	public int getQueryThreads() {
-		return getInt(QUERY_THREADS);
+		return conf.getInt(QUERY_THREADS);
 	}
 
 	public boolean containsKey(String key) {
-		return values.containsKey(key);
-	}
-
-	public Iterator<String> getKeys() {
-		return values.keySet().iterator();
-	}
-
-	public Object getProperty(String key) {
-		return values.get(key);
+		return conf.containsKey(key);
 	}
 
 	public boolean isEmpty() {
-		return values.isEmpty();
+		return conf.isEmpty();
 	}
 
 	public String getVertexTable() {
@@ -703,7 +709,7 @@ public class AccumuloGraphConfiguration extends AbstractConfiguration implements
 		return tableList;
 	}
 
-	@Override
+	
 	protected void addPropertyDirect(String key, Object value) {
 		if ((key.equals(PRELOAD_PROPERTIES)) || (key.equals(PRELOAD_EDGES)) || (key.equals(SPLITS))) {
 			List<String> list = (List<String>) values.get(key);

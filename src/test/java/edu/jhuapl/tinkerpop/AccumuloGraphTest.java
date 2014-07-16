@@ -133,6 +133,6 @@ public class AccumuloGraphTest extends GraphTest {
 		AccumuloGraphConfiguration cfg =
 				AccumuloGraphTestUtils.generateGraphConfig(graphDirectoryName);
 		testGraphName.set(graphDirectoryName);
-		return GraphFactory.open(cfg);
+		return GraphFactory.open(cfg.getConfiguration());
 	}
 }

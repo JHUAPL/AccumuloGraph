@@ -16,17 +16,17 @@ We implement the following Blueprints interfaces:
 ###Creating a new distributed graph
 ```java
 Configuration cfg = new AccumuloGraphConfiguration()
-	.instance("accumulo").user("user").zkHosts("zk1")
-    .password("password".getBytes()).name("myGraph");
-Graph graph = GraphFactory.open(cfg);
+	.setInstanceName("accumulo").setUser("user").setZookeeperHosts("zk1")
+    .setPassword("password".getBytes()).setGraphName("myGraph");
+Graph graph = GraphFactory.open(cfg.getConfiguration());
 ```
 ###Creating a new Mock Graph
 
 Setting the instance type to mock allows for in-memory processing with a MockAccumulo instance.<br>
 There is also support for Mini Accumulo.
 ```java
-Configuration cfg = new AccumuloGraphConfiguration().instanceType(InstanceType.Mock)
-	.name("myGraph");
+Configuration cfg = new AccumuloGraphConfiguration().setInstanceType(InstanceType.Mock)
+	.setGraphName("myGraph");
 Graph graph = GraphFactory.open(cfg);
 ```
 ###Accessing a graph
@@ -51,12 +51,14 @@ e1.setProperty("since", new Date());
 
 ####In the tool
 ```java
+AccumuloConfiguration cfg = new AccumuloGraphConfiguration()
+	.setInstanceName("accumulo").setZookeeperHosts("zk1").setUser("root")
+	.setPassword("secret".getBytes()).setGraphName("myGraph");
+
 Job j = new Job();
 j.setInputFormatClass(VertexInputFormat.class);
 VertexInputFormat.setAccumuloGraphConfiguration(j,
-	new AccumuloGraphConfiguration()
-	.instance("accumulo").zkHosts("zk1").user("root")
-	.password("secret".getBytes()).name("myGraph"));
+	cfg.getConfiguration());
 ```
 ####In the mapper
 ```java

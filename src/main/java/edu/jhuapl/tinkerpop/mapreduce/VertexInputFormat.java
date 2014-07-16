@@ -56,16 +56,16 @@ public class VertexInputFormat extends InputFormatBase<Text, Vertex> {
 		
 			try {
 				conf = new AccumuloGraphConfiguration();
-				conf.zkHosts(VertexInputFormat.getInstance(attempt).getZooKeepers());
-				conf.instance(VertexInputFormat.getInstance(attempt).getInstanceName());
-				conf.user(VertexInputFormat.getPrincipal(attempt));
-				conf.password(VertexInputFormat.getToken(attempt));
-				conf.name(attempt.getConfiguration().get("blueprints.accumulo.name"));
+				conf.setZookeeperHosts(VertexInputFormat.getInstance(attempt).getZooKeepers());
+				conf.setInstanceName(VertexInputFormat.getInstance(attempt).getInstanceName());
+				conf.setUser(VertexInputFormat.getPrincipal(attempt));
+				conf.setPassword(VertexInputFormat.getToken(attempt));
+				conf.setGraphName(attempt.getConfiguration().get(AccumuloGraphConfiguration.GRAPH_NAME));
 				if(VertexInputFormat.getInstance(attempt) instanceof MockInstance){
-					conf.instanceType(InstanceType.Mock);
+					conf.setInstanceType(InstanceType.Mock);
 				}
 				
-				parent = AccumuloGraph.open(conf);
+				parent = AccumuloGraph.open(conf.getConfiguration());
 			} catch (AccumuloException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

@@ -32,22 +32,22 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		AccumuloGraphConfiguration cfg;
 
 		// Tests for splits string.
-		cfg = AccumuloGraphTestUtils.generateGraphConfig("nullSplits").splits((String) null);
-		AccumuloGraph graph = (AccumuloGraph) GraphFactory.open(cfg);
+		cfg = AccumuloGraphTestUtils.generateGraphConfig("nullSplits").setSplits((String) null);
+		AccumuloGraph graph = (AccumuloGraph) GraphFactory.open(cfg.getConfiguration());
 		for (String table : cfg.getTableNames()) {
 			assertEquals(0, cfg.getConnector().tableOperations().listSplits(table).size());
 		}
 		graph.shutdown();
 
-		cfg = AccumuloGraphTestUtils.generateGraphConfig("emptySplits").splits("");
-		graph = (AccumuloGraph) GraphFactory.open(cfg);
+		cfg = AccumuloGraphTestUtils.generateGraphConfig("emptySplits").setSplits("");
+		graph = (AccumuloGraph) GraphFactory.open(cfg.getConfiguration());
 		for (String table : cfg.getTableNames()) {
 			assertEquals(0, cfg.getConnector().tableOperations().listSplits(table).size());
 		}
 		graph.shutdown();
 
-		cfg = AccumuloGraphTestUtils.generateGraphConfig("threeSplits").splits(" a b c ");
-		graph = (AccumuloGraph) GraphFactory.open(cfg);
+		cfg = AccumuloGraphTestUtils.generateGraphConfig("threeSplits").setSplits(" a b c ");
+		graph = (AccumuloGraph) GraphFactory.open(cfg.getConfiguration());
 		for (String table : cfg.getTableNames()) {
 			Collection<Text> splits = cfg.getConnector().tableOperations().listSplits(table);
 			assertEquals(3, splits.size());
@@ -59,23 +59,23 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		graph.shutdown();
 
 		// Tests for splits array.
-		cfg = AccumuloGraphTestUtils.generateGraphConfig("nullSplitsArray").splits((String[]) null);
-		graph = (AccumuloGraph) GraphFactory.open(cfg);
+		cfg = AccumuloGraphTestUtils.generateGraphConfig("nullSplitsArray").setSplits((String[]) null);
+		graph = (AccumuloGraph) GraphFactory.open(cfg.getConfiguration());
 		for (String table : cfg.getTableNames()) {
 			assertEquals(0, cfg.getConnector().tableOperations().listSplits(table).size());
 		}
 		graph.shutdown();
 
-		cfg = AccumuloGraphTestUtils.generateGraphConfig("emptySplitsArray").splits(new String[]{});
-		graph = (AccumuloGraph) GraphFactory.open(cfg);
+		cfg = AccumuloGraphTestUtils.generateGraphConfig("emptySplitsArray").setSplits(new String[]{});
+		graph = (AccumuloGraph) GraphFactory.open(cfg.getConfiguration());
 		for (String table : cfg.getTableNames()) {
 			assertEquals(0, cfg.getConnector().tableOperations().listSplits(table).size());
 		}
 		graph.shutdown();
 
 		cfg = AccumuloGraphTestUtils.generateGraphConfig("threeSplitsArray")
-				.splits(new String[]{"d", "e", "f"});
-		graph = (AccumuloGraph) GraphFactory.open(cfg);
+				.setSplits(new String[]{"d", "e", "f"});
+		graph = (AccumuloGraph) GraphFactory.open(cfg.getConfiguration());
 		for (String table : cfg.getTableNames()) {
 			Collection<Text> splits = cfg.getConnector().tableOperations().listSplits(table);
 			assertEquals(3, splits.size());

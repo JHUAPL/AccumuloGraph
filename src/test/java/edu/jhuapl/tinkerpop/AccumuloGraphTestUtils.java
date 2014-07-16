@@ -20,11 +20,10 @@ public class AccumuloGraphTestUtils {
 
 	public static AccumuloGraphConfiguration generateGraphConfig(String graphDirectoryName) {
 		AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration();
-		cfg.instance("instanceName").zkHosts("ZookeeperHostsString");
-		cfg.user("root").password("".getBytes());
-		cfg.name(graphDirectoryName).create(true).autoFlush(true)
-				.instanceType(InstanceType.Mock).lruMaxCapacity(10)
-				.propertyCacheTimeout(10000);
+		cfg.setInstanceName("instanceName").setZookeeperHosts("ZookeeperHostsString");
+		cfg.setUser("root").setPassword("".getBytes());
+		cfg.setGraphName(graphDirectoryName).create(true).autoFlush(true)
+				.setInstanceType(InstanceType.Mock);
 		return cfg;
 	}
 
