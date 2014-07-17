@@ -14,20 +14,43 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Iterator;
+
 import org.apache.commons.configuration.Configuration;
+import org.apache.commons.configuration.HierarchicalConfiguration;
 
 import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphFactory;
+import com.tinkerpop.rexster.Tokens;
 import com.tinkerpop.rexster.config.GraphConfiguration;
+import com.tinkerpop.rexster.config.GraphConfigurationContext;
 import com.tinkerpop.rexster.config.GraphConfigurationException;
+
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloRexsterGraphConfiguration implements GraphConfiguration {
 
-	public Graph configureGraphInstance(Configuration conf)
+	@Override
+	public Graph configureGraphInstance(GraphConfigurationContext context)
 			throws GraphConfigurationException {
-		return GraphFactory.open(conf);
+
+		Configuration conf = context.getProperties();
+		try {
+			conf = ((HierarchicalConfiguration) conf)
+					.configurationAt(Tokens.REXSTER_GRAPH_PROPERTIES);
+		} catch (IllegalArgumentException iae) {
+			throw new GraphConfigurationException(
+					"Check graph configuration. Missing or empty configuration element: "
+							+ Tokens.REXSTER_GRAPH_PROPERTIES);
+		}
+
+		AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration(conf);
+		if(cfg.getInstanceType().equals(InstanceType.Mock)){
+			cfg.setPassword("".getBytes());
+			cfg.setUser("root");
+		}
+		cfg.setGraphName(context.getProperties().getString(Tokens.REXSTER_GRAPH_NAME));
+		return GraphFactory.open(cfg.getConfiguration());
 	}
-	
-	
 
 }

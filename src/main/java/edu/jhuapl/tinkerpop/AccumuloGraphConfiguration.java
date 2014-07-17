@@ -129,7 +129,7 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 		Iterator<String> keys = config.getKeys();
 		while (keys.hasNext()) {
 			String key = keys.next();
-			conf.addProperty(key, config.getProperty(key));
+			conf.addProperty(key.replace("..", "."), config.getProperty(key));
 		}
 	}
 

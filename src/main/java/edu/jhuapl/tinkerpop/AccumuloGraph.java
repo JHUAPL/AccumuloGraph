@@ -62,7 +62,6 @@ import com.tinkerpop.blueprints.util.ExceptionFactory;
 import com.tinkerpop.blueprints.util.StringFactory;
 
 /**
- * TODO JHUAPL License or OS license
  * 
  * This is an implementation of Tinkerpop's Graph API backed by Apache Accumulo.
  * The implementation currently Supports KeyIndexable and Indexable interfaces.
@@ -555,6 +554,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 			Iterator<Entry<Key, Value>> iter = scan.iterator();
 			List<Range> ranges = new ArrayList<Range>();
+			if(!iter.hasNext()){
+				throw ExceptionFactory.vertexWithIdDoesNotExist(vertex.getId());
+			}
 			// Search for edges
 			while (iter.hasNext()) {
 				Entry<Key, Value> e = iter.next();
@@ -902,6 +904,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public Iterable<Edge> getEdges(String key, Object value) {
 		 nullCheckProperty(key, value);
+		 if(key.equalsIgnoreCase("label")){
+			 key=SLABEL;
+		 }
+
 		 if (getIndexedKeys(Edge.class).contains(key)) {
 				// Use the index
 				Scanner s = getEdgeIndexScanner();
@@ -923,6 +929,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			} else {
 
 		
+
 		BatchScanner scan = getEdgeBatchScanner();
 		scan.fetchColumnFamily(new Text(key));
 
@@ -1340,6 +1347,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public <T extends Element> Index<T> createIndex(String indexName,
 			Class<T> indexClass, Parameter... indexParameters) {
+		if(indexClass == null){
+			throw ExceptionFactory.classForElementCannotBeNull();
+		}
+		
 		Scanner s = this.getMetadataScanner();
 		try {
 			s.setRange(new Range(indexName, indexName));
@@ -1363,6 +1374,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public <T extends Element> Index<T> getIndex(String indexName,
 			Class<T> indexClass) {
+		if(indexClass == null){
+			throw ExceptionFactory.classForElementCannotBeNull();
+		}
+		
 		Scanner scan = getScanner(config.getMetadataTable());
 		try {
 			scan.setRange(new Range(indexName, indexName));
@@ -1428,6 +1443,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public <T extends Element> void dropKeyIndex(String key,
 			Class<T> elementClass) {
+		if(elementClass == null){
+			throw ExceptionFactory.classForElementCannotBeNull();
+		}
 		Type t = getType(elementClass.getSimpleName());
 		String table = null;
 		if (t.equals(Type.Vertex)) {
@@ -1464,6 +1482,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public <T extends Element> void createKeyIndex(String key,
 			Class<T> elementClass, Parameter... indexParameters) {
+		if(elementClass == null){
+			throw ExceptionFactory.classForElementCannotBeNull();
+		}
 		BatchWriter w = getKeyMetadataWriter();
 
 		Mutation m = new Mutation(key);
@@ -1522,7 +1543,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 	}
 
 	public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
+		if(elementClass == null){
+			throw ExceptionFactory.classForElementCannotBeNull();
+		}
+		
 		Scanner s = getKeyMetadataScanner();
+	
 		try {
 			s.fetchColumnFamily(new Text(elementClass.getSimpleName()));
 			Iterator<Entry<Key, Value>> iter = s.iterator();
