@@ -30,6 +30,11 @@
 			<email>webbrl@live.com</email>
 			<url>https://github.com/webbrl1</url>
 		</developer>
+		<developer>
+			<name>Sandy Hider</name>
+			<email>sandy@hider.us</email>
+			<url>https://github.com/sandyhider</url>
+		</developer>
 	</developers>
 	
 	<properties>
