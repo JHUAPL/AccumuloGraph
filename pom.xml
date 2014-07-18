@@ -105,7 +105,7 @@
 
 	<profiles>
 		<profile>
-			<id>relesase</id>
+			<id>release</id>
 			<build>
 				<plugins>
 					<plugin>
