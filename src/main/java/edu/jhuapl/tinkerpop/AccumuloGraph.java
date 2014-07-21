@@ -14,6 +14,7 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -257,7 +258,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e.printStackTrace();
 		} catch (TableNotFoundException e) {
 			e.printStackTrace();
-		}
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 	}
 
@@ -274,7 +279,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e.printStackTrace();
 		} catch (TableNotFoundException e) {
 			e.printStackTrace();
-		}
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 	}
 
 	/**
@@ -295,7 +304,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e.printStackTrace();
 		} catch (AccumuloSecurityException e) {
 			e.printStackTrace();
-		}
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 		return null;
 	}
 
@@ -367,7 +380,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e.printStackTrace();
 		} catch (AccumuloSecurityException e) {
 			e.printStackTrace();
-		}
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 		return null;
 	}
 
@@ -602,7 +619,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e1.printStackTrace();
 		} catch (AccumuloSecurityException e1) {
 			e1.printStackTrace();
-		} finally {
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
 			if (edgedeleter != null)
 				edgedeleter.close();
 			if (vertexdeleter != null)
@@ -640,7 +661,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 				e.printStackTrace();
 			} catch (AccumuloException e) {
 				e.printStackTrace();
-			} finally {
+			} catch (IOException e) {
+	            e.printStackTrace();
+	        } catch (InterruptedException e) {
+	            e.printStackTrace();
+	        } finally {
 				if (del != null)
 					del.close();
 			}
@@ -876,7 +901,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e.printStackTrace();
 		} catch (AccumuloSecurityException e) {
 			e.printStackTrace();
-		} finally {
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
 			if (edgedeleter != null)
 				edgedeleter.close();
 		}
@@ -1010,7 +1039,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e.printStackTrace();
 		} catch (TableExistsException e) {
 			e.printStackTrace();
-		}
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 	}
 
@@ -1420,7 +1453,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e.printStackTrace();
 		} catch (AccumuloSecurityException e) {
 			e.printStackTrace();
-		} finally {
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
 			if (deleter != null)
 				deleter.close();
 		}
@@ -1455,7 +1492,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			e.printStackTrace();
 		} catch (AccumuloSecurityException e) {
 			e.printStackTrace();
-		} finally {
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
 			if (bd != null)
 				bd.close();
 		}

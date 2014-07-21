@@ -4,14 +4,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 import java.io.IOException;
-import java.util.Map.Entry;
 
 import org.apache.accumulo.core.util.CachedConfiguration;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.io.NullWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.InputFormat;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
@@ -115,7 +113,7 @@ public class InputFormatsTest {
 			job.setJarByClass(this.getClass());
 			AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration().setInstanceName(instanceName)
 					.setUser(user).setPassword(pass.getBytes())
-					.setGraphName(table).setInstanceType(InstanceType.Mock);
+					.setGraphName(table).setInstanceType(InstanceType.Mini);
 			if (Boolean.parseBoolean(args[4])) {
 
 				job.setInputFormatClass(EdgeInputFormat.class);
@@ -153,12 +151,12 @@ public class InputFormatsTest {
 	public void testVertexInputMap() throws Exception {
 		final String INSTANCE_NAME = "_mapreduce_instance";
 		final String TEST_TABLE_1 = "_mapreduce_table_1";
-
-		if (!System.getProperty("os.name").startsWith("Windows")) {
+		
+		if (true) { //!System.getProperty("os.name").startsWith("Windows")) {
 			Graph g = GraphFactory.open(new AccumuloGraphConfiguration()
 					.setInstanceName(INSTANCE_NAME).setUser("root")
 					.setPassword("".getBytes()).setGraphName(TEST_TABLE_1)
-					.setInstanceType(InstanceType.Mock).getConfiguration());
+					.setInstanceType(InstanceType.Mini).getConfiguration());
 			for (int i = 0; i < 100; i++) {
 				g.addVertex(i + "");
 			}

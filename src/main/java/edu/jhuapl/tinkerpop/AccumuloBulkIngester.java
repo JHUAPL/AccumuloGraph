@@ -14,6 +14,7 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.io.IOException;
 import java.util.SortedSet;
 import java.util.UUID;
 
@@ -84,10 +85,12 @@ public final class AccumuloBulkIngester {
 	 * @throws AccumuloSecurityException
 	 * @throws TableNotFoundException
 	 * @throws TableExistsException
+	 * @throws InterruptedException 
+	 * @throws IOException 
 	 */
 	public AccumuloBulkIngester(AccumuloGraphConfiguration config)
 			throws AccumuloException, AccumuloSecurityException,
-			TableNotFoundException, TableExistsException {
+			TableNotFoundException, TableExistsException, IOException, InterruptedException {
 		this.config = config;
 		connector = config.getConnector();
 

@@ -12,14 +12,12 @@ import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
@@ -61,7 +59,7 @@ public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 				conf.setUser(EdgeInputFormat.getPrincipal(attempt));
 				conf.setPassword(EdgeInputFormat.getToken(attempt));
 				conf.setGraphName(attempt.getConfiguration().get(AccumuloGraphConfiguration.GRAPH_NAME));
-				if(VertexInputFormat.getInstance(attempt) instanceof MockInstance){
+				if(EdgeInputFormat.getInstance(attempt) instanceof MockInstance){
 					conf.setInstanceType(InstanceType.Mock);
 				}
 				parent = AccumuloGraph.open(conf.getConfiguration());
@@ -116,9 +114,9 @@ public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 		EdgeInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
 		EdgeInputFormat.setInputTableName(job,cfg.getEdgeTable());
 		if(cfg.getInstanceType().equals(InstanceType.Mock)){
-			VertexInputFormat.setMockInstance(job, cfg.getInstance());
+		    EdgeInputFormat.setMockInstance(job, cfg.getInstance());
 		}else{
-			VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
+		    EdgeInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
 		}
 		job.getConfiguration().set(AccumuloGraphConfiguration.GRAPH_NAME, cfg.getName());
 		

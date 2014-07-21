@@ -14,6 +14,7 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -63,7 +64,11 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 			e.printStackTrace();
 		} catch (TableExistsException e) {
 			e.printStackTrace();
-		}
+		} catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
 	}
 

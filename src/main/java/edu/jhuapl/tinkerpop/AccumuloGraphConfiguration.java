@@ -14,6 +14,8 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -37,11 +39,12 @@ import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
-import org.apache.commons.configuration.AbstractConfiguration;
+import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.ConfigurationFactory;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
+
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloGraphConfiguration  implements	Serializable {
 
@@ -107,6 +110,11 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	private transient Authorizations cachedAuths = null;
 	private transient Boolean cachedAutoFlush = null;
 	private transient Boolean cachedSkipChecks = null;
+	/**
+	 * Temp directory used by getInstance when a Mini InstanceType is used.
+	 */
+	private String miniClusterTempDir;
+	private MiniAccumuloCluster accumuloMiniCluster;
 
 	public AccumuloGraphConfiguration() {
 		conf = new PropertiesConfiguration();
@@ -390,6 +398,17 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 		conf.setProperty(PASSWORD, password);
 		return this;
 	}
+	
+	/**
+	 * Used by JUnit Tests to set the miniClusterTempDirectory.  If not set in advance
+	 * of a test, getConnector will use a Java Temporary Folder which will not be 
+	 * deleted afterwards.
+	 * @param miniClusterTempDir
+	 */
+	public void setMiniClusterTempDir(String miniClusterTempDir) {
+	    this.miniClusterTempDir = miniClusterTempDir;
+	}
+	
 
 	/**
 	 * A flag if the AccumuloGraph should immediately flush each update to the
@@ -632,13 +651,29 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	}
 
 	public Connector getConnector() throws AccumuloException,
-			AccumuloSecurityException {
+			AccumuloSecurityException, IOException, InterruptedException {
 		Instance inst = null;
 		switch (getInstanceType()) {
 		case Distributed:
 			inst = new ZooKeeperInstance(getInstance(), getZooKeeperHosts());
 			break;
 		case Mini:
+		    File dir = null;
+		    if(miniClusterTempDir == null) {
+	            dir = createTempDir();
+	            dir.deleteOnExit();
+		    } else {
+		        // already set by setMiniClusterTempDir(), It should be cleaned up outside of this class.
+		        dir = new File(miniClusterTempDir);
+		    }
+		    accumuloMiniCluster = new MiniAccumuloCluster(dir, "" );  //conf.getString(PASSWORD)
+		    try {
+		        accumuloMiniCluster.start();
+		    } catch (Exception ex ) {
+		        ex.printStackTrace();
+		        System.out.println("");
+		    }
+		    inst = new ZooKeeperInstance(accumuloMiniCluster.getInstanceName(), accumuloMiniCluster.getZooKeepers());
 			throw new UnsupportedOperationException("TODO");
 		case Mock:
 			inst = new MockInstance(getInstance());
@@ -764,6 +799,27 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	String getKeyEdgeIndexTable() {
 		return getName() + "_edge_index_key";
 	}
+	
+	/**
+	 * Creates a temporary directory.  Under the  
+	 * java.io.tmpdir property location.
+	 * @return
+	 */
+    private File createTempDir() {
+        final int ATTEMPTS=100;
+        File parent = new File(System.getProperty("java.io.tmpdir"));
+        String child = System.currentTimeMillis() + "-";
+
+        for (int counter = 0; counter < ATTEMPTS; counter++) {
+          File tempDir = new File(parent, child + counter);
+          if (tempDir.mkdir()) {
+            return tempDir;
+          }
+        }
+        throw new IllegalStateException("Failed to create directory, tried directories: "
+          + child + "0 to " + child + (ATTEMPTS - 1) );
+      }
+
 
 
 
