@@ -137,7 +137,7 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 		Iterator<String> keys = config.getKeys();
 		while (keys.hasNext()) {
 			String key = keys.next();
-			conf.addProperty(key, config.getProperty(key));
+			conf.addProperty(key.replace("..", "."), config.getProperty(key));
 		}
 	}
 
@@ -483,13 +483,6 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 			throw new NullPointerException("Property keys cannot be null.");
 		}
 
-		Integer timeout = getPropertyCacheTimeoutMillis();
-		if (timeout < 0) {
-			throw new IllegalArgumentException(
-					"You cannot preload properties "
-							+ "without first setting #propertyCacheTimeout(int millis) "
-							+ "to a positive value.");
-		}
 
 		conf.setProperty(PRELOAD_PROPERTIES, propertyKeys);
 		return this;
@@ -776,6 +769,16 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 		default:
 			throw new RuntimeException("Unexpected instance type: "
 					+ getInstanceType());
+		}
+		
+
+		Integer timeout = getPropertyCacheTimeoutMillis();
+		
+		if (timeout < 0 && conf.getProperty(PRELOAD_PROPERTIES) != null) {
+			throw new IllegalArgumentException(
+					"You cannot preload properties "
+							+ "without first setting #propertyCacheTimeout(int millis) "
+							+ "to a positive value.");
 		}
 	}
 
