@@ -113,7 +113,7 @@ public class InputFormatsTest {
 			job.setJarByClass(this.getClass());
 			AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration().setInstanceName(instanceName)
 					.setUser(user).setPassword(pass.getBytes())
-					.setGraphName(table).setInstanceType(InstanceType.Mini);
+					.setGraphName(table).setInstanceType(InstanceType.Mock);
 			if (Boolean.parseBoolean(args[4])) {
 
 				job.setInputFormatClass(EdgeInputFormat.class);
@@ -156,7 +156,7 @@ public class InputFormatsTest {
 			Graph g = GraphFactory.open(new AccumuloGraphConfiguration()
 					.setInstanceName(INSTANCE_NAME).setUser("root")
 					.setPassword("".getBytes()).setGraphName(TEST_TABLE_1)
-					.setInstanceType(InstanceType.Mini).getConfiguration());
+					.setInstanceType(InstanceType.Mock).getConfiguration());
 			for (int i = 0; i < 100; i++) {
 				g.addVertex(i + "");
 			}
