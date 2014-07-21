@@ -152,7 +152,7 @@ public class InputFormatsTest {
 		final String INSTANCE_NAME = "_mapreduce_instance";
 		final String TEST_TABLE_1 = "_mapreduce_table_1";
 		
-		if (true) { //!System.getProperty("os.name").startsWith("Windows")) {
+		if (!System.getProperty("os.name").startsWith("Windows")) {
 			Graph g = GraphFactory.open(new AccumuloGraphConfiguration()
 					.setInstanceName(INSTANCE_NAME).setUser("root")
 					.setPassword("".getBytes()).setGraphName(TEST_TABLE_1)
