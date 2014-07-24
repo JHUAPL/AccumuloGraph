@@ -137,6 +137,13 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 		}
 	}
 
+	/**
+	 * If the graph does not exist, whether it should be created.
+	 * An exception will be throws on instantiation if the graph
+	 * does not exist and this value is false.
+	 * @param create
+	 * @return
+	 */
 	public AccumuloGraphConfiguration create(boolean create) {
 		conf.setProperty(CREATE, create);
 		return this;
