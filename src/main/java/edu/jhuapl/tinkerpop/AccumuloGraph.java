@@ -1584,10 +1584,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 	}
 
 	public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
-		if(elementClass == null){
+		if (elementClass == null) {
 			throw ExceptionFactory.classForElementCannotBeNull();
 		}
-		
+
 		Scanner s = getKeyMetadataScanner();
 	
 		try {
@@ -1603,4 +1603,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		}
 	}
 
+	public boolean isEmpty() {
+		for (String t : config.getTableNames()) {
+			if (getScanner(t).iterator().hasNext()) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 }
