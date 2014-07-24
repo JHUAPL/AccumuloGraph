@@ -537,7 +537,7 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	}
 
 	public boolean isClear() {
-		return conf.getBoolean(CLEAR);
+		return conf.getBoolean(CLEAR, false);
 	}
 
 	public InstanceType getInstanceType() {

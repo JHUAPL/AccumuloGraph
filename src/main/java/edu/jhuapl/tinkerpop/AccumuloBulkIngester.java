@@ -15,7 +15,6 @@
 package edu.jhuapl.tinkerpop;
 
 import java.io.IOException;
-import java.util.SortedSet;
 import java.util.UUID;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -28,7 +27,6 @@ import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.GraphFactory;
@@ -94,18 +92,7 @@ public final class AccumuloBulkIngester {
 		this.config = config;
 		connector = config.getConnector();
 
-		if (config.isCreate()) {
-			TableOperations tableOps = connector.tableOperations();
-			for (String table : config.getTableNames()) {
-				if (!tableOps.exists(table)) {
-					tableOps.create(table);
-					SortedSet<Text> splits = config.getSplits();
-					if (splits != null) {
-						tableOps.addSplits(table, splits);
-					}
-				}
-			}
-		}
+		AccumuloGraphUtils.handleCreateAndClear(config);
 
 		mtbw = connector.createMultiTableBatchWriter(config
 				.getBatchWriterConfig());

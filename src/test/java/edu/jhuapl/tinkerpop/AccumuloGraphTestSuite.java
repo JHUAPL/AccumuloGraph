@@ -97,7 +97,7 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		assertTrue(qname.equals(v.getProperty("qname")));
 	}
 
-	public void testCreate() throws Exception {
+	public void testCreateAndClear() throws Exception {
 		AccumuloGraphConfiguration cfg =
 				AccumuloGraphTestUtils.generateGraphConfig("noCreate").create(false);
 		try {
@@ -111,10 +111,22 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		for (String t : cfg.getTableNames()) {
 			assertFalse(cfg.getConnector().tableOperations().exists(t));
 		}
-		new AccumuloGraph(cfg);
+		AccumuloGraph graph = new AccumuloGraph(cfg);
 		for (String t : cfg.getTableNames()) {
 			assertTrue(cfg.getConnector().tableOperations().exists(t));
 		}
+		graph.shutdown();
+
+		graph = new AccumuloGraph(cfg.create(false));
+		assertTrue(graph.isEmpty());
+		graph.addVertex("A");
+		graph.addVertex("B");
+		assertFalse(graph.isEmpty());
+		graph.shutdown();
+
+		graph = new AccumuloGraph(cfg.setClear(true));
+		assertTrue(graph.isEmpty());
+		graph.shutdown();
 	}
 
 	public void testIsEmpty() throws Exception {

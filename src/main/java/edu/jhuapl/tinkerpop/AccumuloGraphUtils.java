@@ -14,6 +14,14 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.io.IOException;
+import java.util.SortedSet;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.TableExistsException;
+import org.apache.accumulo.core.client.TableNotFoundException;
+import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.Text;
 
@@ -37,4 +45,64 @@ final class AccumuloGraphUtils {
 		return new Value(val.getBytes());
 	}
 
+	static void handleCreateAndClear(AccumuloGraphConfiguration cfg) {
+		try {
+			TableOperations tableOps = cfg.getConnector().tableOperations();
+
+			// Track whether tables existed before we do anything.
+			boolean existedBeforeClear = false;
+			for (String table : cfg.getTableNames()) {
+				if (tableOps.exists(table)) {
+					existedBeforeClear = true;
+					break;
+				}
+			}
+
+			// Check edge cases.
+			// No tables exist, and we are not allowed to create.
+			if (!existedBeforeClear && !cfg.isCreate()) {
+				throw new IllegalArgumentException("Graph does not exist, and create option is disabled");
+			}
+			// Tables exist, and we are not clearing them.
+			else if (existedBeforeClear && !cfg.isClear()) {
+				// Do nothing.
+				return;
+			}
+
+			// We want to clear tables, so do it.
+			if (cfg.isClear()) {
+				for (String table : cfg.getTableNames()) {
+					if (tableOps.exists(table)) {
+						tableOps.delete(table);
+					}
+				}
+			}
+
+			// Tables existed, or we want to create them. So do it.
+			if (existedBeforeClear || cfg.isCreate()) {
+				for (String table : cfg.getTableNames()) {
+					if (!tableOps.exists(table)) {
+						tableOps.create(table);
+						SortedSet<Text> splits = cfg.getSplits();
+						if (splits != null) {
+							tableOps.addSplits(table, splits);
+						}
+					}
+				}
+			}
+
+		} catch (AccumuloException e) {
+			throw new IllegalArgumentException(e);
+		} catch (AccumuloSecurityException e) {
+			throw new IllegalArgumentException(e);
+		} catch (IOException e) {
+			throw new IllegalArgumentException(e);
+		} catch (InterruptedException e) {
+			throw new IllegalArgumentException(e);
+		} catch (TableNotFoundException e) {
+			throw new IllegalArgumentException(e);
+		} catch (TableExistsException e) {
+			throw new IllegalArgumentException(e);
+		}
+	}
 }
