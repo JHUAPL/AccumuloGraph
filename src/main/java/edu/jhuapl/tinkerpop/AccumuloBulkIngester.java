@@ -100,7 +100,7 @@ public final class AccumuloBulkIngester {
 				if (!tableOps.exists(table)) {
 					tableOps.create(table);
 					SortedSet<Text> splits = config.getSplits();
-					if(splits!=null){
+					if (splits != null) {
 						tableOps.addSplits(table, splits);
 					}
 				}

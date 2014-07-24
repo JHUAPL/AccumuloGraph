@@ -239,6 +239,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 			for (String t : config.getTableNames()) {
 				if (!to.exists(t)) {
+					if (!config.isCreate()) {
+						throw new IllegalArgumentException("Graph does not exist, and create option is disabled");
+					}
+
 					to.create(t);
 					SortedSet<Text> splits = config.getSplits();
 					if (splits != null) {
