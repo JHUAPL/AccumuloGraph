@@ -14,8 +14,6 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.util.Iterator;
-
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.HierarchicalConfiguration;
 

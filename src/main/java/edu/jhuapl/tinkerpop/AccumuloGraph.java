@@ -235,14 +235,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		}
 
 		try {
-
 			TableOperations to = config.getConnector().tableOperations();
 
 			for (String t : config.getTableNames()) {
-				if (!to.exists(t)){
+				if (!to.exists(t)) {
 					to.create(t);
 					SortedSet<Text> splits = config.getSplits();
-					if(splits!=null){
+					if (splits != null) {
 						to.addSplits(t, splits);
 					}
 				}
@@ -262,7 +261,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
 	}
 
 	private void setupWriters() {

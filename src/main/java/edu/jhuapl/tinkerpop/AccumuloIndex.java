@@ -107,7 +107,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 		scan.setRange(new Range(new Text(id), new Text(id)));
 		scan.fetchColumnFamily(new Text(key));
 
-		return new IndexIterable<T>(parent, scan, indexedType);
+		return new IndexIterable(parent, scan, indexedType);
 	}
 
 	public CloseableIterable<T> query(String key, Object query) {
@@ -148,8 +148,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 		return parent.getScanner(tableName);
 	}
 
-	public class IndexIterable<T extends Element> implements
-			CloseableIterable<T> {
+	public class IndexIterable implements CloseableIterable<T> {
 		AccumuloGraph parent;
 		ScannerBase scan;
 		boolean isClosed;
