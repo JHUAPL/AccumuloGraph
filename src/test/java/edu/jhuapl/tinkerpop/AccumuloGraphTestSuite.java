@@ -96,4 +96,16 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		assertTrue(v.getProperty("qname") instanceof QName);
 		assertTrue(qname.equals(v.getProperty("qname")));
 	}
+
+	public void testIsEmpty() throws Exception {
+		AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig("isEmpty");
+		AccumuloGraph graph = new AccumuloGraph(cfg);
+		assertTrue(graph.isEmpty());
+
+		graph.addVertex("A");
+		assertFalse(graph.isEmpty());
+
+		graph.clear();
+		assertTrue(graph.isEmpty());
+	}
 }
