@@ -111,7 +111,6 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		for (String t : cfg.getTableNames()) {
 			assertFalse(cfg.getConnector().tableOperations().exists(t));
 		}
-
 		new AccumuloGraph(cfg);
 		for (String t : cfg.getTableNames()) {
 			assertTrue(cfg.getConnector().tableOperations().exists(t));

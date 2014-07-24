@@ -26,5 +26,4 @@ public class AccumuloGraphTestUtils {
 				.setInstanceType(InstanceType.Mock);
 		return cfg;
 	}
-
 }
