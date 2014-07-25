@@ -18,21 +18,21 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import junit.framework.TestCase;
-
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.GraphFactory;
-import com.tinkerpop.blueprints.TestSuite;
 import com.tinkerpop.blueprints.Vertex;
 
 public class AccumuloGraphConfigurationTest {
-	
+
 	@Test
 	public void testSplits() throws Exception {
 		AccumuloGraphConfiguration cfg;
@@ -92,6 +92,7 @@ public class AccumuloGraphConfigurationTest {
 		}
 		graph.shutdown();
 	}
+
 	@Test
 	public void testPropertyValues() throws Exception {
 		AccumuloGraph graph = new AccumuloGraph(AccumuloGraphTestUtils.generateGraphConfig("propertyValues"));
@@ -102,6 +103,21 @@ public class AccumuloGraphConfigurationTest {
 		assertTrue(v.getProperty("qname") instanceof QName);
 		assertTrue(qname.equals(v.getProperty("qname")));
 	}
+
+	@Test
+	public void testIsEmpty() throws Exception {
+		AccumuloGraphConfiguration cfg =
+				AccumuloGraphTestUtils.generateGraphConfig("isEmpty");
+		AccumuloGraph graph = new AccumuloGraph(cfg);
+		assertTrue(graph.isEmpty());
+
+		graph.addVertex("A");
+		assertFalse(graph.isEmpty());
+
+		graph.clear();
+		assertTrue(graph.isEmpty());
+	}
+
 	@Test
 	public void testCreateAndClear() throws Exception {
 		AccumuloGraphConfiguration cfg =
@@ -134,16 +150,41 @@ public class AccumuloGraphConfigurationTest {
 		assertTrue(graph.isEmpty());
 		graph.shutdown();
 	}
+
 	@Test
-	public void testIsEmpty() throws Exception {
-		AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig("isEmpty");
+	public void testBulkIngester() throws Exception {
+		AccumuloGraphConfiguration cfg =
+				AccumuloGraphTestUtils.generateGraphConfig("propertyBuilder");
+
+		AccumuloBulkIngester ingester = new AccumuloBulkIngester(cfg);
+
+		for (String t : cfg.getTableNames()) {
+			assertTrue(cfg.getConnector().tableOperations().exists(t));
+		}
+
+		ingester.addVertex("A").finish();
+		ingester.addVertex("B")
+			.add("P1", "V1")
+			.add("P2", 2).finish();
+		ingester.addEdge("A", "B", "edge")
+			.add("P3", "V3").finish();
+		ingester.shutdown(true);
+
 		AccumuloGraph graph = new AccumuloGraph(cfg);
-		assertTrue(graph.isEmpty());
+		Vertex v1 = graph.getVertex("A");
+		assertNotNull(v1);
 
-		graph.addVertex("A");
-		assertFalse(graph.isEmpty());
+		Iterator<Edge> it = v1.getEdges(Direction.OUT).iterator();
+		assertTrue(it.hasNext());
 
-		graph.clear();
-		assertTrue(graph.isEmpty());
+		Edge e = it.next();
+		assertEquals("edge", e.getLabel());
+
+		Vertex v2 = e.getVertex(Direction.IN);
+		assertEquals("B", v2.getId());
+		assertEquals("V1", v2.getProperty("P1"));
+		assertEquals(2, v2.getProperty("P2"));
+
+		graph.shutdown();
 	}
 }

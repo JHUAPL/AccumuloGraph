@@ -340,7 +340,9 @@ public final class AccumuloBulkIngester {
 		 * @throws MutationsRejectedException
 		 */
 		public void finish() throws MutationsRejectedException {
-			writer.addMutation(mutation);
+			if (mutation.size() > 0) {
+				writer.addMutation(mutation);
+			}
 		}
 
 		/**
