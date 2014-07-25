@@ -121,7 +121,7 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 		// set some defaults
 		setMaxWriteLatency(60000L).setMaxWriteMemory(1024L * 1024 * 20)
 				.setMaxWriteThreads(3).setMaxWriteTimeout(Long.MAX_VALUE)
-				.autoFlush(true).create(false)
+				.autoFlush(true).setCreate(false)
 				.setInstanceType(InstanceType.Distributed)
 				.setAuthorizations(Constants.NO_AUTHS).setQueryThreads(3)
 				.skipExistenceChecks(false);
@@ -137,6 +137,10 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 		}
 	}
 
+	public AccumuloGraphConfiguration(AccumuloGraphConfiguration config) {
+		this(config.getConfiguration());
+	}
+
 	/**
 	 * If the graph does not exist, whether it should be created.
 	 * An exception will be throws on instantiation if the graph
@@ -144,7 +148,7 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	 * @param create
 	 * @return
 	 */
-	public AccumuloGraphConfiguration create(boolean create) {
+	public AccumuloGraphConfiguration setCreate(boolean create) {
 		conf.setProperty(CREATE, create);
 		return this;
 	}
@@ -388,7 +392,7 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	/**
 	 * A space-separated, ordered list of splits to be applied to the backing
 	 * Accumulo-table. Only applied if the graph does not already exist and the
-	 * config {@link #create(boolean)} is set to true.
+	 * config {@link #setCreate(boolean)} is set to true.
 	 * 
 	 * @param splits
 	 * @return

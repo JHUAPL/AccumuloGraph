@@ -270,7 +270,13 @@ public final class AccumuloBulkIngester {
 		mtbw.close();
 		mtbw = null;
 
-		AccumuloGraph g = (AccumuloGraph) GraphFactory.open(config.getConfiguration());
+		// Disable the "create" and "clear" options so we don't blow away
+		// everything we just added.
+		AccumuloGraphConfiguration copy =
+				new AccumuloGraphConfiguration(config);
+		copy.setCreate(false).setClear(false);
+
+		AccumuloGraph g = (AccumuloGraph) GraphFactory.open(copy.getConfiguration());
 		for (String key : g.getIndexedKeys(Type.Vertex)) {
 			g.dropKeyIndex(key, Vertex.class);
 			g.createKeyIndex(key, Vertex.class);
@@ -286,7 +292,7 @@ public final class AccumuloBulkIngester {
 
 		if (compact) {
 			TableOperations tableOps = connector.tableOperations();
-			for (String table : config.getTableNames()) {
+			for (String table : copy.getTableNames()) {
 				tableOps.compact(table, null, null, true, false);
 			}
 		}
@@ -340,7 +346,9 @@ public final class AccumuloBulkIngester {
 		 * @throws MutationsRejectedException
 		 */
 		public void finish() throws MutationsRejectedException {
-			writer.addMutation(mutation);
+			if (mutation.size() > 0) {
+				writer.addMutation(mutation);
+			}
 		}
 
 		/**
