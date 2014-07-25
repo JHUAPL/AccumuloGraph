@@ -45,6 +45,10 @@ final class AccumuloGraphUtils {
 		return new Value(val.getBytes());
 	}
 
+	/**
+	 * Create and/or clear existing graph tables for the given configuration.
+	 * @param cfg
+	 */
 	static void handleCreateAndClear(AccumuloGraphConfiguration cfg) {
 		try {
 			TableOperations tableOps = cfg.getConnector().tableOperations();

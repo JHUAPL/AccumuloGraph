@@ -121,7 +121,7 @@ public class AccumuloGraphConfigurationTest {
 	@Test
 	public void testCreateAndClear() throws Exception {
 		AccumuloGraphConfiguration cfg =
-				AccumuloGraphTestUtils.generateGraphConfig("noCreate").create(false);
+				AccumuloGraphTestUtils.generateGraphConfig("noCreate").setCreate(false);
 		try {
 			new AccumuloGraph(cfg);
 			fail("Create is disabled and graph does not exist");
@@ -129,7 +129,7 @@ public class AccumuloGraphConfigurationTest {
 			assertTrue(true);
 		}
 
-		cfg = AccumuloGraphTestUtils.generateGraphConfig("yesCreate").create(true);
+		cfg = AccumuloGraphTestUtils.generateGraphConfig("yesCreate").setCreate(true);
 		for (String t : cfg.getTableNames()) {
 			assertFalse(cfg.getConnector().tableOperations().exists(t));
 		}
@@ -139,7 +139,7 @@ public class AccumuloGraphConfigurationTest {
 		}
 		graph.shutdown();
 
-		graph = new AccumuloGraph(cfg.create(false));
+		graph = new AccumuloGraph(cfg.setCreate(false));
 		assertTrue(graph.isEmpty());
 		graph.addVertex("A");
 		graph.addVertex("B");
@@ -154,7 +154,8 @@ public class AccumuloGraphConfigurationTest {
 	@Test
 	public void testBulkIngester() throws Exception {
 		AccumuloGraphConfiguration cfg =
-				AccumuloGraphTestUtils.generateGraphConfig("propertyBuilder");
+				AccumuloGraphTestUtils.generateGraphConfig("propertyBuilder")
+				.setClear(true);
 
 		AccumuloBulkIngester ingester = new AccumuloBulkIngester(cfg);
 
@@ -170,6 +171,7 @@ public class AccumuloGraphConfigurationTest {
 			.add("P3", "V3").finish();
 		ingester.shutdown(true);
 
+		cfg.setClear(false);
 		AccumuloGraph graph = new AccumuloGraph(cfg);
 		Vertex v1 = graph.getVertex("A");
 		assertNotNull(v1);
