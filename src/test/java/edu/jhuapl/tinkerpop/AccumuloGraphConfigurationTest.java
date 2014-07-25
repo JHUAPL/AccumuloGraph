@@ -14,20 +14,26 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import junit.framework.TestCase;
+
 import org.apache.hadoop.io.Text;
+import org.junit.Test;
 
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.TestSuite;
 import com.tinkerpop.blueprints.Vertex;
 
-public class AccumuloGraphTestSuite extends TestSuite {
-
+public class AccumuloGraphConfigurationTest {
+	
+	@Test
 	public void testSplits() throws Exception {
 		AccumuloGraphConfiguration cfg;
 
@@ -86,7 +92,7 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		}
 		graph.shutdown();
 	}
-
+	@Test
 	public void testPropertyValues() throws Exception {
 		AccumuloGraph graph = new AccumuloGraph(AccumuloGraphTestUtils.generateGraphConfig("propertyValues"));
 		// Tests for serialization/deserialization of properties.
@@ -96,7 +102,7 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		assertTrue(v.getProperty("qname") instanceof QName);
 		assertTrue(qname.equals(v.getProperty("qname")));
 	}
-
+	@Test
 	public void testCreateAndClear() throws Exception {
 		AccumuloGraphConfiguration cfg =
 				AccumuloGraphTestUtils.generateGraphConfig("noCreate").create(false);
@@ -128,7 +134,7 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		assertTrue(graph.isEmpty());
 		graph.shutdown();
 	}
-
+	@Test
 	public void testIsEmpty() throws Exception {
 		AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig("isEmpty");
 		AccumuloGraph graph = new AccumuloGraph(cfg);
