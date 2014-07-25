@@ -22,7 +22,8 @@ The releases are currently stored in Maven Central.
 </dependency>
 ```
 
-For non maven users, the binaries can be found in the releases section on this GitHub or you can go to the binary in Maven Central.
+For non-Maven users, the binaries can be found in the releases section in this
+GitHub repository, or you can get them from Maven Central.
 ##Code Examples
 ###Creating a new distributed graph
 ```java
