@@ -11,7 +11,18 @@ We implement the following Blueprints interfaces:
 	<br>1. Graph
 	<br>2. KeyIndexableGraph
 	<br>3. IndexableGraph
+##Usage
 
+The releases are currently stored in Maven Central.
+```xml
+<dependency>
+	<groupId>edu.jhuapl.tinkerpop</groupId>
+	<artifactId>blueprints-accumulo-graph</artifactId>
+	<version>0.0.1</version>
+</dependency>
+```
+
+For non maven users, the binaries can be found in the releases section on this GitHub or you can go to the binary in Maven Central.
 ##Code Examples
 ###Creating a new distributed graph
 ```java
