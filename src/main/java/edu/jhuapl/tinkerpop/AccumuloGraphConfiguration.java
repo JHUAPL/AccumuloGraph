@@ -357,6 +357,10 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 
 	public AccumuloGraphConfiguration setInstanceType(InstanceType type) {
 		conf.setProperty(INSTANCE_TYPE, type.toString());
+		if(type.equals(InstanceType.Mock)){
+			setUser("root");
+			setPassword("");
+		}
 		return this;
 	}
 
