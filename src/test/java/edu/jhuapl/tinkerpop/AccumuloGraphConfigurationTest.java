@@ -14,20 +14,26 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import static org.junit.Assert.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import junit.framework.TestCase;
+
 import org.apache.hadoop.io.Text;
+import org.junit.Test;
 
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.TestSuite;
 import com.tinkerpop.blueprints.Vertex;
 
-public class AccumuloGraphTestSuite extends TestSuite {
-
+public class AccumuloGraphConfigurationTest {
+	
+	@Test
 	public void testSplits() throws Exception {
 		AccumuloGraphConfiguration cfg;
 
@@ -86,7 +92,7 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		}
 		graph.shutdown();
 	}
-
+	@Test
 	public void testPropertyValues() throws Exception {
 		AccumuloGraph graph = new AccumuloGraph(AccumuloGraphTestUtils.generateGraphConfig("propertyValues"));
 		// Tests for serialization/deserialization of properties.
@@ -96,7 +102,39 @@ public class AccumuloGraphTestSuite extends TestSuite {
 		assertTrue(v.getProperty("qname") instanceof QName);
 		assertTrue(qname.equals(v.getProperty("qname")));
 	}
+	@Test
+	public void testCreateAndClear() throws Exception {
+		AccumuloGraphConfiguration cfg =
+				AccumuloGraphTestUtils.generateGraphConfig("noCreate").create(false);
+		try {
+			new AccumuloGraph(cfg);
+			fail("Create is disabled and graph does not exist");
+		} catch (Exception e) {
+			assertTrue(true);
+		}
 
+		cfg = AccumuloGraphTestUtils.generateGraphConfig("yesCreate").create(true);
+		for (String t : cfg.getTableNames()) {
+			assertFalse(cfg.getConnector().tableOperations().exists(t));
+		}
+		AccumuloGraph graph = new AccumuloGraph(cfg);
+		for (String t : cfg.getTableNames()) {
+			assertTrue(cfg.getConnector().tableOperations().exists(t));
+		}
+		graph.shutdown();
+
+		graph = new AccumuloGraph(cfg.create(false));
+		assertTrue(graph.isEmpty());
+		graph.addVertex("A");
+		graph.addVertex("B");
+		assertFalse(graph.isEmpty());
+		graph.shutdown();
+
+		graph = new AccumuloGraph(cfg.setClear(true));
+		assertTrue(graph.isEmpty());
+		graph.shutdown();
+	}
+	@Test
 	public void testIsEmpty() throws Exception {
 		AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig("isEmpty");
 		AccumuloGraph graph = new AccumuloGraph(cfg);

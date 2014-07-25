@@ -52,11 +52,6 @@ public class AccumuloGraphTest extends GraphTest {
 		printTestPerformance("GraphTestSuite", this.stopWatch());
 	}
 
-	public void testAccumuloGraphTestSuite() throws Exception {
-		this.stopWatch();
-		doTestSuite(new AccumuloGraphTestSuite());
-		printTestPerformance("AccumuloGraphTestSuite", this.stopWatch());
-	}
 
 	public void testKeyIndexableGraphTestSuite() throws Exception {
 		this.stopWatch();

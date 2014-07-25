@@ -234,35 +234,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 					config.getEdgeCacheTimeoutMillis());
 		}
 
-		try {
+		AccumuloGraphUtils.handleCreateAndClear(config);
 
-			TableOperations to = config.getConnector().tableOperations();
-
-			for (String t : config.getTableNames()) {
-				if (!to.exists(t)){
-					to.create(t);
-					SortedSet<Text> splits = config.getSplits();
-					if(splits!=null){
-						to.addSplits(t, splits);
-					}
-				}
-			}
-
-			setupWriters();
-		} catch (AccumuloException e) {
-			e.printStackTrace();
-		} catch (AccumuloSecurityException e) {
-			e.printStackTrace();
-		} catch (TableExistsException e) {
-			e.printStackTrace();
-		} catch (TableNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
+		setupWriters();
 	}
 
 	private void setupWriters() {
@@ -638,7 +612,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		Iterable<Index<? extends Element>> it = this.getIndices();
 		Iterator<Index<? extends Element>> iter = it.iterator();
 		while (iter.hasNext()) {
-			AccumuloIndex in = (AccumuloIndex) iter.next();
+			AccumuloIndex<?> in = (AccumuloIndex<?>) iter.next();
 			String table = in.tableName;
 
 			BatchDeleter del = null;
@@ -1023,7 +997,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			Iterable<Index<? extends Element>> it = this.getIndices();
 			Iterator<Index<? extends Element>> iter = it.iterator();
 			while (iter.hasNext()) {
-				AccumuloIndex in = (AccumuloIndex) iter.next();
+				AccumuloIndex<?> in = (AccumuloIndex<?>) iter.next();
 				to.delete(in.tableName);
 			}
 
@@ -1081,7 +1055,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		return getVertexScanner();
 	}
 
-	@SuppressWarnings("unchecked")
 	<T> Pair<Integer, T> getProperty(Type type, String id, String key) {
 		Text colf = null;
 		if (StringFactory.LABEL.equals(key)) {

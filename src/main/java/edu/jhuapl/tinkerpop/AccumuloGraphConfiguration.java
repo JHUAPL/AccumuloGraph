@@ -44,15 +44,10 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
 
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
-
 public class AccumuloGraphConfiguration  implements	Serializable {
 
-	
-	
 	private Configuration conf; 
-	
-	
+
 	/**
 	 * The fully-qualified class name of the class that implements the TinkerPop
 	 * Graph interface. This is used in a configuration object to tell the
@@ -91,6 +86,7 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	public static final String AUTHORIZATIONS = "blueprints.accumulo.authorizations";
 	public static final String AUTO_FLUSH = "blueprints.accumulo.auto.flush";
 	public static final String CREATE = "blueprints.accumulo.create";
+	public static final String CLEAR = "blueprints.accumulo.clear";
 	public static final String SPLITS = "blueprints.accumulo.splits";
 	public static final String COLVIS = "blueprints.accumulo.columnVisibility";
 	public static final String SKIP_CHECKS = "blueprints.accumulo.skipExistenceChecks";
@@ -141,14 +137,29 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 		}
 	}
 
-	
-
+	/**
+	 * If the graph does not exist, whether it should be created.
+	 * An exception will be throws on instantiation if the graph
+	 * does not exist and this value is false.
+	 * @param create
+	 * @return
+	 */
 	public AccumuloGraphConfiguration create(boolean create) {
 		conf.setProperty(CREATE, create);
 		return this;
 	}
-	
-	public Configuration getConfiguration(){
+
+	/**
+	 * Whether to clear out an existing graph upon instantiation.
+	 * @param clear
+	 * @return
+	 */
+	public AccumuloGraphConfiguration setClear(boolean clear) {
+		conf.setProperty(CLEAR, clear);
+		return this;
+	}
+
+	public Configuration getConfiguration() {
 		return conf;
 	}
 
@@ -346,6 +357,10 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 
 	public AccumuloGraphConfiguration setInstanceType(InstanceType type) {
 		conf.setProperty(INSTANCE_TYPE, type.toString());
+		if(type.equals(InstanceType.Mock)){
+			setUser("root");
+			setPassword("");
+		}
 		return this;
 	}
 
@@ -530,6 +545,10 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 
 	public boolean isCreate() {
 		return conf.getBoolean(CREATE);
+	}
+
+	public boolean isClear() {
+		return conf.getBoolean(CLEAR, false);
 	}
 
 	public InstanceType getInstanceType() {
