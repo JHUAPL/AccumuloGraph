@@ -189,7 +189,6 @@ public class InputFormatsTest {
 					0,
 					MRTester.main(new String[] { "root", "", TEST_TABLE_1,
 							INSTANCE_NAME, "true" }));
-			System.out.println(e1);
 			assertNull(e1);
 			assertNull(e2);
 		}

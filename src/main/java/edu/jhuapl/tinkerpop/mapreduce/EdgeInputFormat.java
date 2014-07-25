@@ -58,7 +58,6 @@ public class EdgeInputFormat extends InputFormatBase<Text, Edge> {
 				conf.setInstanceName(EdgeInputFormat.getInstance(attempt).getInstanceName());
 				conf.setUser(EdgeInputFormat.getPrincipal(attempt));
 				conf.setPassword(EdgeInputFormat.getToken(attempt));
-				System.out.println(conf.getPassword());
 				conf.setGraphName(attempt.getConfiguration().get(AccumuloGraphConfiguration.GRAPH_NAME));
 				if(EdgeInputFormat.getInstance(attempt) instanceof MockInstance){
 					conf.setInstanceType(InstanceType.Mock);
