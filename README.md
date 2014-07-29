@@ -101,11 +101,36 @@ Row ID | Column Family | Column Qualifier | Value
 ---|---|---|---
 Index Name| Index Class |[empty]|[empty]
 ##Advanced Configuration
-###Basic Accumulo Control
-TODO
-###Advanced Accumulo Control
-TODO
+###Graph Configuration
+- setGraphName(String name)
+- setCreate(boolean create) - Sets if the backing graph tables should be created if they do not exist.
+- setClear(boolean clear) - Sets if the backing graph tables should be reset if they exist.
+- autoFlush(boolean autoFlush) - Sets if each graph element and property change will be flushed to the server.
+- skipExistenceChecks(boolean skip) - Sets if you want to skip existance checks when creating graph elemenets
+###Accumulo Control
+- setUser(String user) - Sets the user to use when connecting to Accumulo
+- setPassword(byte[] password | String password) - Sets the password to use when connecting to Accumulo
+- setZookeeperHosts(String zookeeperHosts) - Sets the Zookeepers to connect to.
+- setInstanceName(String instance) - Sets the Instance name to use when connecting to Zookeeper
+- setInstanceType(InstanceType type) - Sets the type of Instance to use : Distrubuted, Mini, or Mock. Defaults to Distrubuted
+
+- setQueryThreads(int threads) - Specifies the number of threads to use in scanners. Defaults to 3
+- setMaxWriteLatency(long latency) - Sets the latency to be used for all writes to Accumulo
+- setMaxWriteTimeout(long timeout) - Sets the timeout to be used for all writes to Accumulo
+- setMaxWriteMemory(long mem) - Sets the memory buffer to be used for all writes to Accumulo
+- setMaxWriteThreads(int threads) - Sets the number of threads to be used for all writes to Accumulo
+
+- setAuthorizations(Authorizations auths) - Sets the authorizations to use when accessing the graph
+- setColumnVisibility(ColumnVisibility colVis) - TODO
+- setSplits(String splits | String[] splits) - Sets the splits to use when creating tables. Can be a space sperated list or an array of splits 
+- setMiniClusterTempDir(String dir) - Sets directory to use as the temp directory for the Mini cluster
+
 ###Caching
-TODO
+- setLruMaxCapacity(int max) - TODO
+- setVertexCacheTimeout(int millis) - Sets the vertex cache timeout.  A value <=0 clears the value
+- setEdgeCacheTimeout(int millis)  - Sets the edge cache timeout.  A value <=0 clears the value
 ###Preloading
-TODO
+- setPropertyCacheTimeout(int millis) - Sets the element property cache timeout. A value <=0 clears the value
+- setPreloadedProperties(String[] propertyKeys) - Sets the property keys that should be preloaded. Requiers a positive timout.
+- setPreloadedEdgeLabels(String[] edgeLabels) - TODO
+
