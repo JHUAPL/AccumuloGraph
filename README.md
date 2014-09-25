@@ -106,7 +106,8 @@ Index Name| Index Class |[empty]|[empty]
 - setCreate(boolean create) - Sets if the backing graph tables should be created if they do not exist.
 - setClear(boolean clear) - Sets if the backing graph tables should be reset if they exist.
 - autoFlush(boolean autoFlush) - Sets if each graph element and property change will be flushed to the server.
-- skipExistenceChecks(boolean skip) - Sets if you want to skip existance checks when creating graph elemenets
+- skipExistenceChecks(boolean skip) - Sets if you want to skip existance checks when creating graph elemenets.
+- setAutoIndex(boolean ison) - Turns on/off automatic indexing.
 
 ###Accumulo Control
 
