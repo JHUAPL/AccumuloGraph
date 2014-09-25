@@ -675,7 +675,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
 	public Iterable<Vertex> getVertices(String key, Object value) {
 		checkProperty(key, value);
-		if (getIndexedKeys(Vertex.class).contains(key)) {
+		if (config.isAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
 			// Use the index
 			Scanner s = getVertexIndexScanner();
 			byte[] val = AccumuloByteSerializer.serialize(value);
@@ -911,7 +911,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			 key=SLABEL;
 		 }
 
-		 if (getIndexedKeys(Edge.class).contains(key)) {
+		 if (config.isAutoIndex() || getIndexedKeys(Edge.class).contains(key)) {
 				// Use the index
 				Scanner s = getEdgeIndexScanner();
 				byte[] val = AccumuloByteSerializer.serialize(value);
@@ -1097,7 +1097,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 		}
 
 		Iterator<Entry<Key, Value>> iter = s.iterator();
-		int timeout = config.getPropertyCacheTimeoutMillis(); //Change this
+		Integer timeout = config.getPropertyCacheTimeoutMillis(); //Change this
 		while (iter.hasNext()) {
 			Entry<Key, Value> entry = iter.next();
 			Object val = AccumuloByteSerializer.desserialize(entry.getValue()
@@ -1142,7 +1142,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 			byte[] newByteVal = AccumuloByteSerializer.serialize(val);
 			Mutation m = null;
 
-			if (getIndexedKeys(type).contains(key)) {
+			if (config.isAutoIndex() || getIndexedKeys(type).contains(key)) {
 				BatchWriter bw = getIndexBatchWriter(type);
 				Object old = getProperty(type, id, key).getSecond();
 				if (old != null) {
@@ -1278,15 +1278,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 				return new AccumuloVertex(AccumuloGraph.this, parts[0]);
 			}
 		};
-	}
-
-	private byte[] toTag(Direction d) {
-		if (d.equals(Direction.IN)) {
-			return INEDGE;
-		} else if (d.equals(Direction.OUT)) {
-			return OUTEDGE;
-		}
-		return null;
 	}
 
 	Vertex getEdgeVertex(String edgeId, Direction direction) {
