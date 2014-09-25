@@ -78,6 +78,11 @@ public void map(Text k, Vertex v, Context c) {
     System.out.println(v.getId().toString());
 }
  ``` 
+
+##Contributing
+Feel free to sumbit issues for any bugs or features you would like to see. We are open to fork/pull requests.
+
+
 ##Table Design
 ###Vertex Table
 Row ID | Column Family | Column Qualifier | Value
