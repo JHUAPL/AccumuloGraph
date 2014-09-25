@@ -398,6 +398,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       f.supportsVertexIteration = true;
       f.supportsVertexKeyIndex = true;
       f.supportsVertexProperties = true;
+      f.supportsThreadIsolatedTransactions=false;
     }
     return f;
   }
