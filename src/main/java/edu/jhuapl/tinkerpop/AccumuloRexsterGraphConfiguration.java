@@ -28,27 +28,23 @@ import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloRexsterGraphConfiguration implements GraphConfiguration {
 
-	@Override
-	public Graph configureGraphInstance(GraphConfigurationContext context)
-			throws GraphConfigurationException {
+  @Override
+  public Graph configureGraphInstance(GraphConfigurationContext context) throws GraphConfigurationException {
 
-		Configuration conf = context.getProperties();
-		try {
-			conf = ((HierarchicalConfiguration) conf)
-					.configurationAt(Tokens.REXSTER_GRAPH_PROPERTIES);
-		} catch (IllegalArgumentException iae) {
-			throw new GraphConfigurationException(
-					"Check graph configuration. Missing or empty configuration element: "
-							+ Tokens.REXSTER_GRAPH_PROPERTIES);
-		}
+    Configuration conf = context.getProperties();
+    try {
+      conf = ((HierarchicalConfiguration) conf).configurationAt(Tokens.REXSTER_GRAPH_PROPERTIES);
+    } catch (IllegalArgumentException iae) {
+      throw new GraphConfigurationException("Check graph configuration. Missing or empty configuration element: " + Tokens.REXSTER_GRAPH_PROPERTIES);
+    }
 
-		AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration(conf);
-		if(cfg.getInstanceType().equals(InstanceType.Mock)){
-			cfg.setPassword("".getBytes());
-			cfg.setUser("root");
-		}
-		cfg.setGraphName(context.getProperties().getString(Tokens.REXSTER_GRAPH_NAME));
-		return GraphFactory.open(cfg.getConfiguration());
-	}
+    AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration(conf);
+    if (cfg.getInstanceType().equals(InstanceType.Mock)) {
+      cfg.setPassword("".getBytes());
+      cfg.setUser("root");
+    }
+    cfg.setGraphName(context.getProperties().getString(Tokens.REXSTER_GRAPH_NAME));
+    return GraphFactory.open(cfg.getConfiguration());
+  }
 
 }

@@ -23,56 +23,54 @@ import edu.jhuapl.tinkerpop.AccumuloGraph;
 
 public class MapReduceEdge extends MapReduceElement implements Edge {
 
-	String sourceId;
-	String label;
-	String destinationId;
-	
-	MapReduceEdge(AccumuloGraph parent){
-		super(parent);
-	}
-	
-	void setSourceId(String id){
-		sourceId = id;
-	}
-	
-	void setDestId(String id){
-		destinationId = id;
-	}
-	MapReduceEdge(AccumuloGraph parent, String id, String src, String label,
-			String dest) {
-		super(parent);
-		prepareId(id);
-		this.sourceId = src;
-		this.label = label;
-		this.destinationId = dest;
-	}
+  String sourceId;
+  String label;
+  String destinationId;
 
-	@Override
-	public String getLabel() {
-		return label;
-	}
+  MapReduceEdge(AccumuloGraph parent) {
+    super(parent);
+  }
 
-	@Override
-	public Vertex getVertex(Direction direction)
-			throws IllegalArgumentException {
-		return parent.getVertex(getVertexId(direction));
-	}
+  void setSourceId(String id) {
+    sourceId = id;
+  }
 
-	public String getVertexId(Direction direction)
-			throws IllegalArgumentException {
-		switch (direction) {
-		case IN:
-			return destinationId;
-		case OUT:
-			return sourceId;
-		case BOTH:
-		default:
-			throw ExceptionFactory.bothIsNotSupported();
-		}
-	}
+  void setDestId(String id) {
+    destinationId = id;
+  }
 
-	public void setLabel(String label) {
-		this.label = label; 
-	}
+  MapReduceEdge(AccumuloGraph parent, String id, String src, String label, String dest) {
+    super(parent);
+    prepareId(id);
+    this.sourceId = src;
+    this.label = label;
+    this.destinationId = dest;
+  }
+
+  @Override
+  public String getLabel() {
+    return label;
+  }
+
+  @Override
+  public Vertex getVertex(Direction direction) throws IllegalArgumentException {
+    return parent.getVertex(getVertexId(direction));
+  }
+
+  public String getVertexId(Direction direction) throws IllegalArgumentException {
+    switch (direction) {
+      case IN:
+        return destinationId;
+      case OUT:
+        return sourceId;
+      case BOTH:
+      default:
+        throw ExceptionFactory.bothIsNotSupported();
+    }
+  }
+
+  public void setLabel(String label) {
+    this.label = label;
+  }
 
 }

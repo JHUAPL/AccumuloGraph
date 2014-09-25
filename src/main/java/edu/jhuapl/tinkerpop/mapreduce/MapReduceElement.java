@@ -30,125 +30,120 @@ import com.tinkerpop.blueprints.Graph;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 
-public abstract class MapReduceElement implements Element,
-		WritableComparable<MapReduceElement> {
+public abstract class MapReduceElement implements Element, WritableComparable<MapReduceElement> {
 
-	protected String id;
+  protected String id;
 
-	protected Map<String, Object> properties;
+  protected Map<String,Object> properties;
 
-	AccumuloGraph parent;
+  AccumuloGraph parent;
 
-	MapReduceElement(AccumuloGraph parent) {
-		this.parent = parent;
-		properties = new HashMap<String, Object>();
-	}
+  MapReduceElement(AccumuloGraph parent) {
+    this.parent = parent;
+    properties = new HashMap<String,Object>();
+  }
 
-	void prepareId(String id) {
-		this.id = id;
-	}
+  void prepareId(String id) {
+    this.id = id;
+  }
 
-	void prepareProperty(String key, Object property) {
-		properties.put(key, property);
-	}
+  void prepareProperty(String key, Object property) {
+    properties.put(key, property);
+  }
 
-	@Override
-	public Object getId() {
-		return id;
-	}
+  @Override
+  public Object getId() {
+    return id;
+  }
 
-	@Override
-	public <T> T getProperty(String key) {
-		return (T) properties.get(key);
-	}
+  @Override
+  public <T> T getProperty(String key) {
+    return (T) properties.get(key);
+  }
 
-	@Override
-	public Set<String> getPropertyKeys() {
-		return new HashSet<String>(properties.keySet());
-	}
+  @Override
+  public Set<String> getPropertyKeys() {
+    return new HashSet<String>(properties.keySet());
+  }
 
-	@Override
-	public void remove() {
-		throw new UnsupportedOperationException(
-				"You cannot remove an element during a MapReduce job.");
-	}
+  @Override
+  public void remove() {
+    throw new UnsupportedOperationException("You cannot remove an element during a MapReduce job.");
+  }
 
-	@Override
-	public <T> T removeProperty(String key) {
-		throw new UnsupportedOperationException(
-				"You cannot modify an element during a MapReduce job.");
-	}
+  @Override
+  public <T> T removeProperty(String key) {
+    throw new UnsupportedOperationException("You cannot modify an element during a MapReduce job.");
+  }
 
-	@Override
-	public void setProperty(String key, Object value) {
-		throw new UnsupportedOperationException(
-				"You cannot modify an element during a MapReduce job.");
-	}
+  @Override
+  public void setProperty(String key, Object value) {
+    throw new UnsupportedOperationException("You cannot modify an element during a MapReduce job.");
+  }
 
-	protected Graph getParent() {
-		return parent;
-	}
+  protected Graph getParent() {
+    return parent;
+  }
 
-	@Override
-	public void readFields(DataInput in) throws IOException {
-		prepareId(in.readUTF());
+  @Override
+  public void readFields(DataInput in) throws IOException {
+    prepareId(in.readUTF());
 
-		properties.clear();
-		int count = in.readInt();
-		for (int i = 0; i < count; i++) {
-			String key = in.readUTF();
-			byte[] data = new byte[in.readInt()];
-			in.readFully(data);
-			Object val = AccumuloByteSerializer.desserialize(data);
-			properties.put(key, val);
-		}
-	}
+    properties.clear();
+    int count = in.readInt();
+    for (int i = 0; i < count; i++) {
+      String key = in.readUTF();
+      byte[] data = new byte[in.readInt()];
+      in.readFully(data);
+      Object val = AccumuloByteSerializer.desserialize(data);
+      properties.put(key, val);
+    }
+  }
 
-	@Override
-	public void write(DataOutput out) throws IOException {
-		out.writeUTF(id);
-		out.writeInt(properties.size());
-		for (String key : properties.keySet()) {
-			out.writeUTF(key);
-			byte[] data = AccumuloByteSerializer.serialize(properties.get(key));
-			out.writeInt(data.length);
-			out.write(data);
-		}
-	}
+  @Override
+  public void write(DataOutput out) throws IOException {
+    out.writeUTF(id);
+    out.writeInt(properties.size());
+    for (String key : properties.keySet()) {
+      out.writeUTF(key);
+      byte[] data = AccumuloByteSerializer.serialize(properties.get(key));
+      out.writeInt(data.length);
+      out.write(data);
+    }
+  }
 
-	@Override
-	public int compareTo(MapReduceElement other) {
-		int val = this.id.compareTo(other.id);
-		if (val != 0) {
-			return val;
-		}
-		return getClass().getSimpleName().compareTo(
-				other.getClass().getSimpleName());
-	}
+  @Override
+  public int compareTo(MapReduceElement other) {
+    int val = this.id.compareTo(other.id);
+    if (val != 0) {
+      return val;
+    }
+    return getClass().getSimpleName().compareTo(other.getClass().getSimpleName());
+  }
 
-	public boolean equals(Object object) {
-		if (object == this) {
-			return true;
-		} else if (object == null) {
-			return false;
-		} else if (!object.getClass().equals(getClass())) {
-			return false;
-		} else {
-			Element element = (Element) object;
-			if (id == null) {
-				return element.getId() == null;
-			} else {
-				return id.equals(element.getId());
-			}
-		}
-	}
+  public boolean equals(Object object) {
+    if (object == this) {
+      return true;
+    } else if (object == null) {
+      return false;
+    } else if (!object.getClass().equals(getClass())) {
+      return false;
+    } else {
+      Element element = (Element) object;
+      if (id == null) {
+        return element.getId() == null;
+      } else {
+        return id.equals(element.getId());
+      }
+    }
+  }
 
-	public int hashCode() {
-		int hash = 31 * getClass().hashCode();
-		if (id != null) {
-			hash ^= id.hashCode();
-		}
-		return hash;
-	}
+  public int hashCode() {
+    int hash = 31 * getClass().hashCode();
+    if (id != null) {
+      hash ^= id.hashCode();
+    }
+    return hash;
+  }
 
 }

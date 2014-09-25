@@ -20,21 +20,21 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 
 public enum EntryLocation {
-	
-	Row, ColF, ColQ, Value;
 
-	public String extract(Entry<Key, Value> entry) {
-		switch (this) {
-		case Row:
-			return entry.getKey().getRow().toString();
-		case ColF:
-			return entry.getKey().getColumnFamily().toString();
-		case ColQ:
-			return entry.getKey().getColumnQualifier().toString();
-		case Value:
-			return new String(entry.getValue().get());
-		default:
-			throw new AccumuloGraphException("Unexpected type: " + this);
-		}
-	}
+  Row, ColF, ColQ, Value;
+
+  public String extract(Entry<Key,Value> entry) {
+    switch (this) {
+      case Row:
+        return entry.getKey().getRow().toString();
+      case ColF:
+        return entry.getKey().getColumnFamily().toString();
+      case ColQ:
+        return entry.getKey().getColumnQualifier().toString();
+      case Value:
+        return new String(entry.getValue().get());
+      default:
+        throw new AccumuloGraphException("Unexpected type: " + this);
+    }
+  }
 }

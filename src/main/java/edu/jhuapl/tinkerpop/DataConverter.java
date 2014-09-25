@@ -18,25 +18,24 @@ import org.apache.accumulo.core.data.Value;
 
 public class DataConverter {
 
-	public static Value toValue(Object data) {
-		if (data instanceof String) {
-			String val = "S" + data;
-			return new Value(val.getBytes());
-		} else if (data instanceof Value) {
-			return (Value) data;
-		}
+  public static Value toValue(Object data) {
+    if (data instanceof String) {
+      String val = "S" + data;
+      return new Value(val.getBytes());
+    } else if (data instanceof Value) {
+      return (Value) data;
+    }
 
-		throw new UnsupportedOperationException("TODO: handle "
-				+ data.getClass());
-	}
+    throw new UnsupportedOperationException("TODO: handle " + data.getClass());
+  }
 
-	@SuppressWarnings("unchecked")
-	public static <T> T fromValue(Value value) {
-		byte[] data = value.get();
-		switch (data[0]) {
-		case 'S':
-			return (T) new String(data, 1, data.length - 1);
-		}
-		throw new UnsupportedOperationException("TODO: handle type: " + data[0]);
-	}
+  @SuppressWarnings("unchecked")
+  public static <T> T fromValue(Value value) {
+    byte[] data = value.get();
+    switch (data[0]) {
+      case 'S':
+        return (T) new String(data, 1, data.length - 1);
+    }
+    throw new UnsupportedOperationException("TODO: handle type: " + data[0]);
+  }
 }

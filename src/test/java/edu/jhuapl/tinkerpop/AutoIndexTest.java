@@ -16,46 +16,41 @@ import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
 public class AutoIndexTest {
-	
-	
-	@Test
-	public void testIndexCreation() throws AccumuloException, AccumuloSecurityException, IOException, InterruptedException{
-		AccumuloGraph ag = (AccumuloGraph) GraphFactory.open(AccumuloGraphTestUtils.generateGraphConfig("AutoIndexTest").setAutoIndex(true).getConfiguration());
-		String VERT = "1234";
-		String KEY = "name";
-		String VALUE = "bananaman";
-		
-		
-		Vertex v1 = ag.addVertex(VERT);
-		v1.setProperty(KEY, VALUE);
-		
-		
-		Scanner scan = ag.getVertexIndexScanner();
-		for(Entry<Key, Value> kv : scan){
-			assertEquals(new String(AccumuloByteSerializer.serialize(VALUE)), kv.getKey().getRow().toString());
-			assertEquals(KEY, kv.getKey().getColumnFamily().toString());
-			assertEquals(VERT, kv.getKey().getColumnQualifier().toString());
-		}
-		
-	}
-	
-	@Test
-	public void testRegularCreation() throws AccumuloException, AccumuloSecurityException, IOException, InterruptedException{
-		AccumuloGraph ag = (AccumuloGraph) GraphFactory.open(AccumuloGraphTestUtils.generateGraphConfig("NoAutoIndexTest").getConfiguration());
-		String VERT = "1234";
-		String KEY = "name";
-		String VALUE = "bananaman";
-		
-		
-		Vertex v1 = ag.addVertex(VERT);
-		v1.setProperty(KEY, VALUE);
-		
-		
-		Scanner scan = ag.getVertexIndexScanner();
-		for(Entry<Key, Value> kv : scan){
-			assertTrue(false);
-		}
-		
-	}
+
+  @Test
+  public void testIndexCreation() throws AccumuloException, AccumuloSecurityException, IOException, InterruptedException {
+    AccumuloGraph ag = (AccumuloGraph) GraphFactory.open(AccumuloGraphTestUtils.generateGraphConfig("AutoIndexTest").setAutoIndex(true).getConfiguration());
+    String VERT = "1234";
+    String KEY = "name";
+    String VALUE = "bananaman";
+
+    Vertex v1 = ag.addVertex(VERT);
+    v1.setProperty(KEY, VALUE);
+
+    Scanner scan = ag.getVertexIndexScanner();
+    for (Entry<Key,Value> kv : scan) {
+      assertEquals(new String(AccumuloByteSerializer.serialize(VALUE)), kv.getKey().getRow().toString());
+      assertEquals(KEY, kv.getKey().getColumnFamily().toString());
+      assertEquals(VERT, kv.getKey().getColumnQualifier().toString());
+    }
+
+  }
+
+  @Test
+  public void testRegularCreation() throws AccumuloException, AccumuloSecurityException, IOException, InterruptedException {
+    AccumuloGraph ag = (AccumuloGraph) GraphFactory.open(AccumuloGraphTestUtils.generateGraphConfig("NoAutoIndexTest").getConfiguration());
+    String VERT = "1234";
+    String KEY = "name";
+    String VALUE = "bananaman";
+
+    Vertex v1 = ag.addVertex(VERT);
+    v1.setProperty(KEY, VALUE);
+
+    Scanner scan = ag.getVertexIndexScanner();
+    for (Entry<Key,Value> kv : scan) {
+      assertTrue(false);
+    }
+
+  }
 
 }

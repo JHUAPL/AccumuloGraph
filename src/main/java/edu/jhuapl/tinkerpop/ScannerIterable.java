@@ -24,59 +24,58 @@ import org.apache.accumulo.core.data.Value;
 
 import com.tinkerpop.blueprints.Element;
 
-public abstract class ScannerIterable<T extends Element> implements
-		Iterable<T>, Closeable {
+public abstract class ScannerIterable<T extends Element> implements Iterable<T>, Closeable {
 
-	AccumuloGraph parent;
-	ScannerBase scanner;
+  AccumuloGraph parent;
+  ScannerBase scanner;
 
-	ScannerIterable(AccumuloGraph parent, ScannerBase scanner) {
-		this.parent = parent;
-		this.scanner = scanner;
-	}
+  ScannerIterable(AccumuloGraph parent, ScannerBase scanner) {
+    this.parent = parent;
+    this.scanner = scanner;
+  }
 
-	@Override
-	public Iterator<T> iterator() {
-		return new ScannerIterator(scanner.iterator());
-	}
+  @Override
+  public Iterator<T> iterator() {
+    return new ScannerIterator(scanner.iterator());
+  }
 
-	public abstract T next(Iterator<Entry<Key, Value>> iterator);
+  public abstract T next(Iterator<Entry<Key,Value>> iterator);
 
-	@Override
-	public void close() {
-		if (scanner != null) {
-			scanner.close();
-			scanner = null;
-		}
-	}
+  @Override
+  public void close() {
+    if (scanner != null) {
+      scanner.close();
+      scanner = null;
+    }
+  }
 
-	@Override
-	protected void finalize() {
-		close();
-	}
+  @Override
+  protected void finalize() {
+    close();
+  }
 
-	class ScannerIterator implements Iterator<T> {
-		Iterator<Entry<Key, Value>> iterator;
+  class ScannerIterator implements Iterator<T> {
+    Iterator<Entry<Key,Value>> iterator;
 
-		ScannerIterator(Iterator<Entry<Key, Value>> iterator) {
-			this.iterator = iterator;
-		}
+    ScannerIterator(Iterator<Entry<Key,Value>> iterator) {
+      this.iterator = iterator;
+    }
 
-		@Override
-		public boolean hasNext() {
-			return iterator.hasNext();
-		}
+    @Override
+    public boolean hasNext() {
+      return iterator.hasNext();
+    }
 
-		@Override
-		public T next() {
-			return ScannerIterable.this.next(iterator);
-		}
+    @Override
+    public T next() {
+      return ScannerIterable.this.next(iterator);
+    }
 
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
+    @Override
+    public void remove() {
+      throw new UnsupportedOperationException();
+    }
 
-	}
+  }
 
 }

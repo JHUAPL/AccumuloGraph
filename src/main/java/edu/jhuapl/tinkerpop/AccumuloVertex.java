@@ -24,32 +24,32 @@ import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
 
 public class AccumuloVertex extends AccumuloElement implements Vertex {
 
-	AccumuloVertex(AccumuloGraph parent, String id) {
-		super(parent, id, Type.Vertex);
-	}
+  AccumuloVertex(AccumuloGraph parent, String id) {
+    super(parent, id, Type.Vertex);
+  }
 
-	public Iterable<Edge> getEdges(Direction direction, String... labels) {
-		return parent.getEdges(id, direction, labels);
-	}
+  public Iterable<Edge> getEdges(Direction direction, String... labels) {
+    return parent.getEdges(id, direction, labels);
+  }
 
-	public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-		return parent.getVertices(id, direction, labels);
-	}
+  public Iterable<Vertex> getVertices(Direction direction, String... labels) {
+    return parent.getVertices(id, direction, labels);
+  }
 
-	public VertexQuery query() {
-		return new DefaultVertexQuery(this);
-	}
+  public VertexQuery query() {
+    return new DefaultVertexQuery(this);
+  }
 
-	public Edge addEdge(String label, Vertex inVertex) {
-		return parent.addEdge(null, this, inVertex, label);
-	}
+  public Edge addEdge(String label, Vertex inVertex) {
+    return parent.addEdge(null, this, inVertex, label);
+  }
 
-	public void remove() {
-		parent.removeVertex(this);
-	}
+  public void remove() {
+    parent.removeVertex(this);
+  }
 
-	public String toString() {
-		return "[" + getId() + "]";
-	}
+  public String toString() {
+    return "[" + getId() + "]";
+  }
 
 }

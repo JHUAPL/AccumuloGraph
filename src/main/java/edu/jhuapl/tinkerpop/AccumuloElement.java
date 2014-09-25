@@ -26,102 +26,101 @@ import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
 
 public abstract class AccumuloElement implements Element {
 
-	protected AccumuloGraph parent;
-	protected String id;
+  protected AccumuloGraph parent;
+  protected String id;
 
-	private Type type;
+  private Type type;
 
-	private Map<String, Pair<Long, Object>> propertiesCache;
+  private Map<String,Pair<Long,Object>> propertiesCache;
 
-	protected AccumuloElement(AccumuloGraph parent, String id, Type type) {
-		this.parent = parent;
-		this.id = id;
-		this.type = type;
-	}
+  protected AccumuloElement(AccumuloGraph parent, String id, Type type) {
+    this.parent = parent;
+    this.id = id;
+    this.type = type;
+  }
 
-	public <T> T getProperty(String key) {
-		if (propertiesCache == null) {
-			// lazily create the properties cache...
+  public <T> T getProperty(String key) {
+    if (propertiesCache == null) {
+      // lazily create the properties cache...
 
-			// we will create it here just in case the parent does not actually
-			// pre-load any data. Note it also may be created in the
-			// cacheProperty method, as well, in the event a class pre-loads
-			// data before a call is made to obtain it.
-			propertiesCache = new HashMap<String, Pair<Long, Object>>();
+      // we will create it here just in case the parent does not actually
+      // pre-load any data. Note it also may be created in the
+      // cacheProperty method, as well, in the event a class pre-loads
+      // data before a call is made to obtain it.
+      propertiesCache = new HashMap<String,Pair<Long,Object>>();
 
-			parent.preloadProperties(this, type);
-		}
+      parent.preloadProperties(this, type);
+    }
 
-		Pair<Long, Object> val = propertiesCache.get(key);
-		if (val != null) {
-			if (val.getFirst() < System.currentTimeMillis()) {
-				// this cached value has timed out..
-				propertiesCache.remove(key);
-			} else {
-				// the cached value is still good...
-				return (T) val.getSecond();
-			}
-		}
-		Pair<Integer, T> pair = parent.getProperty(type, id, key);
-		if (pair.getFirst() != null) {
-			cacheProperty(key, pair.getSecond(), pair.getFirst());
-		}
-		return pair.getSecond();
-	}
+    Pair<Long,Object> val = propertiesCache.get(key);
+    if (val != null) {
+      if (val.getFirst() < System.currentTimeMillis()) {
+        // this cached value has timed out..
+        propertiesCache.remove(key);
+      } else {
+        // the cached value is still good...
+        return (T) val.getSecond();
+      }
+    }
+    Pair<Integer,T> pair = parent.getProperty(type, id, key);
+    if (pair.getFirst() != null) {
+      cacheProperty(key, pair.getSecond(), pair.getFirst());
+    }
+    return pair.getSecond();
+  }
 
-	public Set<String> getPropertyKeys() {
-		return parent.getPropertyKeys(type, id);
-	}
+  public Set<String> getPropertyKeys() {
+    return parent.getPropertyKeys(type, id);
+  }
 
-	public void setProperty(String key, Object value) {
-		Integer timeout = parent.setProperty(type, id, key, value);
-		cacheProperty(key, value, timeout);
-	}
+  public void setProperty(String key, Object value) {
+    Integer timeout = parent.setProperty(type, id, key, value);
+    cacheProperty(key, value, timeout);
+  }
 
-	public <T> T removeProperty(String key) {
-		if (propertiesCache != null) {
-			// we have the cached value but we still need to pass this on to the
-			// parent so it can actually remove the data from the backing store.
-			// Since we have to do that anyway, we will use the parent's value
-			// instead of the cache value to to be as up-to-date as possible.
-			// Of course we still need to clear out the cached value...
-			propertiesCache.remove(key);
-		}
-		return parent.removeProperty(type, id, key);
-	}
+  public <T> T removeProperty(String key) {
+    if (propertiesCache != null) {
+      // we have the cached value but we still need to pass this on to the
+      // parent so it can actually remove the data from the backing store.
+      // Since we have to do that anyway, we will use the parent's value
+      // instead of the cache value to to be as up-to-date as possible.
+      // Of course we still need to clear out the cached value...
+      propertiesCache.remove(key);
+    }
+    return parent.removeProperty(type, id, key);
+  }
 
-	public Object getId() {
-		return id;
-	}
+  public Object getId() {
+    return id;
+  }
 
-	public boolean equals(Object obj) {
-		if (obj == null) {
-			return false;
-		} else if (obj == this) {
-			return true;
-		} else if (!obj.getClass().equals(getClass())) {
-			return false;
-		} else {
-			return this.id.equals(((AccumuloElement) obj).id);
-		}
-	}
+  public boolean equals(Object obj) {
+    if (obj == null) {
+      return false;
+    } else if (obj == this) {
+      return true;
+    } else if (!obj.getClass().equals(getClass())) {
+      return false;
+    } else {
+      return this.id.equals(((AccumuloElement) obj).id);
+    }
+  }
 
-	public int hashCode() {
-		return getClass().hashCode() ^ id.hashCode();
-	}
+  public int hashCode() {
+    return getClass().hashCode() ^ id.hashCode();
+  }
 
-	void cacheProperty(String key, Object value, Integer timeoutMillis) {
-		if (timeoutMillis == null) {
-			// user does not want to cache data...
-			return;
-		}
+  void cacheProperty(String key, Object value, Integer timeoutMillis) {
+    if (timeoutMillis == null) {
+      // user does not want to cache data...
+      return;
+    }
 
-		if (propertiesCache == null) {
-			propertiesCache = new HashMap<String, Pair<Long, Object>>();
-		}
-		Pair<Long, Object> tsVal = new Pair<Long, Object>(
-				System.currentTimeMillis() + timeoutMillis, value);
-		propertiesCache.put(key, tsVal);
-	}
+    if (propertiesCache == null) {
+      propertiesCache = new HashMap<String,Pair<Long,Object>>();
+    }
+    Pair<Long,Object> tsVal = new Pair<Long,Object>(System.currentTimeMillis() + timeoutMillis, value);
+    propertiesCache.put(key, tsVal);
+  }
 
 }

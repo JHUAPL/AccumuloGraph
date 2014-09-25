@@ -16,21 +16,21 @@ package edu.jhuapl.tinkerpop;
 
 public class AccumuloGraphException extends RuntimeException {
 
-	private static final long serialVersionUID = 2179662107592532517L;
+  private static final long serialVersionUID = 2179662107592532517L;
 
-	public AccumuloGraphException() {
+  public AccumuloGraphException() {
 
-	}
+  }
 
-	public AccumuloGraphException(String reason) {
-		super(reason);
-	}
+  public AccumuloGraphException(String reason) {
+    super(reason);
+  }
 
-	public AccumuloGraphException(Throwable cause) {
-		super(cause);
-	}
+  public AccumuloGraphException(Throwable cause) {
+    super(cause);
+  }
 
-	public AccumuloGraphException(String reason, Throwable cause) {
-		super(reason, cause);
-	}
+  public AccumuloGraphException(String reason, Throwable cause) {
+    super(reason, cause);
+  }
 }

@@ -18,12 +18,11 @@ import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloGraphTestUtils {
 
-	public static AccumuloGraphConfiguration generateGraphConfig(String graphDirectoryName) {
-		AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration();
-		cfg.setInstanceName("instanceName").setZookeeperHosts("ZookeeperHostsString");
-		cfg.setUser("root").setPassword("".getBytes());
-		cfg.setGraphName(graphDirectoryName).setCreate(true).autoFlush(true)
-				.setInstanceType(InstanceType.Mock);
-		return cfg;
-	}
+  public static AccumuloGraphConfiguration generateGraphConfig(String graphDirectoryName) {
+    AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration();
+    cfg.setInstanceName("instanceName").setZookeeperHosts("ZookeeperHostsString");
+    cfg.setUser("root").setPassword("".getBytes());
+    cfg.setGraphName(graphDirectoryName).setCreate(true).autoFlush(true).setInstanceType(InstanceType.Mock);
+    return cfg;
+  }
 }

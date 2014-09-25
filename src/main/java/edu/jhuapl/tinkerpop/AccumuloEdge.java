@@ -24,88 +24,84 @@ import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
 
 public class AccumuloEdge extends AccumuloElement implements Edge {
 
-	String label;
-	String inId;
-	String outId;
-	Vertex inVertex;
-	Vertex outVertex;
+  String label;
+  String inId;
+  String outId;
+  Vertex inVertex;
+  Vertex outVertex;
 
-	AccumuloEdge(AccumuloGraph parent, String id) {
-		this(parent, id, null);
-	}
+  AccumuloEdge(AccumuloGraph parent, String id) {
+    this(parent, id, null);
+  }
 
-	AccumuloEdge(AccumuloGraph parent, String id, String label) {
-		this(parent, id, label, (Vertex)null, (Vertex)null);
-	}
+  AccumuloEdge(AccumuloGraph parent, String id, String label) {
+    this(parent, id, label, (Vertex) null, (Vertex) null);
+  }
 
-	AccumuloEdge(AccumuloGraph parent, String id, String label,
-			Vertex inVertex, Vertex outVertex) {
-		super(parent, id, Type.Edge);
-		this.label = label;
-		this.inVertex = inVertex;
-		this.outVertex = outVertex;
-	}
-	
-	AccumuloEdge(AccumuloGraph parent, String id, String label,
-			String inVertex, String outVertex) {
-		super(parent, id, Type.Edge);
-		this.label = label;
-		this.inId = inVertex;
-		this.outId = outVertex;
-	}
+  AccumuloEdge(AccumuloGraph parent, String id, String label, Vertex inVertex, Vertex outVertex) {
+    super(parent, id, Type.Edge);
+    this.label = label;
+    this.inVertex = inVertex;
+    this.outVertex = outVertex;
+  }
 
-	public Vertex getVertex(Direction direction)
-			throws IllegalArgumentException {
-		switch (direction) {
-		case IN:
-			if (inVertex == null) {
-				if (inId == null) {
-					inVertex = parent.getEdgeVertex(id, direction);
-					inId = inVertex.getId().toString();
-				} else {
-					inVertex = parent.getVertex(inId);
-				}
-			}
-			return inVertex;
-		case OUT:
-			if (outVertex == null) {
-				if(outId ==null){
-					outVertex = parent.getEdgeVertex(id, direction);
-					outId = outVertex.getId().toString();
-				}else{
-					outVertex = parent.getVertex(outId);
-				}
-			}
-			return outVertex;
-		case BOTH:
-			throw ExceptionFactory.bothIsNotSupported();
-		default:
-			throw new RuntimeException("Unexpected direction: " + direction);
-		}
-	}
+  AccumuloEdge(AccumuloGraph parent, String id, String label, String inVertex, String outVertex) {
+    super(parent, id, Type.Edge);
+    this.label = label;
+    this.inId = inVertex;
+    this.outId = outVertex;
+  }
 
-	public String getLabel() {
-		// TODO less special treatment for "LABEL" property...
-		if (label != null) {
-			return label;
-		}
-		return getProperty(StringFactory.LABEL);
-	}
+  public Vertex getVertex(Direction direction) throws IllegalArgumentException {
+    switch (direction) {
+      case IN:
+        if (inVertex == null) {
+          if (inId == null) {
+            inVertex = parent.getEdgeVertex(id, direction);
+            inId = inVertex.getId().toString();
+          } else {
+            inVertex = parent.getVertex(inId);
+          }
+        }
+        return inVertex;
+      case OUT:
+        if (outVertex == null) {
+          if (outId == null) {
+            outVertex = parent.getEdgeVertex(id, direction);
+            outId = outVertex.getId().toString();
+          } else {
+            outVertex = parent.getVertex(outId);
+          }
+        }
+        return outVertex;
+      case BOTH:
+        throw ExceptionFactory.bothIsNotSupported();
+      default:
+        throw new RuntimeException("Unexpected direction: " + direction);
+    }
+  }
 
-	public void remove() {
-		parent.removeEdge(this);
-	}
-	
-	public String getInId(){
-		return inId;
-	}
-	
-	public String getOutId(){
-		return outId;
-	}
+  public String getLabel() {
+    // TODO less special treatment for "LABEL" property...
+    if (label != null) {
+      return label;
+    }
+    return getProperty(StringFactory.LABEL);
+  }
 
-	public String toString() {
-		return "[" + getId() + ":" + getVertex(Direction.OUT) + " -> "
-				+ getLabel() + " -> " + getVertex(Direction.IN) + "]";
-	}
+  public void remove() {
+    parent.removeEdge(this);
+  }
+
+  public String getInId() {
+    return inId;
+  }
+
+  public String getOutId() {
+    return outId;
+  }
+
+  public String toString() {
+    return "[" + getId() + ":" + getVertex(Direction.OUT) + " -> " + getLabel() + " -> " + getVertex(Direction.IN) + "]";
+  }
 }

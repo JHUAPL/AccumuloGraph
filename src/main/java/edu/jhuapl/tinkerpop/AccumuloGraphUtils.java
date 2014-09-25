@@ -29,84 +29,85 @@ import com.tinkerpop.blueprints.util.StringFactory;
 
 final class AccumuloGraphUtils {
 
-	public static final Value EMPTY_VALUE = new Value(new byte[0]);
-	public static final Text EMPTY_TEXT = new Text("");
+  public static final Value EMPTY_VALUE = new Value(new byte[0]);
+  public static final Text EMPTY_TEXT = new Text("");
 
-	public static final Text ID = new Text(StringFactory.ID);
+  public static final Text ID = new Text(StringFactory.ID);
 
-	public static final Text IN = new Text("I");
-	public static final Text OUT = new Text("O");
-	
-	public static final String toId(Object obj) {
-		return obj.toString();
-	}
-	
-	public static Value toValue(String val) {
-		return new Value(val.getBytes());
-	}
+  public static final Text IN = new Text("I");
+  public static final Text OUT = new Text("O");
 
-	/**
-	 * Create and/or clear existing graph tables for the given configuration.
-	 * @param cfg
-	 */
-	static void handleCreateAndClear(AccumuloGraphConfiguration cfg) {
-		try {
-			TableOperations tableOps = cfg.getConnector().tableOperations();
+  public static final String toId(Object obj) {
+    return obj.toString();
+  }
 
-			// Track whether tables existed before we do anything.
-			boolean existedBeforeClear = false;
-			for (String table : cfg.getTableNames()) {
-				if (tableOps.exists(table)) {
-					existedBeforeClear = true;
-					break;
-				}
-			}
+  public static Value toValue(String val) {
+    return new Value(val.getBytes());
+  }
 
-			// Check edge cases.
-			// No tables exist, and we are not allowed to create.
-			if (!existedBeforeClear && !cfg.isCreate()) {
-				throw new IllegalArgumentException("Graph does not exist, and create option is disabled");
-			}
-			// Tables exist, and we are not clearing them.
-			else if (existedBeforeClear && !cfg.isClear()) {
-				// Do nothing.
-				return;
-			}
+  /**
+   * Create and/or clear existing graph tables for the given configuration.
+   * 
+   * @param cfg
+   */
+  static void handleCreateAndClear(AccumuloGraphConfiguration cfg) {
+    try {
+      TableOperations tableOps = cfg.getConnector().tableOperations();
 
-			// We want to clear tables, so do it.
-			if (cfg.isClear()) {
-				for (String table : cfg.getTableNames()) {
-					if (tableOps.exists(table)) {
-						tableOps.delete(table);
-					}
-				}
-			}
+      // Track whether tables existed before we do anything.
+      boolean existedBeforeClear = false;
+      for (String table : cfg.getTableNames()) {
+        if (tableOps.exists(table)) {
+          existedBeforeClear = true;
+          break;
+        }
+      }
 
-			// Tables existed, or we want to create them. So do it.
-			if (existedBeforeClear || cfg.isCreate()) {
-				for (String table : cfg.getTableNames()) {
-					if (!tableOps.exists(table)) {
-						tableOps.create(table);
-						SortedSet<Text> splits = cfg.getSplits();
-						if (splits != null) {
-							tableOps.addSplits(table, splits);
-						}
-					}
-				}
-			}
+      // Check edge cases.
+      // No tables exist, and we are not allowed to create.
+      if (!existedBeforeClear && !cfg.isCreate()) {
+        throw new IllegalArgumentException("Graph does not exist, and create option is disabled");
+      }
+      // Tables exist, and we are not clearing them.
+      else if (existedBeforeClear && !cfg.isClear()) {
+        // Do nothing.
+        return;
+      }
 
-		} catch (AccumuloException e) {
-			throw new IllegalArgumentException(e);
-		} catch (AccumuloSecurityException e) {
-			throw new IllegalArgumentException(e);
-		} catch (IOException e) {
-			throw new IllegalArgumentException(e);
-		} catch (InterruptedException e) {
-			throw new IllegalArgumentException(e);
-		} catch (TableNotFoundException e) {
-			throw new IllegalArgumentException(e);
-		} catch (TableExistsException e) {
-			throw new IllegalArgumentException(e);
-		}
-	}
+      // We want to clear tables, so do it.
+      if (cfg.isClear()) {
+        for (String table : cfg.getTableNames()) {
+          if (tableOps.exists(table)) {
+            tableOps.delete(table);
+          }
+        }
+      }
+
+      // Tables existed, or we want to create them. So do it.
+      if (existedBeforeClear || cfg.isCreate()) {
+        for (String table : cfg.getTableNames()) {
+          if (!tableOps.exists(table)) {
+            tableOps.create(table);
+            SortedSet<Text> splits = cfg.getSplits();
+            if (splits != null) {
+              tableOps.addSplits(table, splits);
+            }
+          }
+        }
+      }
+
+    } catch (AccumuloException e) {
+      throw new IllegalArgumentException(e);
+    } catch (AccumuloSecurityException e) {
+      throw new IllegalArgumentException(e);
+    } catch (IOException e) {
+      throw new IllegalArgumentException(e);
+    } catch (InterruptedException e) {
+      throw new IllegalArgumentException(e);
+    } catch (TableNotFoundException e) {
+      throw new IllegalArgumentException(e);
+    } catch (TableExistsException e) {
+      throw new IllegalArgumentException(e);
+    }
+  }
 }
