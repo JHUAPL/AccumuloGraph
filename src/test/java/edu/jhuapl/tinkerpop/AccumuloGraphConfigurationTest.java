@@ -166,7 +166,7 @@ public class AccumuloGraphConfigurationTest {
 		ingester.addVertex("A").finish();
 		ingester.addVertex("B")
 			.add("P1", "V1")
-			.add("P2", 2).finish();
+			.add("P2", "2").finish();
 		ingester.addEdge("A", "B", "edge")
 			.add("P3", "V3").finish();
 		ingester.shutdown(true);
@@ -185,7 +185,7 @@ public class AccumuloGraphConfigurationTest {
 		Vertex v2 = e.getVertex(Direction.IN);
 		assertEquals("B", v2.getId());
 		assertEquals("V1", v2.getProperty("P1"));
-		assertEquals(2, v2.getProperty("P2"));
+		assertEquals("2", v2.getProperty("P2"));
 
 		graph.shutdown();
 	}

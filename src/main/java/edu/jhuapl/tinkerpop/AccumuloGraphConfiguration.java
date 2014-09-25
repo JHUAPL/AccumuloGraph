@@ -96,7 +96,7 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	public static final String PROPERTY_CACHE_TIMEOUT = "blueprints.accumulo.propertyCacheTimeout";
 	public static final String VERTEX_CACHE_TIMEOUT = "blueprints.accumulo.vertexCacheTimeout";
 	public static final String PRELOAD_EDGES = "blueprints.accumulo.edge.preload";
-
+	public static final String AUTO_INDEX = "blueprints.accumulo.index.auto";
 	/**
 	 * Backing store that maintains configuration values.
 	 */
@@ -387,6 +387,18 @@ public class AccumuloGraphConfiguration  implements	Serializable {
 	public AccumuloGraphConfiguration setLruMaxCapacity(int max) {
 		conf.setProperty(LRU_MAX_CAP, max);
 		return this;
+	}
+
+	public AccumuloGraphConfiguration setAutoIndex(boolean ison){
+		conf.setProperty(AUTO_INDEX, true);
+		return this;
+	}
+	
+	public boolean isAutoIndex(){
+		Object bool = conf.getProperty(AUTO_INDEX);
+		if(bool == null)
+			return false;
+		return (Boolean) bool;
 	}
 
 	/**
