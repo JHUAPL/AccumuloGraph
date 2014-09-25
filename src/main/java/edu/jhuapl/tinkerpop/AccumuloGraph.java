@@ -364,37 +364,41 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   // For simplicity, I accept all property types. They are handled in not the
   // best way. To be fixed later
+  Features f;
+
   public Features getFeatures() {
-    Features f = new Features();
-    f.ignoresSuppliedIds = true;
-    f.isPersistent = true;
-    f.isWrapper = false;
-    f.supportsBooleanProperty = true;
-    f.supportsDoubleProperty = true;
-    f.supportsDuplicateEdges = true;
-    f.supportsEdgeIndex = true;
-    f.supportsEdgeIteration = true;
-    f.supportsEdgeRetrieval = true;
-    f.supportsEdgeKeyIndex = true;
-    f.supportsEdgeProperties = true;
-    f.supportsFloatProperty = true;
-    f.supportsIndices = true;
-    f.supportsIntegerProperty = true;
-    f.supportsKeyIndices = true;
-    f.supportsLongProperty = true;
-    f.supportsMapProperty = true;
-    f.supportsMixedListProperty = true;
-    f.supportsPrimitiveArrayProperty = true;
-    f.supportsSelfLoops = true;
-    f.supportsSerializableObjectProperty = true;
-    f.supportsStringProperty = true;
-    f.supportsThreadedTransactions = false;
-    f.supportsTransactions = false;
-    f.supportsUniformListProperty = true;
-    f.supportsVertexIndex = true;
-    f.supportsVertexIteration = true;
-    f.supportsVertexKeyIndex = true;
-    f.supportsVertexProperties = true;
+    if (f == null) {
+      f = new Features();
+      f.ignoresSuppliedIds = true;
+      f.isPersistent = true;
+      f.isWrapper = false;
+      f.supportsBooleanProperty = true;
+      f.supportsDoubleProperty = true;
+      f.supportsDuplicateEdges = true;
+      f.supportsEdgeIndex = true;
+      f.supportsEdgeIteration = true;
+      f.supportsEdgeRetrieval = true;
+      f.supportsEdgeKeyIndex = true;
+      f.supportsEdgeProperties = true;
+      f.supportsFloatProperty = true;
+      f.supportsIndices = true;
+      f.supportsIntegerProperty = true;
+      f.supportsKeyIndices = true;
+      f.supportsLongProperty = true;
+      f.supportsMapProperty = true;
+      f.supportsMixedListProperty = true;
+      f.supportsPrimitiveArrayProperty = true;
+      f.supportsSelfLoops = true;
+      f.supportsSerializableObjectProperty = true;
+      f.supportsStringProperty = true;
+      f.supportsThreadedTransactions = false;
+      f.supportsTransactions = false;
+      f.supportsUniformListProperty = true;
+      f.supportsVertexIndex = true;
+      f.supportsVertexIteration = true;
+      f.supportsVertexKeyIndex = true;
+      f.supportsVertexProperties = true;
+    }
     return f;
   }
 
