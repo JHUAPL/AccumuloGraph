@@ -22,18 +22,16 @@ import org.apache.accumulo.core.util.Pair;
 
 import com.tinkerpop.blueprints.Element;
 
-import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
-
 public abstract class AccumuloElement implements Element {
 
   protected AccumuloGraph parent;
   protected String id;
 
-  private Type type;
+  private Class type;
 
   private Map<String,Pair<Long,Object>> propertiesCache;
 
-  protected AccumuloElement(AccumuloGraph parent, String id, Type type) {
+  protected AccumuloElement(AccumuloGraph parent, String id, Class<? extends Element> type) {
     this.parent = parent;
     this.id = id;
     this.type = type;
