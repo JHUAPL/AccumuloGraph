@@ -54,16 +54,8 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
       if (!parent.config.getConnector().tableOperations().exists(tableName)) {
         parent.config.getConnector().tableOperations().create(tableName);
       }
-    } catch (AccumuloException e) {
-      e.printStackTrace();
-    } catch (AccumuloSecurityException e) {
-      e.printStackTrace();
-    } catch (TableExistsException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+     throw new RuntimeException(e);
     }
 
   }
