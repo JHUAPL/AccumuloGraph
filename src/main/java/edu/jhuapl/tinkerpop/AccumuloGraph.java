@@ -1215,7 +1215,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if(!config.isIndexableGraphDisabled())
+    if(config.isIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner s = this.getMetadataScanner();
@@ -1242,7 +1242,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if(!config.isIndexableGraphDisabled())
+    if(config.isIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner scan = getScanner(config.getMetadataTable());
@@ -1266,7 +1266,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Index<? extends Element>> getIndices() {
-    if(!config.isIndexableGraphDisabled())
+    if(config.isIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();
     Scanner scan = getScanner(config.getMetadataTable());
@@ -1294,7 +1294,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public void dropIndex(String indexName) {
-    if(!config.isIndexableGraphDisabled())
+    if(config.isIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     BatchDeleter deleter = null;
     try {
