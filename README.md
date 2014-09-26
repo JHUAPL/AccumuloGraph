@@ -29,7 +29,7 @@ The releases are currently stored in Maven Central.
 For non-Maven users, the binaries can be found in the releases section in this
 GitHub repository, or you can get them from Maven Central.
 ##Code Examples
-###Creating a new distributed graph
+###Creating a new or connecting to an existing distributed graph
 ```java
 Configuration cfg = new AccumuloGraphConfiguration()
 	.setInstanceName("accumulo").setUser("user").setZookeeperHosts("zk1")
