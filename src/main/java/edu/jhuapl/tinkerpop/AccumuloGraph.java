@@ -35,7 +35,6 @@ import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Key;
@@ -494,8 +493,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (vertexCache != null) {
       vertexCache.remove(vertex.getId());
     }
-
-    clearIndex(vertex.getId());
+    if(!config.isIndexableGraphDisabled())
+      clearIndex(vertex.getId());
 
     Scanner scan = getElementScanner(Vertex.class);
     scan.setRange(new Range(vertex.getId().toString()));
@@ -742,7 +741,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public void removeEdge(Edge edge) {
-    clearIndex(edge.getId());
+    if(!config.isIndexableGraphDisabled())
+      clearIndex(edge.getId());
 
     if (edgeCache != null) {
       edgeCache.remove(edge.getId());
@@ -1215,6 +1215,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
+    if(!config.isIndexableGraphDisabled())
+      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner s = this.getMetadataScanner();
     try {
@@ -1240,6 +1242,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
+    if(!config.isIndexableGraphDisabled())
+      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner scan = getScanner(config.getMetadataTable());
     try {
@@ -1260,7 +1264,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public Iterable<Index<? extends Element>> getIndices() {
+    if(!config.isIndexableGraphDisabled())
+      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();
     Scanner scan = getScanner(config.getMetadataTable());
     try {
@@ -1285,7 +1292,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return Edge.class;
   }
 
+  @Override
   public void dropIndex(String indexName) {
+    if(!config.isIndexableGraphDisabled())
+      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     BatchDeleter deleter = null;
     try {
 
