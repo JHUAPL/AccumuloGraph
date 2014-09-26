@@ -20,12 +20,10 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
 import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 
-import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
-
 public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   AccumuloVertex(AccumuloGraph parent, String id) {
-    super(parent, id, Type.Vertex);
+    super(parent, id, Vertex.class);
   }
 
   public Iterable<Edge> getEdges(Direction direction, String... labels) {

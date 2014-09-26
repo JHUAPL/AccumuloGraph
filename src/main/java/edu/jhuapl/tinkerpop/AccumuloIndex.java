@@ -35,17 +35,15 @@ import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
-import com.tinkerpop.blueprints.Vertex;
 
-import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
 
 public class AccumuloIndex<T extends Element> implements Index<T> {
-  Type indexedType;
+  Class indexedType;
   AccumuloGraph parent;
   String indexName;
   String tableName;
 
-  public AccumuloIndex(Type t, AccumuloGraph parent, String indexName) {
+  public AccumuloIndex(Class t, AccumuloGraph parent, String indexName) {
     indexedType = t;
     this.parent = parent;
     this.indexName = indexName;
@@ -74,15 +72,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     return indexName;
   }
 
-  public Class<T> getIndexClass() {
-    switch (indexedType) {
-      case Edge:
-        return (Class<T>) Edge.class;
-      case Vertex:
-        return (Class<T>) Vertex.class;
-    }
-    return null;
-  }
+
 
   public void put(String key, Object value, Element element) {
     element.setProperty(key, value);
@@ -149,9 +139,9 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     AccumuloGraph parent;
     ScannerBase scan;
     boolean isClosed;
-    Type indexedType;
+    Class indexedType;
 
-    IndexIterable(AccumuloGraph parent, ScannerBase scan, Type t) {
+    IndexIterable(AccumuloGraph parent, ScannerBase scan, Class t) {
       this.scan = scan;
       this.parent = parent;
       isClosed = false;
@@ -160,8 +150,8 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
     public Iterator<T> iterator() {
       if (!isClosed) {
-        switch (indexedType) {
-          case Edge:
+        if(indexedType.equals(Edge.class)){
+          
             return new ScannerIterable<T>(parent, scan) {
 
               @Override
@@ -171,7 +161,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
                 return (T) new AccumuloEdge(parent, iterator.next().getKey().getColumnQualifier().toString());
               }
             }.iterator();
-          case Vertex:
+        }else{ 
             return new ScannerIterable<T>(parent, scan) {
 
               @Override
@@ -193,6 +183,11 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
       }
     }
 
+  }
+
+  @Override
+  public Class<T> getIndexClass() {
+    return indexedType;
   }
 
 }

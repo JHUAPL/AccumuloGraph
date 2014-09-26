@@ -182,10 +182,6 @@ import com.tinkerpop.blueprints.util.StringFactory;
  */
 public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
-  enum Type {
-    Vertex, Edge
-  };
-
   protected AccumuloGraphConfiguration config;
 
   static byte[] EMPTY = new byte[0];
@@ -230,27 +226,18 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     AccumuloGraphUtils.handleCreateAndClear(config);
-
-    setupWriters();
+    try {
+      setupWriters();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
-  private void setupWriters() {
-    try {
-      writer = config.getConnector().createMultiTableBatchWriter(config.getBatchWriterConfig());
+  private void setupWriters() throws Exception {
+    writer = config.getConnector().createMultiTableBatchWriter(config.getBatchWriterConfig());
 
-      vertexBW = writer.getBatchWriter(config.getVertexTable());
-      edgeBW = writer.getBatchWriter(config.getEdgeTable());
-    } catch (AccumuloSecurityException e) {
-      e.printStackTrace();
-    } catch (AccumuloException e) {
-      e.printStackTrace();
-    } catch (TableNotFoundException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
+    vertexBW = writer.getBatchWriter(config.getVertexTable());
+    edgeBW = writer.getBatchWriter(config.getEdgeTable());
   }
 
   /**
@@ -258,6 +245,17 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    */
   public static AccumuloGraph open(Configuration properties) throws AccumuloException {
     return new AccumuloGraph(properties);
+  }
+
+  protected Scanner getElementScanner(Class<? extends Element> type) {
+    try {
+      String tableName = config.getEdgeTable();
+      if (type.equals(Vertex.class))
+        tableName = config.getVertexTable();
+      return config.getConnector().createScanner(tableName, config.getAuthorizations());
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   protected Scanner getScanner(String tablename) {
@@ -278,16 +276,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   // Aliases for the lazy
-  protected Scanner getVertexScanner() {
-    return getScanner(config.getVertexTable());
-  }
-
   protected Scanner getMetadataScanner() {
     return getScanner(config.getMetadataTable());
-  }
-
-  protected Scanner getEdgeScanner() {
-    return getScanner(config.getEdgeTable());
   }
 
   protected Scanner getVertexIndexScanner() {
@@ -332,32 +322,17 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return null;
   }
 
-  private BatchScanner getBatchScanner(String table) {
+  private BatchScanner getElementBatchScanner(Class<? extends Element> type) {
     try {
-      BatchScanner x = config.getConnector().createBatchScanner(table, config.getAuthorizations(), config.getQueryThreads());
+      String tableName = config.getVertexTable();
+      if (type.equals(Edge.class))
+        tableName = config.getEdgeTable();
+      BatchScanner x = config.getConnector().createBatchScanner(tableName, config.getAuthorizations(), config.getQueryThreads());
       x.setRanges(Collections.singletonList(new Range()));
       return x;
-
-    } catch (TableNotFoundException e) {
-      e.printStackTrace();
-    } catch (AccumuloException e) {
-      e.printStackTrace();
-    } catch (AccumuloSecurityException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    return null;
-  }
-
-  private BatchScanner getVertexBatchScanner() {
-    return getBatchScanner(config.getVertexTable());
-  }
-
-  private BatchScanner getEdgeBatchScanner() {
-    return getBatchScanner(config.getEdgeTable());
   }
 
   // End Aliases
@@ -398,7 +373,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       f.supportsVertexIteration = true;
       f.supportsVertexKeyIndex = true;
       f.supportsVertexProperties = true;
-      f.supportsThreadIsolatedTransactions=false;
+      f.supportsThreadIsolatedTransactions = false;
     }
     return f;
   }
@@ -469,7 +444,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         // in addition to just an "existence" check, we will also load
         // any "preloaded" properties now, which saves us a round-trip
         // to Accumulo later...
-        scan = getVertexScanner();
+        scan = getElementScanner(Vertex.class);
         scan.setRange(new Range(myID));
         scan.fetchColumn(TLABEL, TEXISTS);
 
@@ -520,9 +495,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       vertexCache.remove(vertex.getId());
     }
 
-    clearIndex(Type.Vertex, vertex.getId());
+    clearIndex(vertex.getId());
 
-    Scanner scan = getVertexScanner();
+    Scanner scan = getElementScanner(Vertex.class);
     scan.setRange(new Range(vertex.getId().toString()));
 
     BatchDeleter edgedeleter = null;
@@ -534,12 +509,15 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           config.getBatchWriterConfig());
       vertexdeleter = config.getConnector().createBatchDeleter(config.getVertexTable(), config.getAuthorizations(), config.getQueryThreads(),
           config.getBatchWriterConfig());
-
-      Iterator<Entry<Key,Value>> iter = scan.iterator();
-      List<Range> ranges = new ArrayList<Range>();
-      if (!iter.hasNext()) {
-        throw ExceptionFactory.vertexWithIdDoesNotExist(vertex.getId());
-      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    Iterator<Entry<Key,Value>> iter = scan.iterator();
+    List<Range> ranges = new ArrayList<Range>();
+    if (!iter.hasNext()) {
+      throw ExceptionFactory.vertexWithIdDoesNotExist(vertex.getId());
+    }
+    try {
       // Search for edges
       while (iter.hasNext()) {
         Entry<Key,Value> e = iter.next();
@@ -573,16 +551,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       ranges.add(new Range(vertex.getId().toString()));
       vertexdeleter.setRanges(ranges);
       vertexdeleter.delete();
-    } catch (TableNotFoundException e1) {
-      e1.printStackTrace();
-    } catch (AccumuloException e1) {
-      e1.printStackTrace();
-    } catch (AccumuloSecurityException e1) {
-      e1.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     } finally {
       if (edgedeleter != null)
         edgedeleter.close();
@@ -592,7 +562,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   // Maybe an Custom Iterator could make this better.
-  private void clearIndex(Type type, Object id) {
+  private void clearIndex(Object id) {
     Iterable<Index<? extends Element>> it = this.getIndices();
     Iterator<Index<? extends Element>> iter = it.iterator();
     while (iter.hasNext()) {
@@ -610,16 +580,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         RegExFilter.setRegexs(is, null, null, regex.toString(), null, false);
         del.addScanIterator(is);
         del.delete();
-      } catch (AccumuloSecurityException e1) {
-        e1.printStackTrace();
-      } catch (TableNotFoundException e) {
-        e.printStackTrace();
-      } catch (AccumuloException e) {
-        e.printStackTrace();
-      } catch (IOException e) {
-        e.printStackTrace();
-      } catch (InterruptedException e) {
-        e.printStackTrace();
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       } finally {
         if (del != null)
           del.close();
@@ -635,7 +597,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public Iterable<Vertex> getVertices() {
-    BatchScanner scan = getVertexBatchScanner();
+    BatchScanner scan = getElementBatchScanner(Vertex.class);
     scan.fetchColumnFamily(TLABEL);
 
     return new ScannerIterable<Vertex>(this, scan) {
@@ -674,7 +636,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } else {
       byte[] val = AccumuloByteSerializer.serialize(value);
       if (val[0] != AccumuloByteSerializer.SERIALIZABLE) {
-        BatchScanner scan = getVertexBatchScanner();
+        BatchScanner scan = getElementBatchScanner(Vertex.class);
         scan.fetchColumnFamily(new Text(key));
 
         IteratorSetting is = new IteratorSetting(10, "filter", RegExFilter.class);
@@ -762,7 +724,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     if (!config.skipExistenceChecks()) {
-      Scanner s = getEdgeScanner();
+      Scanner s = getElementScanner(Edge.class);
       s.setRange(new Range(myID, myID));
       s.fetchColumnFamily(TLABEL);
       boolean found = s.iterator().hasNext();
@@ -780,13 +742,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public void removeEdge(Edge edge) {
-    clearIndex(Type.Edge, edge.getId());
+    clearIndex(edge.getId());
 
     if (edgeCache != null) {
       edgeCache.remove(edge.getId());
     }
 
-    Scanner s = getEdgeScanner();
+    Scanner s = getElementScanner(Edge.class);
     s.setRange(new Range(edge.getId().toString()));
 
     Iterator<Entry<Key,Value>> iter = s.iterator();
@@ -829,18 +791,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           config.getBatchWriterConfig());
       edgedeleter.setRanges(Collections.singleton(new Range(edge.getId().toString())));
       edgedeleter.delete();
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-    } catch (TableNotFoundException e) {
-      e.printStackTrace();
-    } catch (AccumuloException e) {
-      e.printStackTrace();
-    } catch (AccumuloSecurityException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     } finally {
       if (edgedeleter != null)
         edgedeleter.close();
@@ -848,7 +800,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public Iterable<Edge> getEdges() {
-    BatchScanner scan = getEdgeBatchScanner();
+    BatchScanner scan = getElementBatchScanner(Edge.class);
     scan.fetchColumnFamily(TLABEL);
     return new ScannerIterable<Edge>(this, scan) {
 
@@ -888,7 +840,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       };
     } else {
 
-      BatchScanner scan = getEdgeBatchScanner();
+      BatchScanner scan = getElementBatchScanner(Edge.class);
       scan.fetchColumnFamily(new Text(key));
 
       byte[] val = AccumuloByteSerializer.serialize(value);
@@ -965,18 +917,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         }
       }
       setupWriters();
-    } catch (AccumuloException e) {
-      e.printStackTrace();
-    } catch (AccumuloSecurityException e) {
-      e.printStackTrace();
-    } catch (TableNotFoundException e) {
-      e.printStackTrace();
-    } catch (TableExistsException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
 
   }
@@ -1002,13 +944,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   // methods used by AccumuloElement, AccumuloVertex, AccumuloEdge to interact
   // with the backing Accumulo data store...
-  private Scanner getScanner(Type t) {
-    if (t.equals(Type.Edge))
-      return getEdgeScanner();
-    return getVertexScanner();
-  }
 
-  <T> Pair<Integer,T> getProperty(Type type, String id, String key) {
+  <T> Pair<Integer,T> getProperty(Class type, String id, String key) {
     Text colf = null;
     if (StringFactory.LABEL.equals(key)) {
       colf = AccumuloGraph.TLABEL;
@@ -1016,7 +953,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       colf = new Text(key);
     }
 
-    Scanner s = getScanner(type);
+    Scanner s = getElementScanner(type);
     s.setRange(new Range(id));
     s.fetchColumnFamily(colf);
     T toRet = null;
@@ -1028,13 +965,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return new Pair<Integer,T>(config.getPropertyCacheTimeoutMillis(), toRet);
   }
 
-  void preloadProperties(AccumuloElement element, Type type) {
+  void preloadProperties(AccumuloElement element, Class type) {
     String[] toPreload = config.getPreloadedProperties();
     if (toPreload == null) {
       return;
     }
 
-    Scanner s = getScanner(type);
+    Scanner s = getElementScanner(type);
     s.setRange(new Range(element.getId().toString()));
 
     // user has requested specific properties...
@@ -1058,8 +995,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     s.close();
   }
 
-  Set<String> getPropertyKeys(Type type, String id) {
-    Scanner s = getScanner(type);
+  Set<String> getPropertyKeys(Class type, String id) {
+    Scanner s = getElementScanner(type);
     s.setRange(new Range(id));
     Set<String> toRet = new HashSet<String>();
     Iterator<Entry<Key,Value>> iter = s.iterator();
@@ -1085,7 +1022,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @param key
    * @param val
    */
-  Integer setProperty(Type type, String id, String key, Object val) {
+  Integer setProperty(Class type, String id, String key, Object val) {
     checkProperty(key, val);
     try {
       byte[] newByteVal = AccumuloByteSerializer.serialize(val);
@@ -1117,19 +1054,19 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return config.getPropertyCacheTimeoutMillis();
   }
 
-  private BatchWriter getBatchWriter(Type type) {
-    if (type.equals(Type.Edge))
+  private BatchWriter getBatchWriter(Class type) {
+    if (type.equals(Edge.class))
       return edgeBW;
     return vertexBW;
   }
 
-  private BatchWriter getIndexBatchWriter(Type type) {
-    if (type.equals(Type.Edge))
+  private BatchWriter getIndexBatchWriter(Class type) {
+    if (type.equals(Edge.class))
       return getEdgeIndexWriter();
     return getVertexIndexWriter();
   }
 
-  <T> T removeProperty(Type type, String id, String key) {
+  <T> T removeProperty(Class type, String id, String key) {
     if (StringFactory.LABEL.equals(key) || SLABEL.equals(key)) {
       throw new RuntimeException("Cannot remove the " + StringFactory.LABEL + " property.");
     }
@@ -1154,7 +1091,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   Iterable<Edge> getEdges(String vertexId, Direction direction, String... labels) {
-    Scanner scan = getVertexScanner();
+    Scanner scan = getElementScanner(Vertex.class);
     scan.setRange(new Range(vertexId));
     if (direction.equals(Direction.IN)) {
       scan.fetchColumnFamily(TINEDGE);
@@ -1195,7 +1132,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   Iterable<Vertex> getVertices(String vertexId, Direction direction, String... labels) {
-    Scanner scan = getVertexScanner();
+    Scanner scan = getElementScanner(Vertex.class);
     scan.setRange(new Range(vertexId));
     if (direction.equals(Direction.IN)) {
       scan.fetchColumnFamily(TINEDGE);
@@ -1224,7 +1161,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   Vertex getEdgeVertex(String edgeId, Direction direction) {
-    Scanner s = getEdgeScanner();
+    Scanner s = getElementScanner(Edge.class);
     try {
       s.setRange(new Range(edgeId));
       s.fetchColumnFamily(TLABEL);
@@ -1274,15 +1211,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return "accumulograph";
   }
 
-  public Type getType(String simple) {
-    if (simple.equals(AccumuloEdge.class.getSimpleName()) || simple.equals(Edge.class.getSimpleName())) {
-      return Type.Edge;
-    } else if (simple.equals(AccumuloVertex.class.getSimpleName()) || simple.equals(Vertex.class.getSimpleName())) {
-      return Type.Vertex;
-    }
-    return null;
-  }
-
   public <T extends Element> Index<T> createIndex(String indexName, Class<T> indexClass, Parameter... indexParameters) {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
@@ -1302,7 +1230,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       } catch (MutationsRejectedException e) {
         e.printStackTrace();
       }
-      return new AccumuloIndex<T>(getType(indexClass.getSimpleName()), this, indexName);
+      return new AccumuloIndex<T>(indexClass, this, indexName);
     } finally {
       s.close();
     }
@@ -1321,7 +1249,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
         if (k.getColumnFamily().toString().equals(indexClass.getSimpleName())) {
-          return new AccumuloIndex<T>(getType(indexClass.getSimpleName()), this, indexName);
+          return new AccumuloIndex<T>(indexClass, this, indexName);
         } else {
           throw ExceptionFactory.indexDoesNotSupportClass(indexName, indexClass);
         }
@@ -1340,12 +1268,21 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
-        toRet.add(new AccumuloIndex(getType(k.getColumnFamily().toString()), this, k.getRow().toString()));
+        toRet.add(new AccumuloIndex(getClass(k.getColumnFamily().toString()), this, k.getRow().toString()));
       }
       return toRet;
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     } finally {
       scan.close();
     }
+  }
+
+  private Class getClass(String e) {
+    if (e.equals("Vertex")) {
+      return Vertex.class;
+    }
+    return Edge.class;
   }
 
   public void dropIndex(String indexName) {
@@ -1357,16 +1294,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       deleter.setRanges(Collections.singleton(new Range(indexName)));
       deleter.delete();
       config.getConnector().tableOperations().delete(config.getName() + "_index_" + indexName);
-    } catch (TableNotFoundException e) {
-      e.printStackTrace();
-    } catch (AccumuloException e) {
-      e.printStackTrace();
-    } catch (AccumuloSecurityException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     } finally {
       if (deleter != null)
         deleter.close();
@@ -1377,9 +1306,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    Type t = getType(elementClass.getSimpleName());
+
     String table = null;
-    if (t.equals(Type.Vertex)) {
+    if (elementClass.equals(Vertex.class)) {
       table = config.getVertexIndexTable();
     } else {
       table = config.getEdgeIndexTable();
@@ -1394,18 +1323,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       bd.setRanges(Collections.singleton(new Range()));
       bd.fetchColumnFamily(new Text(key));
       bd.delete();
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-    } catch (TableNotFoundException e) {
-      e.printStackTrace();
-    } catch (AccumuloException e) {
-      e.printStackTrace();
-    } catch (AccumuloSecurityException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     } finally {
       if (bd != null)
         bd.close();
@@ -1428,13 +1347,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
     checkedFlush();
     // Re Index Graph
-    BatchScanner scan = getReIndexBatchScanner(getType(elementClass.getSimpleName()));
+    BatchScanner scan = getElementBatchScanner(elementClass);
     try {
       scan.setRanges(Collections.singleton(new Range()));
       scan.fetchColumnFamily(new Text(key));
       Iterator<Entry<Key,Value>> iter = scan.iterator();
 
-      BatchWriter bw = getIndexBatchWriter(getType(elementClass.getSimpleName()));
+      BatchWriter bw = getIndexBatchWriter(elementClass);
       while (iter.hasNext()) {
         Entry<Key,Value> entry = iter.next();
         Key k = entry.getKey();
@@ -1453,22 +1372,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
     checkedFlush();
 
-  }
-
-  public BatchScanner getReIndexBatchScanner(Type t) {
-    if (t.equals(Type.Edge)) {
-      return getEdgeBatchScanner();
-    }
-    return getVertexBatchScanner();
-  }
-
-  public <T extends Element> Set<String> getIndexedKeys(Type eType) {
-    if (eType.equals(Type.Edge)) {
-      return getIndexedKeys(Edge.class);
-    } else {
-      return getIndexedKeys(Vertex.class);
-
-    }
   }
 
   public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {

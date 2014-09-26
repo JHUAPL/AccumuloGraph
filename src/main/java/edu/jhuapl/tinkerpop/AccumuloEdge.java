@@ -20,8 +20,6 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 import com.tinkerpop.blueprints.util.StringFactory;
 
-import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
-
 public class AccumuloEdge extends AccumuloElement implements Edge {
 
   String label;
@@ -39,14 +37,14 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
   }
 
   AccumuloEdge(AccumuloGraph parent, String id, String label, Vertex inVertex, Vertex outVertex) {
-    super(parent, id, Type.Edge);
+    super(parent, id, Edge.class);
     this.label = label;
     this.inVertex = inVertex;
     this.outVertex = outVertex;
   }
 
   AccumuloEdge(AccumuloGraph parent, String id, String label, String inVertex, String outVertex) {
-    super(parent, id, Type.Edge);
+    super(parent, id, Edge.class);
     this.label = label;
     this.inId = inVertex;
     this.outId = outVertex;

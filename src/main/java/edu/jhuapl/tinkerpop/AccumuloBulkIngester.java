@@ -32,7 +32,6 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
-import edu.jhuapl.tinkerpop.AccumuloGraph.Type;
 
 /**
  * This class providers high-speed ingest into an AccumuloGraph instance in exchange for consistency guarantees. That is, users of this class must ensure
@@ -233,12 +232,12 @@ public final class AccumuloBulkIngester {
     copy.setCreate(false).setClear(false);
 
     AccumuloGraph g = (AccumuloGraph) GraphFactory.open(copy.getConfiguration());
-    for (String key : g.getIndexedKeys(Type.Vertex)) {
+    for (String key : g.getIndexedKeys(Vertex.class)) {
       g.dropKeyIndex(key, Vertex.class);
       g.createKeyIndex(key, Vertex.class);
     }
 
-    for (String key : g.getIndexedKeys(Type.Edge)) {
+    for (String key : g.getIndexedKeys(Edge.class)) {
       g.dropKeyIndex(key, Edge.class);
       g.createKeyIndex(key, Edge.class);
     }
