@@ -92,6 +92,8 @@ public class AccumuloGraphConfiguration implements Serializable {
   public static final String VERTEX_CACHE_TIMEOUT = "blueprints.accumulo.vertexCacheTimeout";
   public static final String PRELOAD_EDGES = "blueprints.accumulo.edge.preload";
   public static final String AUTO_INDEX = "blueprints.accumulo.index.auto";
+  public static final String DISABLE_INDEX = "blueprints.accumulo.index.disable";
+  
   /**
    * Backing store that maintains configuration values.
    */
@@ -344,12 +346,31 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   public AccumuloGraphConfiguration setAutoIndex(boolean ison) {
-    conf.setProperty(AUTO_INDEX, true);
+    conf.setProperty(AUTO_INDEX, ison);
     return this;
   }
 
   public boolean isAutoIndex() {
     Object bool = conf.getProperty(AUTO_INDEX);
+    if (bool == null)
+      return false;
+    return (Boolean) bool;
+  }
+  
+  /**
+   * Disables the IndexableGraph functions
+   * Turning it off will improve the performance of removing elements
+   * Note: This disables IndexableGraph NOT KeyIndexableGraph
+   * @param disable
+   * @return this configuration
+   */
+  public AccumuloGraphConfiguration diableIndexableGraph(boolean disable){
+    conf.setProperty(DISABLE_INDEX, disable);
+    return this;
+  }
+  
+  public boolean isIndexableGraphDisabled(){
+    Object bool = conf.getProperty(DISABLE_INDEX);
     if (bool == null)
       return false;
     return (Boolean) bool;
