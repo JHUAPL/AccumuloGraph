@@ -11,6 +11,10 @@ We implement the following Blueprints interfaces:
 	<br>1. Graph
 	<br>2. KeyIndexableGraph
 	<br>3. IndexableGraph
+	
+Please feel free to submit issues for any bugs you find or features you want.
+We are open to pull requests from your forks also.
+
 ##Usage
 
 The releases are currently stored in Maven Central.
@@ -78,10 +82,6 @@ public void map(Text k, Vertex v, Context c) {
     System.out.println(v.getId().toString());
 }
  ``` 
-
-##Contributing
-Feel free to sumbit issues for any bugs or features you would like to see. We are open to fork/pull requests.
-
 
 ##Table Design
 ###Vertex Table
