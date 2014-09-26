@@ -34,6 +34,7 @@ import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.RowIterator;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
@@ -43,6 +44,7 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.Pair;
+import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 
@@ -466,16 +468,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           return null;
         }
 
-        Integer timeout = config.getPropertyCacheTimeoutMillis();
-        while (iter.hasNext()) {
-          Entry<Key,Value> entry = iter.next();
-          String attr = entry.getKey().getColumnFamily().toString();
-          if (SLABEL.equals(attr)) {
-            continue;
-          }
-          Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
-          ((AccumuloVertex) vertex).cacheProperty(attr, val, timeout);
-        }
+        preloadProperties(iter, (AccumuloElement) vertex);
+
       }
     } finally {
       if (scan != null) {
@@ -493,7 +487,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (vertexCache != null) {
       vertexCache.remove(vertex.getId());
     }
-    if(!config.isIndexableGraphDisabled())
+    if (!config.isIndexableGraphDisabled())
       clearIndex(vertex.getId());
 
     Scanner scan = getElementScanner(Vertex.class);
@@ -596,18 +590,27 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public Iterable<Vertex> getVertices() {
-    BatchScanner scan = getElementBatchScanner(Vertex.class);
+    Scanner scan = getElementScanner(Vertex.class);
     scan.fetchColumnFamily(TLABEL);
 
+   // if (config.getPreloadedProperties() != null) {
+   //   for (String x : config.getPreloadedProperties()) {
+   //     scan.fetchColumnFamily(new Text(x));
+   //   }
+   // }
     return new ScannerIterable<Vertex>(this, scan) {
 
       @Override
-      public Vertex next(Iterator<Entry<Key,Value>> iterator) {
+      public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
+
         // TODO better use of information readily available...
-        // TODO could also check local cache before creating a new
-        // instance?
-        Entry<Key,Value> e = iterator.next();
-        return new AccumuloVertex(AccumuloGraph.this, e.getKey().getRow().toString());
+        // TODO could also check local cache before creating a new instance?
+      //  RowIterator iter = 
+        
+
+        AccumuloVertex vert = new AccumuloVertex(AccumuloGraph.this,  iterator.peek().getKey().getRow().toString());
+        preloadProperties(null, vert);
+        return vert;
       }
     };
   }
@@ -625,7 +628,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       return new ScannerIterable<Vertex>(this, s) {
 
         @Override
-        public Vertex next(Iterator<Entry<Key,Value>> iterator) {
+        public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
           // TODO better use of information readily available...
           // TODO could also check local cache before creating a new
           // instance?
@@ -645,7 +648,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         return new ScannerIterable<Vertex>(this, scan) {
 
           @Override
-          public Vertex next(Iterator<Entry<Key,Value>> iterator) {
+          public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
 
             // TODO better use of information readily available...
             // TODO could also check local cache before creating a
@@ -721,27 +724,53 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         return edge;
       }
     }
-
+    Scanner s;
     if (!config.skipExistenceChecks()) {
-      Scanner s = getElementScanner(Edge.class);
+      s = getElementScanner(Edge.class);
       s.setRange(new Range(myID, myID));
       s.fetchColumnFamily(TLABEL);
+
+      if (config.getPreloadedProperties() != null) {
+        for (String x : config.getPreloadedProperties()) {
+          s.fetchColumnFamily(new Text(x));
+        }
+      }
+
       boolean found = s.iterator().hasNext();
       s.close();
       if (!found) {
         return null;
       }
+    } else {
+      return new AccumuloEdge(this, myID);
     }
-    // TODO Preload Properties
+
+    // Preload The Properties
     edge = new AccumuloEdge(this, myID);
+
+    preloadProperties(s.iterator(), (AccumuloElement) edge);
+
     if (edgeCache != null) {
       edgeCache.cache(edge);
     }
     return edge;
   }
 
+  private void preloadProperties(Iterator<Entry<Key,Value>> iter, AccumuloElement e) {
+    Integer timeout = config.getPropertyCacheTimeoutMillis();
+    while (iter.hasNext()) {
+      Entry<Key,Value> entry = iter.next();
+      String attr = entry.getKey().getColumnFamily().toString();
+      if (SLABEL.equals(attr)) {
+        continue;
+      }
+      Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
+      e.cacheProperty(attr, val, timeout);
+    }
+  }
+
   public void removeEdge(Edge edge) {
-    if(!config.isIndexableGraphDisabled())
+    if (!config.isIndexableGraphDisabled())
       clearIndex(edge.getId());
 
     if (edgeCache != null) {
@@ -805,7 +834,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return new ScannerIterable<Edge>(this, scan) {
 
       @Override
-      public Edge next(Iterator<Entry<Key,Value>> iterator) {
+      public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
         // TODO better use of information readily available...
         // TODO could also check local cache before creating a new
         // instance?
@@ -831,7 +860,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       return new ScannerIterable<Edge>(this, s) {
         @Override
-        public Edge next(Iterator<Entry<Key,Value>> iterator) {
+        public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
           // TODO better use of information readily available...
           // TODO could also check local cache before creating a new
           // instance?
@@ -852,7 +881,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         return new ScannerIterable<Edge>(this, scan) {
 
           @Override
-          public Edge next(Iterator<Entry<Key,Value>> iterator) {
+          public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
             // TODO better use of information readily available...
             // TODO could also check local cache before creating a new
             // instance?
@@ -1108,7 +1137,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return new ScannerIterable<Edge>(this, scan) {
 
       @Override
-      public Edge next(Iterator<Entry<Key,Value>> iterator) {
+      public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
         // TODO better use of information readily available...
         // TODO could also check local cache before creating a new
         // instance?
@@ -1150,7 +1179,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return new ScannerIterable<Vertex>(this, scan) {
 
       @Override
-      public Vertex next(Iterator<Entry<Key,Value>> iterator) {
+      public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
         // TODO better use of information readily available...
         // TODO could also check local cache before creating a new
         // instance?
@@ -1215,7 +1244,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if(config.isIndexableGraphDisabled())
+    if (config.isIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner s = this.getMetadataScanner();
@@ -1242,7 +1271,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if(config.isIndexableGraphDisabled())
+    if (config.isIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner scan = getScanner(config.getMetadataTable());
@@ -1266,7 +1295,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Index<? extends Element>> getIndices() {
-    if(config.isIndexableGraphDisabled())
+    if (config.isIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();
     Scanner scan = getScanner(config.getMetadataTable());
@@ -1294,7 +1323,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public void dropIndex(String indexName) {
-    if(config.isIndexableGraphDisabled())
+    if (config.isIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     BatchDeleter deleter = null;
     try {
