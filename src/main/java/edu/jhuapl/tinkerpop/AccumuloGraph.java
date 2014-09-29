@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -593,23 +594,24 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     Scanner scan = getElementScanner(Vertex.class);
     scan.fetchColumnFamily(TLABEL);
 
-   // if (config.getPreloadedProperties() != null) {
-   //   for (String x : config.getPreloadedProperties()) {
-   //     scan.fetchColumnFamily(new Text(x));
-   //   }
-   // }
+    if (config.getPreloadedProperties() != null) {
+      for (String x : config.getPreloadedProperties()) {
+        scan.fetchColumnFamily(new Text(x));
+      }
+    }
     return new ScannerIterable<Vertex>(this, scan) {
 
       @Override
       public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
-
-        // TODO better use of information readily available...
         // TODO could also check local cache before creating a new instance?
-      //  RowIterator iter = 
-        
+        AccumuloVertex vert = new AccumuloVertex(AccumuloGraph.this, iterator.peek().getKey().getRow().toString());
 
-        AccumuloVertex vert = new AccumuloVertex(AccumuloGraph.this,  iterator.peek().getKey().getRow().toString());
-        preloadProperties(null, vert);
+        String rowid = iterator.next().getKey().getRow().toString();
+        List<Entry<Key,Value>> vals = new ArrayList<Entry<Key,Value>>();
+        while (iterator.peek() != null && rowid.compareToIgnoreCase(iterator.peek().getKey().getRow().toString()) == 0) {
+          vals.add(iterator.next());
+        }
+        preloadProperties(vals.iterator(), vert);
         return vert;
       }
     };
@@ -633,6 +635,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           // TODO could also check local cache before creating a new
           // instance?
           return new AccumuloVertex(AccumuloGraph.this, iterator.next().getKey().getColumnQualifier().toString());
+
         }
       };
     } else {
@@ -831,15 +834,29 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public Iterable<Edge> getEdges() {
     BatchScanner scan = getElementBatchScanner(Edge.class);
     scan.fetchColumnFamily(TLABEL);
+    
+    if (config.getPreloadedProperties() != null) {
+      for (String x : config.getPreloadedProperties()) {
+        scan.fetchColumnFamily(new Text(x));
+      }
+    }
+    
     return new ScannerIterable<Edge>(this, scan) {
 
       @Override
       public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
-        // TODO better use of information readily available...
-        // TODO could also check local cache before creating a new
-        // instance?
+        // TODO could also check local cache before creating a new instance?
         Entry<Key,Value> entry = iterator.next();
-        return new AccumuloEdge(AccumuloGraph.this, entry.getKey().getRow().toString(), AccumuloByteSerializer.desserialize(entry.getValue().get()).toString());
+        AccumuloEdge edge = new AccumuloEdge(AccumuloGraph.this, entry.getKey().getRow().toString(), AccumuloByteSerializer
+            .desserialize(entry.getValue().get()).toString());
+
+        String rowid = entry.getKey().getRow().toString();
+        List<Entry<Key,Value>> vals = new ArrayList<Entry<Key,Value>>();
+        while (iterator.peek() != null && rowid.compareToIgnoreCase(iterator.peek().getKey().getRow().toString()) == 0) {
+          vals.add(iterator.next());
+        }
+        preloadProperties(vals.iterator(), edge);
+        return edge;
       }
     };
   }
