@@ -29,6 +29,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.CloseableIterable;
@@ -147,7 +148,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
             return new ScannerIterable<T>(parent, scan) {
 
               @Override
-              public T next(Iterator<Entry<Key,Value>> iterator) {
+              public T next(PeekingIterator<Entry<Key,Value>> iterator) {
                 // TODO better use of information readily
                 // available...
                 return (T) new AccumuloEdge(parent, iterator.next().getKey().getColumnQualifier().toString());
@@ -157,7 +158,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
             return new ScannerIterable<T>(parent, scan) {
 
               @Override
-              public T next(Iterator<Entry<Key,Value>> iterator) {
+              public T next(PeekingIterator<Entry<Key,Value>> iterator) {
                 // TODO better use of information readily
                 // available...
                 return (T) new AccumuloVertex(parent, iterator.next().getKey().getColumnQualifier().toString());

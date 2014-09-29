@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import org.apache.accumulo.core.client.ScannerBase;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.util.PeekingIterator;
 
 import com.tinkerpop.blueprints.Element;
 
@@ -36,10 +37,10 @@ public abstract class ScannerIterable<T extends Element> implements Iterable<T>,
 
   @Override
   public Iterator<T> iterator() {
-    return new ScannerIterator(scanner.iterator());
+    return new ScannerIterator(new PeekingIterator<Entry<Key,Value>>(scanner.iterator()));
   }
 
-  public abstract T next(Iterator<Entry<Key,Value>> iterator);
+  public abstract T next(PeekingIterator<Entry<Key,Value>> iterator);
 
   @Override
   public void close() {
@@ -55,9 +56,9 @@ public abstract class ScannerIterable<T extends Element> implements Iterable<T>,
   }
 
   class ScannerIterator implements Iterator<T> {
-    Iterator<Entry<Key,Value>> iterator;
+    PeekingIterator<Entry<Key,Value>> iterator;
 
-    ScannerIterator(Iterator<Entry<Key,Value>> iterator) {
+    ScannerIterator(PeekingIterator<Entry<Key,Value>> iterator) {
       this.iterator = iterator;
     }
 
