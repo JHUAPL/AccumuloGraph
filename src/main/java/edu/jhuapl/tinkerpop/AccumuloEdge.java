@@ -98,6 +98,18 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
   public String getOutId() {
     return outId;
   }
+  
+  protected void setInId(String id){
+    inId = id;
+  }
+  
+  protected void setOutId(String id){
+    outId = id;
+  }
+  
+  protected void setLabel(String label){
+    this.label = label;
+  }
 
   public String toString() {
     return "[" + getId() + ":" + getVertex(Direction.OUT) + " -> " + getLabel() + " -> " + getVertex(Direction.IN) + "]";

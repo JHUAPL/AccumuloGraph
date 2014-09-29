@@ -190,7 +190,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public static final String SLABEL = "L";
   public static final String SINEDGE = "I";
   public static final String SOUTEDGE = "O";
-  public static final byte[] EXISTS = "E".getBytes();
+  public static final String SEXISTS = "E";
+  public static final byte[] EXISTS = SEXISTS.getBytes();
   public static final byte[] LABEL = SLABEL.getBytes();
   public static final byte[] INEDGE = SINEDGE.getBytes();
   public static final byte[] OUTEDGE = SOUTEDGE.getBytes();
@@ -761,12 +762,21 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     Integer timeout = config.getPropertyCacheTimeoutMillis();
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
-      String attr = entry.getKey().getColumnFamily().toString();
+      Key key = entry.getKey();
+      String attr = key.getColumnFamily().toString();
       if (SLABEL.equals(attr)) {
+        if(!key.getColumnFamily().toString().equals(SEXISTS)){
+          AccumuloEdge edge = (AccumuloEdge)e;
+          String[] ids = key.getColumnFamily().toString().split("_");
+          edge.setInId(ids[0]);
+          edge.setOutId(ids[1]);
+          edge.setLabel(entry.getValue().toString());
+        }
         continue;
       }
       Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
       e.cacheProperty(attr, val, timeout);
+      
     }
   }
 
