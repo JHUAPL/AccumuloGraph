@@ -765,9 +765,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       Key key = entry.getKey();
       String attr = key.getColumnFamily().toString();
       if (SLABEL.equals(attr)) {
-        if(!key.getColumnFamily().toString().equals(SEXISTS)){
-          AccumuloEdge edge = (AccumuloEdge)e;
-          String[] ids = key.getColumnFamily().toString().split("_");
+        if (!key.getColumnQualifier().toString().equals(SEXISTS)) {
+          AccumuloEdge edge = (AccumuloEdge) e;
+          String[] ids = key.getColumnQualifier().toString().split("_");
           edge.setInId(ids[0]);
           edge.setOutId(ids[1]);
           edge.setLabel(entry.getValue().toString());
@@ -776,7 +776,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
       Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
       e.cacheProperty(attr, val, timeout);
-      
+
     }
   }
 
