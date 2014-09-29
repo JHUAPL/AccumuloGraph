@@ -834,13 +834,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public Iterable<Edge> getEdges() {
     BatchScanner scan = getElementBatchScanner(Edge.class);
     scan.fetchColumnFamily(TLABEL);
-    
+
     if (config.getPreloadedProperties() != null) {
       for (String x : config.getPreloadedProperties()) {
         scan.fetchColumnFamily(new Text(x));
       }
     }
-    
+
     return new ScannerIterable<Edge>(this, scan) {
 
       @Override
