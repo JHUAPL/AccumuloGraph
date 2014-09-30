@@ -7,7 +7,7 @@ public class ExtendedAccumuloGraphTest extends AccumuloGraphTest {
   @Override
   public Graph generateGraph(String graphDirectoryName) {
     AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig(graphDirectoryName);
-    cfg.setLruMaxCapacity(20).setPreloadedProperties(new String[] {"test"}).setPreloadedEdgeLabels(new String[] {"knows"}).setPropertyCacheTimeout(100000);
+    cfg.setLruMaxCapacity(20).setPreloadedProperties(new String[] {"name"}).setPreloadedEdgeLabels(new String[] {"knows"}).setPropertyCacheTimeout("name",100000);
     testGraphName.set(graphDirectoryName);
     return GraphFactory.open(cfg.getConfiguration());
   }

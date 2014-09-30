@@ -247,15 +247,28 @@ public class AccumuloGraphConfiguration implements Serializable {
    *          the maximum number of milliseconds properties can be held in RAM
    * @return
    */
-  public AccumuloGraphConfiguration setPropertyCacheTimeout(int millis) {
-    if (millis <= 0) {
-      conf.clearProperty(PROPERTY_CACHE_TIMEOUT);
-    } else {
-      conf.setProperty(PROPERTY_CACHE_TIMEOUT, millis);
-    }
-    return this;
-  }
-
+ 
+  public AccumuloGraphConfiguration setPropertyCacheTimeout(String property, int millis) {
+	  if (millis < 0){
+		  throw new IllegalArgumentException("Timeout value cannot be negative.");
+	  }
+	  if(property != null){
+		  property = "."+property;
+		  if (millis <= 0) {
+			  conf.clearProperty(PROPERTY_CACHE_TIMEOUT+property);
+		  } else {
+			  conf.setProperty(PROPERTY_CACHE_TIMEOUT+property, millis);
+		  }
+	  } else{
+		  if (millis <= 0) {
+			  conf.clearProperty(PROPERTY_CACHE_TIMEOUT);
+		  } else {
+			  conf.setProperty(PROPERTY_CACHE_TIMEOUT, millis);
+		  }
+	  }
+	    return this;
+	  }
+  
   /**
    * Sets the number of milliseconds since retrieval that a Vertex instance will be maintained in a RAM cache before that value is expired. If this value is
    * unset or set to 0 (or a negative number) no caching will be performed.
@@ -559,8 +572,15 @@ public class AccumuloGraphConfiguration implements Serializable {
     return cachedAutoFlush;
   }
 
-  public Integer getPropertyCacheTimeoutMillis() {
-    return conf.getInteger(PROPERTY_CACHE_TIMEOUT, -1);
+  public Integer getPropertyCacheTimeoutMillis(String property) {
+	  if(property != null){
+		  property = "." + property;
+		  Integer timeout = conf.getInteger(PROPERTY_CACHE_TIMEOUT+property, -1);
+		  if (timeout >=0) {
+			  return timeout;
+		  }
+	  }
+	  return conf.getInteger(PROPERTY_CACHE_TIMEOUT,-1);
   }
 
   public Integer getEdgeCacheTimeoutMillis() {
@@ -751,10 +771,17 @@ public class AccumuloGraphConfiguration implements Serializable {
         throw new RuntimeException("Unexpected instance type: " + getInstanceType());
     }
 
-    Integer timeout = getPropertyCacheTimeoutMillis();
+    Integer timeout = getPropertyCacheTimeoutMillis(null);
 
-    if (timeout < 0 && conf.getProperty(PRELOAD_PROPERTIES) != null) {
-      throw new IllegalArgumentException("You cannot preload properties " + "without first setting #propertyCacheTimeout(int millis) " + "to a positive value.");
+    if (timeout <= 0) {
+    	String[] props = conf.getStringArray(PRELOAD_PROPERTIES);
+    	for(int i=0; i < props.length; i++){
+    		timeout = getPropertyCacheTimeoutMillis(props[i]);
+    		if (timeout <=0){break;}
+    	}
+    }
+    if(timeout <= 0 && conf.getProperty(PRELOAD_PROPERTIES) != null) {
+    	throw new IllegalArgumentException("You cannot preload properties " + "without first setting #propertyCacheTimeout(String property, int millis) " + "to a positive value.");
     }
   }
 
