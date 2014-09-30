@@ -17,6 +17,7 @@ package edu.jhuapl.tinkerpop.mapreduce;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.Set;
 
 import org.apache.hadoop.io.WritableComparable;
 
+import com.google.common.collect.Sets;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Graph;
 
@@ -36,11 +38,14 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
 
   protected Map<String,Object> properties;
 
+  protected Map<String,Object> newProperties;
+
   AccumuloGraph parent;
 
   MapReduceElement(AccumuloGraph parent) {
     this.parent = parent;
     properties = new HashMap<String,Object>();
+    newProperties = new HashMap<String,Object>();
   }
 
   void prepareId(String id) {
@@ -51,6 +56,10 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
     properties.put(key, property);
   }
 
+  Map<String,Object> getNewProperties() {
+    return newProperties;
+  }
+
   @Override
   public Object getId() {
     return id;
@@ -58,12 +67,16 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
 
   @Override
   public <T> T getProperty(String key) {
+
+    Object newProp = newProperties.get(key);
+    if (newProp != null)
+      return (T) newProp;
     return (T) properties.get(key);
   }
 
   @Override
   public Set<String> getPropertyKeys() {
-    return new HashSet<String>(properties.keySet());
+    return Sets.union(new HashSet<String>(properties.keySet()), new HashSet<String>(newProperties.keySet()));
   }
 
   @Override
@@ -78,7 +91,7 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
 
   @Override
   public void setProperty(String key, Object value) {
-    throw new UnsupportedOperationException("You cannot modify an element during a MapReduce job.");
+    newProperties.put(key, value);
   }
 
   protected Graph getParent() {
@@ -98,6 +111,16 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
       Object val = AccumuloByteSerializer.desserialize(data);
       properties.put(key, val);
     }
+
+    count = in.readInt();
+    for (int i = 0; i < count; i++) {
+      String key = in.readUTF();
+      byte[] data = new byte[in.readInt()];
+      in.readFully(data);
+      Object val = AccumuloByteSerializer.desserialize(data);
+      newProperties.put(key, val);
+    }
+
   }
 
   @Override
@@ -107,6 +130,13 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
     for (String key : properties.keySet()) {
       out.writeUTF(key);
       byte[] data = AccumuloByteSerializer.serialize(properties.get(key));
+      out.writeInt(data.length);
+      out.write(data);
+    }
+
+    for (String key : newProperties.keySet()) {
+      out.writeUTF(key);
+      byte[] data = AccumuloByteSerializer.serialize(newProperties.get(key));
       out.writeInt(data.length);
       out.write(data);
     }
