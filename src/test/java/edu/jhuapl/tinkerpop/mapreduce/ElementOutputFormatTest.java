@@ -68,7 +68,9 @@ public class ElementOutputFormatTest {
       AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration().setInstanceName("_mapreduce_instance2").setUser("root").setPassword("".getBytes())
           .setGraphName("_mapreduce_table_2").setInstanceType(InstanceType.Mock).setCreate(true);
       job.setInputFormatClass(EdgeInputFormat.class);
-
+      
+      VertexInputFormat.setAccumuloGraphConfiguration(job, cfg);
+      
       ElementOutputFormat.setAccumuloGraphConfiguration(job, cfg);
 
       job.setMapperClass(TestVertexMapper.class);
@@ -90,7 +92,7 @@ public class ElementOutputFormatTest {
   }
 
   @Test
-  public void testVertexInputMap() throws Exception {
+  public void testVertexOutputFormatMap() throws Exception {
     final String INSTANCE_NAME = "_mapreduce_instance2";
     final String TEST_TABLE_1 = "_mapreduce_table_2";
 
