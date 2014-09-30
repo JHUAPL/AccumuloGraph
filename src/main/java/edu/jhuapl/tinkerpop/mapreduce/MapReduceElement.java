@@ -39,12 +39,13 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
   protected Map<String,Object> properties;
 
   protected Map<String,Object> newProperties;
-  
+
   AccumuloGraph parent;
 
   MapReduceElement(AccumuloGraph parent) {
     this.parent = parent;
     properties = new HashMap<String,Object>();
+    newProperties = new HashMap<String,Object>();
   }
 
   void prepareId(String id) {
@@ -54,8 +55,8 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
   void prepareProperty(String key, Object property) {
     properties.put(key, property);
   }
-  
-  Map<String,Object> getNewProperties(){
+
+  Map<String,Object> getNewProperties() {
     return newProperties;
   }
 
@@ -66,17 +67,16 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
 
   @Override
   public <T> T getProperty(String key) {
-    
+
     Object newProp = newProperties.get(key);
-    if(newProp!=null)
+    if (newProp != null)
       return (T) newProp;
     return (T) properties.get(key);
   }
 
   @Override
   public Set<String> getPropertyKeys() {
-    return Sets.union(new HashSet<String>(properties.keySet()),
-        new HashSet<String>(newProperties.keySet())) ;
+    return Sets.union(new HashSet<String>(properties.keySet()), new HashSet<String>(newProperties.keySet()));
   }
 
   @Override
@@ -111,7 +111,7 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
       Object val = AccumuloByteSerializer.desserialize(data);
       properties.put(key, val);
     }
-    
+
     count = in.readInt();
     for (int i = 0; i < count; i++) {
       String key = in.readUTF();
@@ -120,7 +120,7 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
       Object val = AccumuloByteSerializer.desserialize(data);
       newProperties.put(key, val);
     }
-    
+
   }
 
   @Override
@@ -133,7 +133,7 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
       out.writeInt(data.length);
       out.write(data);
     }
-    
+
     for (String key : newProperties.keySet()) {
       out.writeUTF(key);
       byte[] data = AccumuloByteSerializer.serialize(newProperties.get(key));
