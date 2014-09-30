@@ -48,7 +48,8 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
     jobconf.set(AccumuloGraphConfiguration.GRAPH_NAME, acc.getName());
     jobconf.set(AccumuloGraphConfiguration.INSTANCE, acc.getInstance());
     jobconf.set(AccumuloGraphConfiguration.INSTANCE_TYPE, acc.getInstanceType().toString());
-    jobconf.set(AccumuloGraphConfiguration.ZK_HOSTS, acc.getZooKeeperHosts());
+    if(acc.getInstanceType().equals(InstanceType.Distributed))
+      jobconf.set(AccumuloGraphConfiguration.ZK_HOSTS, acc.getZooKeeperHosts());
   }
 
   /**
