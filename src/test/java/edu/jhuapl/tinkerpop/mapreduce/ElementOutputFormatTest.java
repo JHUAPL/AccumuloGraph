@@ -67,7 +67,7 @@ public class ElementOutputFormatTest {
       job.setJarByClass(this.getClass());
       AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration().setInstanceName("_mapreduce_instance2").setUser("root").setPassword("".getBytes())
           .setGraphName("_mapreduce_table_2").setInstanceType(InstanceType.Mock).setCreate(true);
-      job.setInputFormatClass(EdgeInputFormat.class);
+      job.setInputFormatClass(VertexInputFormat.class);
       
       VertexInputFormat.setAccumuloGraphConfiguration(job, cfg);
       
