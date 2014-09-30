@@ -69,7 +69,7 @@ public class ElementOutputFormatTest {
           .setGraphName("_mapreduce_table_2").setInstanceType(InstanceType.Mock).setCreate(true);
       job.setInputFormatClass(EdgeInputFormat.class);
 
-      EdgeInputFormat.setAccumuloGraphConfiguration(job, cfg);
+      ElementOutputFormat.setAccumuloGraphConfiguration(job, cfg);
 
       job.setMapperClass(TestVertexMapper.class);
 

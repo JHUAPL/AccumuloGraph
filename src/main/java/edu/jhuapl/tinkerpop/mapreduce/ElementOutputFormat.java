@@ -39,7 +39,7 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
 
   }
 
-  public static void setAccumuloConfiguration(Job job, AccumuloGraphConfiguration acc) {
+  public static void setAccumuloGraphConfiguration(Job job, AccumuloGraphConfiguration acc) {
     acc.validate();
     Configuration jobconf = job.getConfiguration();
 
