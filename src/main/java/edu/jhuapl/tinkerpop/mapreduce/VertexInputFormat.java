@@ -120,7 +120,7 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
     } else {
       VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
     }
-    job.getConfiguration().set("blueprints.accumulo.name", cfg.getName());
+    job.getConfiguration().set(AccumuloGraphConfiguration.GRAPH_NAME, cfg.getName());
   }
 
 }

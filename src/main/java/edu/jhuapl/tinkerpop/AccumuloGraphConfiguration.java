@@ -247,6 +247,7 @@ public class AccumuloGraphConfiguration implements Serializable {
    *          the maximum number of milliseconds properties can be held in RAM
    * @return
    */
+
  
   public AccumuloGraphConfiguration setPropertyCacheTimeout(String property, int millis) {
 	  if (millis < 0){
