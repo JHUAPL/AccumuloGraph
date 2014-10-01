@@ -759,11 +759,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   private void preloadProperties(Iterator<Entry<Key,Value>> iter, AccumuloElement e) {
-    Integer timeout = config.getPropertyCacheTimeoutMillis();
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
       Key key = entry.getKey();
       String attr = key.getColumnFamily().toString();
+      Integer timeout = config.getPropertyCacheTimeoutMillis(attr);
       if (SLABEL.equals(attr)) {
         if (!key.getColumnQualifier().toString().equals(SEXISTS)) {
           AccumuloEdge edge = (AccumuloEdge) e;
@@ -1016,7 +1016,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       toRet = AccumuloByteSerializer.desserialize(iter.next().getValue().get());
     }
     s.close();
-    return new Pair<Integer,T>(config.getPropertyCacheTimeoutMillis(), toRet);
+    return new Pair<Integer,T>(config.getPropertyCacheTimeoutMillis(key), toRet);
   }
 
   void preloadProperties(AccumuloElement element, Class type) {
@@ -1040,11 +1040,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     Iterator<Entry<Key,Value>> iter = s.iterator();
-    Integer timeout = config.getPropertyCacheTimeoutMillis(); // Change this
+    //Integer timeout = config.getPropertyCacheTimeoutMillis(); // Change this
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
       Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
-      element.cacheProperty(entry.getKey().getColumnFamily().toString(), val, timeout);
+      element.cacheProperty(entry.getKey().getColumnFamily().toString(), val, config.getPropertyCacheTimeoutMillis(entry.getKey().getColumnFamily().toString()));
     }
     s.close();
   }
@@ -1105,7 +1105,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
-    return config.getPropertyCacheTimeoutMillis();
+    return config.getPropertyCacheTimeoutMillis(key);
   }
 
   private BatchWriter getBatchWriter(Class type) {
