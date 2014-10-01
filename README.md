@@ -3,7 +3,7 @@ AccumuloGraph
 [![Build Status](https://travis-ci.org/JHUAPL/AccumuloGraph.svg?branch=master)](https://travis-ci.org/JHUAPL/AccumuloGraph)
 
 This is an implementation of the [TinkerPop Blueprints](http://tinkerpop.com)
-API using [Apache Accumulo](http://apache.accumulo.com) as the backend.
+2.6 API using [Apache Accumulo](http://apache.accumulo.com) as the backend.
 This implementation provides easy to use, easy to write, and easy to read 
 access to an arbitrarily large graph that is stored in Accumulo.
  
