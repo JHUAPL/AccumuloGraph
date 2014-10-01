@@ -34,7 +34,6 @@ public class InputFormatsTest {
   private static class MRTester extends Configured implements Tool {
 
     private static class TestEdgeMapper extends Mapper<Text,Edge,NullWritable,NullWritable> {
-      // Key key = null;
       int count = 0;
 
       @Override

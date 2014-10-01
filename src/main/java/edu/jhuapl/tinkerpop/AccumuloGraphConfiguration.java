@@ -782,6 +782,7 @@ public class AccumuloGraphConfiguration implements Serializable {
     }
     if(timeout <= 0 && conf.getProperty(PRELOAD_PROPERTIES) != null) {
     	throw new IllegalArgumentException("You cannot preload properties " + "without first setting #propertyCacheTimeout(String property, int millis) " + "to a positive value.");
+
     }
   }
 
