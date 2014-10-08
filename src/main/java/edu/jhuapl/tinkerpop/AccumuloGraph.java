@@ -1209,12 +1209,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
         Entry<Key,Value> kv = iterator.next();
 
-        String[] parts = iterator.next().getKey().getColumnQualifier().toString().split(IDDELIM);
+        String[] parts = kv.getKey().getColumnQualifier().toString().split(IDDELIM);
+        String label = (new String(kv.getValue().get())).split("_")[1];
         if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
-          return new AccumuloEdge(AccumuloGraph.this, parts[1], (String) AccumuloByteSerializer.desserialize(kv.getValue().get()), kv.getKey().getRow().toString(), parts[0]);
+          return new AccumuloEdge(AccumuloGraph.this, parts[1], label, kv.getKey().getRow().toString(), parts[0]);
 
-        }else{
-          return new AccumuloEdge(AccumuloGraph.this, parts[1], (String) AccumuloByteSerializer.desserialize(kv.getValue().get()),parts[0], kv.getKey().getRow().toString());
+        } else {
+          return new AccumuloEdge(AccumuloGraph.this, parts[1], label, parts[0], kv.getKey().getRow().toString());
 
         }
       }
@@ -1259,7 +1260,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         // instance?
         String[] parts = iterator.next().getKey().getColumnQualifier().toString().split(IDDELIM);
         AccumuloVertex v = new AccumuloVertex(AccumuloGraph.this, parts[0]);
-        if(vertexCache!=null)
+        if (vertexCache != null)
           vertexCache.cache(v);
         return v;
       }
@@ -1283,7 +1284,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         id = val.split(IDDELIM)[1];
       }
       Vertex v = new AccumuloVertex(this, id);
-      if(vertexCache!=null)
+      if (vertexCache != null)
         vertexCache.cache(v);
       return v;
 
