@@ -1258,7 +1258,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         // TODO could also check local cache before creating a new
         // instance?
         String[] parts = iterator.next().getKey().getColumnQualifier().toString().split(IDDELIM);
-        return new AccumuloVertex(AccumuloGraph.this, parts[0]);
+        AccumuloVertex v = new AccumuloVertex(AccumuloGraph.this, parts[0]);
+        if(vertexCache!=null)
+          vertexCache.cache(v);
+        return v;
       }
     };
   }
@@ -1279,8 +1282,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       } else {
         id = val.split(IDDELIM)[1];
       }
-
-      return new AccumuloVertex(this, id);
+      Vertex v = new AccumuloVertex(this, id);
+      if(vertexCache!=null)
+        vertexCache.cache(v);
+      return v;
 
     } finally {
       s.close();
