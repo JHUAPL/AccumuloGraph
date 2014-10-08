@@ -630,10 +630,23 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
         @Override
         public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
-          // TODO better use of information readily available...
-          // TODO could also check local cache before creating a new
-          // instance?
-          return new AccumuloVertex(AccumuloGraph.this, iterator.next().getKey().getColumnQualifier().toString());
+
+          Key key = iterator.next().getKey();
+          AccumuloVertex v = null;
+          if (vertexCache != null) {
+            v = (AccumuloVertex) vertexCache.retrieve(key.getColumnQualifier().toString());
+          }
+
+          v = (v == null ? new AccumuloVertex(AccumuloGraph.this, key.getColumnQualifier().toString()) : v);
+          int timeout = config.getPropertyCacheTimeoutMillis(key.getColumnFamily().toString());
+          if (timeout != -1) {
+            v.cacheProperty(key.getColumnFamily().toString(), AccumuloByteSerializer.desserialize(key.getRow().getBytes()), timeout);
+          }
+
+          if (vertexCache != null) {
+            vertexCache.cache(v);
+          }
+          return v;
 
         }
       };
@@ -652,10 +665,22 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           @Override
           public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
 
-            // TODO better use of information readily available...
-            // TODO could also check local cache before creating a
-            // new instance?
-            return new AccumuloVertex(AccumuloGraph.this, iterator.next().getKey().getRow().toString());
+            Entry<Key,Value> kv = iterator.next();
+            AccumuloVertex v = null;
+            if (vertexCache != null) {
+              v = (AccumuloVertex) vertexCache.retrieve(kv.getKey().getRow().toString());
+            }
+
+            v = (v == null ? new AccumuloVertex(AccumuloGraph.this, kv.getKey().getRow().toString()) : v);
+            int timeout = config.getPropertyCacheTimeoutMillis(kv.getKey().getColumnFamily().toString());
+            if (timeout != -1) {
+              v.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.desserialize(kv.getValue().get()), timeout);
+            }
+
+            if (vertexCache != null) {
+              vertexCache.cache(v);
+            }
+            return v;
           }
         };
       } else {
@@ -853,7 +878,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       @Override
       public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
-        // TODO could also check local cache before creating a new instance?
+        // TODO I dont know if this should work with a batch scanner....
         Entry<Key,Value> entry = iterator.next();
         AccumuloEdge edge = new AccumuloEdge(AccumuloGraph.this, entry.getKey().getRow().toString(), AccumuloByteSerializer
             .desserialize(entry.getValue().get()).toString());
@@ -864,6 +889,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           vals.add(iterator.next());
         }
         preloadProperties(vals.iterator(), edge);
+        if (edgeCache != null) {
+          edgeCache.cache(edge);
+        }
         return edge;
       }
     };
@@ -886,10 +914,22 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       return new ScannerIterable<Edge>(this, s) {
         @Override
         public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
-          // TODO better use of information readily available...
-          // TODO could also check local cache before creating a new
-          // instance?
-          return new AccumuloEdge(AccumuloGraph.this, iterator.next().getKey().getColumnQualifier().toString());
+          AccumuloEdge e = null;
+          Entry<Key,Value> kv = iterator.next();
+          if (edgeCache != null) {
+            e = (AccumuloEdge) edgeCache.retrieve(kv.getKey().getColumnQualifier().toString());
+          }
+          e = (e == null ? new AccumuloEdge(AccumuloGraph.this, kv.getKey().getColumnQualifier().toString()) : e);
+
+          int timeout = config.getPropertyCacheTimeoutMillis(kv.getKey().getColumnFamily().toString());
+          if (timeout != -1) {
+            e.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.desserialize(kv.getKey().getRow().getBytes()), timeout);
+          }
+
+          if (edgeCache != null) {
+            edgeCache.cache(e);
+          }
+          return e;
         }
       };
     } else {
@@ -907,10 +947,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
           @Override
           public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
-            // TODO better use of information readily available...
-            // TODO could also check local cache before creating a new
-            // instance?
+
             Key k = iterator.next().getKey();
+
             if (k.getColumnFamily().compareTo(AccumuloGraph.TLABEL) == 0) {
               String[] vals = k.getColumnQualifier().toString().split(AccumuloGraph.IDDELIM);
               return new AccumuloEdge(AccumuloGraph.this, k.getRow().toString(), null, vals[0], vals[1]);
@@ -1040,11 +1079,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     Iterator<Entry<Key,Value>> iter = s.iterator();
-    //Integer timeout = config.getPropertyCacheTimeoutMillis(); // Change this
+    // Integer timeout = config.getPropertyCacheTimeoutMillis(); // Change this
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
       Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
-      element.cacheProperty(entry.getKey().getColumnFamily().toString(), val, config.getPropertyCacheTimeoutMillis(entry.getKey().getColumnFamily().toString()));
+      element
+          .cacheProperty(entry.getKey().getColumnFamily().toString(), val, config.getPropertyCacheTimeoutMillis(entry.getKey().getColumnFamily().toString()));
     }
     s.close();
   }
@@ -1166,8 +1206,17 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         // TODO better use of information readily available...
         // TODO could also check local cache before creating a new
         // instance?
+
+        Entry<Key,Value> kv = iterator.next();
+
         String[] parts = iterator.next().getKey().getColumnQualifier().toString().split(IDDELIM);
-        return new AccumuloEdge(AccumuloGraph.this, parts[1]);
+        if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
+          return new AccumuloEdge(AccumuloGraph.this, parts[1], (String) AccumuloByteSerializer.desserialize(kv.getValue().get()), kv.getKey().getRow().toString(), parts[0]);
+
+        }else{
+          return new AccumuloEdge(AccumuloGraph.this, parts[1], (String) AccumuloByteSerializer.desserialize(kv.getValue().get()),parts[0], kv.getKey().getRow().toString());
+
+        }
       }
     };
   }
