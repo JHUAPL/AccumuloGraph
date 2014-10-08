@@ -22,7 +22,7 @@ The releases are currently stored in Maven Central.
 <dependency>
 	<groupId>edu.jhuapl.tinkerpop</groupId>
 	<artifactId>blueprints-accumulo-graph</artifactId>
-	<version>0.0.1</version>
+	<version>0.0.2</version>
 </dependency>
 ```
 
