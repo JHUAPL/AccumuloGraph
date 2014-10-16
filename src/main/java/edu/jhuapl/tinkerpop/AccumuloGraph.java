@@ -1038,7 +1038,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   // methods used by AccumuloElement, AccumuloVertex, AccumuloEdge to interact
   // with the backing Accumulo data store...
 
-  <T> Pair<Integer,T> getProperty(Class type, String id, String key) {
+  <T> Pair<Integer,T> getProperty(Class<? extends Element> type, String id, String key) {
     Text colf = null;
     if (StringFactory.LABEL.equals(key)) {
       colf = AccumuloGraph.TLABEL;
@@ -1058,7 +1058,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return new Pair<Integer,T>(config.getPropertyCacheTimeoutMillis(key), toRet);
   }
 
-  void preloadProperties(AccumuloElement element, Class type) {
+  void preloadProperties(AccumuloElement element, Class<? extends Element> type) {
     String[] toPreload = config.getPreloadedProperties();
     if (toPreload == null) {
       return;
@@ -1089,7 +1089,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     s.close();
   }
 
-  Set<String> getPropertyKeys(Class type, String id) {
+  Set<String> getPropertyKeys(Class<? extends Element> type, String id) {
     Scanner s = getElementScanner(type);
     s.setRange(new Range(id));
     Set<String> toRet = new HashSet<String>();
@@ -1116,7 +1116,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @param key
    * @param val
    */
-  Integer setProperty(Class type, String id, String key, Object val) {
+  Integer setProperty(Class<? extends Element> type, String id, String key, Object val) {
     checkProperty(key, val);
     try {
       byte[] newByteVal = AccumuloByteSerializer.serialize(val);
@@ -1148,19 +1148,19 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return config.getPropertyCacheTimeoutMillis(key);
   }
 
-  private BatchWriter getBatchWriter(Class type) {
+  private BatchWriter getBatchWriter(Class<? extends Element> type) {
     if (type.equals(Edge.class))
       return edgeBW;
     return vertexBW;
   }
 
-  private BatchWriter getIndexBatchWriter(Class type) {
+  private BatchWriter getIndexBatchWriter(Class<? extends Element> type) {
     if (type.equals(Edge.class))
       return getEdgeIndexWriter();
     return getVertexIndexWriter();
   }
 
-  <T> T removeProperty(Class type, String id, String key) {
+  <T> T removeProperty(Class<? extends Element> type, String id, String key) {
     if (StringFactory.LABEL.equals(key) || SLABEL.equals(key)) {
       throw new RuntimeException("Cannot remove the " + StringFactory.LABEL + " property.");
     }
@@ -1394,7 +1394,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
-  private Class getClass(String e) {
+  private Class<? extends Element> getClass(String e) {
     if (e.equals("Vertex")) {
       return Vertex.class;
     }

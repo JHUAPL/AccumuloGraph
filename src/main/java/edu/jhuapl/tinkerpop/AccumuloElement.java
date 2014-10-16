@@ -27,7 +27,7 @@ public abstract class AccumuloElement implements Element {
   protected AccumuloGraph parent;
   protected String id;
 
-  private Class type;
+  private Class<? extends Element> type;
 
   private Map<String,Pair<Long,Object>> propertiesCache;
 
