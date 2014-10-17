@@ -345,7 +345,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   /**
-   * The Graph can utilize an least-recently used (LRU) cache to avoid round-trip checks to Accumulo at the cost of consistency. Set this value to the maximum
+   * The Graph can utilize a least-recently used (LRU) cache to avoid round-trip checks to Accumulo at the cost of consistency. Set this value to the maximum
    * number of vertices or edges to be cached. A negative number means do not cache any values.
    * 
    * TODO this probably should be a time-based cache eventually.
@@ -377,7 +377,7 @@ public class AccumuloGraphConfiguration implements Serializable {
    * @param disable
    * @return this configuration
    */
-  public AccumuloGraphConfiguration diableIndexableGraph(boolean disable){
+  public AccumuloGraphConfiguration disableIndexableGraph(boolean disable){
     conf.setProperty(DISABLE_INDEX, disable);
     return this;
   }
