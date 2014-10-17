@@ -22,7 +22,7 @@ public class AccumuloGraphTestUtils {
     AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration();
     cfg.setInstanceName("instanceName").setZookeeperHosts("ZookeeperHostsString");
     cfg.setUser("root").setPassword("".getBytes());
-    cfg.setGraphName(graphDirectoryName).setCreate(true).autoFlush(true).setInstanceType(InstanceType.Mock);
+    cfg.setGraphName(graphDirectoryName).setCreate(true).setAutoFlush(true).setInstanceType(InstanceType.Mock);
     return cfg;
   }
 }

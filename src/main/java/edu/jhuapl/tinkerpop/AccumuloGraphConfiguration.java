@@ -116,7 +116,7 @@ public class AccumuloGraphConfiguration implements Serializable {
     values.put(GRAPH_CLASS, ACCUMULO_GRAPH_CLASSNAME);
     conf.addProperty(GRAPH_CLASS, ACCUMULO_GRAPH_CLASSNAME);
     // set some defaults
-    setMaxWriteLatency(60000L).setMaxWriteMemory(1024L * 1024 * 20).setMaxWriteThreads(3).setMaxWriteTimeout(Long.MAX_VALUE).autoFlush(true).setCreate(false)
+    setMaxWriteLatency(60000L).setMaxWriteMemory(1024L * 1024 * 20).setMaxWriteThreads(3).setMaxWriteTimeout(Long.MAX_VALUE).setAutoFlush(true).setCreate(false)
         .setInstanceType(InstanceType.Distributed).setAuthorizations(Constants.NO_AUTHS).setQueryThreads(3).skipExistenceChecks(false);
   }
 
@@ -377,7 +377,7 @@ public class AccumuloGraphConfiguration implements Serializable {
    * @param disable
    * @return this configuration
    */
-  public AccumuloGraphConfiguration disableIndexableGraph(boolean disable){
+  public AccumuloGraphConfiguration setIndexableGraphDisabled(boolean disable) {
     conf.setProperty(DISABLE_INDEX, disable);
     return this;
   }
@@ -438,7 +438,7 @@ public class AccumuloGraphConfiguration implements Serializable {
    * @param autoFlush
    * @return
    */
-  public AccumuloGraphConfiguration autoFlush(boolean autoFlush) {
+  public AccumuloGraphConfiguration setAutoFlush(boolean autoFlush) {
     conf.setProperty(AUTO_FLUSH, autoFlush);
     return this;
   }

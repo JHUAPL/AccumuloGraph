@@ -157,7 +157,7 @@ public class InputFormatsTest {
 
     if (!System.getProperty("os.name").startsWith("Windows")) {
       Graph g = GraphFactory.open(new AccumuloGraphConfiguration().setInstanceName(INSTANCE_NAME).setUser("root").setPassword("".getBytes())
-          .setGraphName(TEST_TABLE_1).setInstanceType(InstanceType.Mock).autoFlush(true).setCreate(true).getConfiguration());
+          .setGraphName(TEST_TABLE_1).setInstanceType(InstanceType.Mock).setAutoFlush(true).setCreate(true).getConfiguration());
       for (int i = 0; i < 100; i++) {
         g.addEdge(null, g.addVertex(i + ""), g.addVertex(i + "a"), "knows");
 
