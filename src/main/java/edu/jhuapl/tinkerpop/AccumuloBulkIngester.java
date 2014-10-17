@@ -214,15 +214,18 @@ public final class AccumuloBulkIngester {
   }
 
   /**
-   * Shutdown the bulk ingester. This flushes any outstanding writes to Accumulo and performs any remaining clean up to finalize the graph.
+   * Shutdown the bulk ingester. This flushes any outstanding writes to Accumulo
+   * and performs any remaining clean up to finalize the graph.
    * 
    * @param compact
-   *          a flag if this shutdown should kick off a compaction on the graph-related tables (true) or not (false) before quiting.
+   *          a flag if this shutdown should start a compaction on the graph-related tables
+   *          (true) or not (false) before quitting.
    * @throws AccumuloException
    * @throws TableNotFoundException
    * @throws AccumuloSecurityException
    */
-  public void shutdown(boolean compact) throws AccumuloSecurityException, TableNotFoundException, AccumuloException {
+  public void shutdown(boolean compact) throws AccumuloSecurityException,
+    TableNotFoundException, AccumuloException {
     mtbw.close();
     mtbw = null;
 

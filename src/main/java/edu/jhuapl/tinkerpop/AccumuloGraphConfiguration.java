@@ -148,7 +148,7 @@ public class AccumuloGraphConfiguration implements Serializable {
 
   /**
    * Whether to clear out an existing graph upon instantiation.
-   * 
+   * This is accomplished by dropping and recreating the backing tables.
    * @param clear
    * @return
    */
@@ -161,16 +161,33 @@ public class AccumuloGraphConfiguration implements Serializable {
     return conf;
   }
 
+  /**
+   * Set the Zookeeper hosts to use when connecting to Accumulo.
+   * This takes the same format as used in Accumulo's
+   * {@link ZooKeeperInstance} class.
+   * @param zookeeperHosts
+   * @return
+   */
   public AccumuloGraphConfiguration setZookeeperHosts(String zookeeperHosts) {
     conf.setProperty(ZK_HOSTS, zookeeperHosts);
     return this;
   }
 
+  /**
+   * Set Accumulo instance name to use.
+   * @param instance
+   * @return
+   */
   public AccumuloGraphConfiguration setInstanceName(String instance) {
     conf.setProperty(INSTANCE, instance);
     return this;
   }
 
+  /**
+   * Set username to use for Accumulo authentication.
+   * @param user
+   * @return
+   */
   public AccumuloGraphConfiguration setUser(String user) {
     conf.setProperty(USER, user);
     return this;
@@ -390,9 +407,9 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   /**
-   * A space-separated, ordered list of splits to be applied to the backing Accumulo-table. Only applied if the graph does not already exist and the config
+   * A space-separated, ordered list of splits to be applied to the backing Accumulo table.
+   * The splits are only applied if the graph does not already exist and the config
    * {@link #setCreate(boolean)} is set to true.
-   * 
    * @param splits
    * @return
    */
@@ -403,16 +420,32 @@ public class AccumuloGraphConfiguration implements Serializable {
     return setSplits(splits.trim().split(" "));
   }
 
+  /**
+   * An ordered list of splits to be applied to the backing Accumulo table.
+   * The splits are only applied if the graph does not already exist and the config
+   * {@link #setCreate(boolean)} is set to true.
+   * @param splits
+   * @return
+   */
   public AccumuloGraphConfiguration setSplits(String[] splits) {
     conf.setProperty(SPLITS, splits != null ? Arrays.asList(splits) : null);
     return this;
   }
 
+  /**
+   * Accumulo password used for authentication.
+   * @param password
+   * @return
+   */
   public AccumuloGraphConfiguration setPassword(byte[] password) {
-    conf.setProperty(PASSWORD, new String(password));
-    return this;
+    return setPassword(new String(password));
   }
 
+  /**
+   * Accumulo password used for authentication.
+   * @param password
+   * @return
+   */
   public AccumuloGraphConfiguration setPassword(String password) {
     conf.setProperty(PASSWORD, password);
     return this;
