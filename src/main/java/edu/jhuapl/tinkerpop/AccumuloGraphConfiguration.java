@@ -44,6 +44,9 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
 
+import com.tinkerpop.blueprints.GraphFactory;
+import com.tinkerpop.blueprints.IndexableGraph;
+
 public class AccumuloGraphConfiguration implements Serializable {
 
   private Configuration conf;
@@ -66,32 +69,148 @@ public class AccumuloGraphConfiguration implements Serializable {
     Distributed, Mini, Mock
   };
 
+  /**
+   * Internal constant used by {@link GraphFactory}.
+   */
   public static final String GRAPH_CLASS = "blueprints.graph";
+
+  /**
+   * ZooKeeper hosts string, in the same format as used by
+   * {@link ZooKeeperInstance}.
+   */
   public static final String ZK_HOSTS = "blueprints.accumulo.zkhosts";
+  
+  /**
+   * Accumulo instance name.
+   */
   public static final String INSTANCE = "blueprints.accumulo.instance";
+
+  /**
+   * Instance type to use with Accumulo ({@see InstanceType}).
+   */
   public static final String INSTANCE_TYPE = "blueprints.accumulo.instance.type";
+
+  /**
+   * Accumulo username.
+   */
   public static final String USER = "blueprints.accumulo.user";
+
+  /**
+   * Accumulo password.
+   */
   public static final String PASSWORD = "blueprints.accumulo.password";
+
+  /**
+   * Name of the graph to create. Storage tables will be prefixed with this value.
+   */
   public static final String GRAPH_NAME = "blueprints.accumulo.name";
+
+  /**
+   * Maximum wait time before changes are flushed to Accumulo.
+   */
   public static final String MAX_WRITE_LATENCY = "blueprints.accumulo.write.max.latency";
+
+  /**
+   * Maximum memory usage when buffering writes.
+   */
   public static final String MAX_WRITE_MEMORY = "blueprints.accumulo.write.max.memory";
+
+  /**
+   * Maximum number of threads to use for writing to Accumulo.
+   */
   public static final String MAX_WRITE_THREADS = "blueprints.accumulo.write.max.threads";
+
+  /**
+   * How long to wait before declaring a write failure.
+   */
   public static final String MAX_WRITE_TIMEOUT = "blueprints.accumulo.write.timeout";
+  
+  /**
+   * Number of Accumulo query threads to use.
+   */
   public static final String QUERY_THREADS = "blueprints.accumulo.read.queryThreads";
+  
+  /**
+   * Accumulo authorization permissions.
+   */
   public static final String AUTHORIZATIONS = "blueprints.accumulo.authorizations";
+
+  /**
+   * If set, immediately flush graph modifications to Accumulo.
+   */
   public static final String AUTO_FLUSH = "blueprints.accumulo.auto.flush";
+  
+  /**
+   * Whether to create the graph tables if it does not exist.
+   * It is an error if the tables do not exist and this is not set.
+   */
   public static final String CREATE = "blueprints.accumulo.create";
+
+  /**
+   * Whether to clear an existing graph on initialization.
+   * Clearing is done by dropping and recreating the tables.
+   */
   public static final String CLEAR = "blueprints.accumulo.clear";
+
+  /**
+   * Used to explicitly set the Accumulo table splits.
+   */
   public static final String SPLITS = "blueprints.accumulo.splits";
+
+  /**
+   * Column visibility.<br/>
+   * <strong>TODO</strong> Currently unused.
+   */
   public static final String COLVIS = "blueprints.accumulo.columnVisibility";
+  
+  /**
+   * If set, when adding a graph element, do not check whether
+   * an element with that id already exists. This increases performance
+   * but the user is responsible for not readding existing elements.
+   */
   public static final String SKIP_CHECKS = "blueprints.accumulo.skipExistenceChecks";
+
+  /**
+   * Maximum capacity for the vertex/edge cache, if enabled.
+   */
   public static final String LRU_MAX_CAP = "blueprints.accumulo.lruMaximumCapacity";
+
+  /**
+   * List of properties to fetch with returned graph elements.
+   * This will be faster in retrieving wanted properties
+   * since they will be retrieved with the initial table scan.
+   */
   public static final String PRELOAD_PROPERTIES = "blueprints.accumulo.property.preload";
+  
+  /**
+   * How long to wait before flushing items from the edge cache.
+   */
   public static final String EDGE_CACHE_TIMEOUT = "blueprints.accumulo.edgeCacheTimeout";
+
+  /**
+   * How long to wait before flushing items from the property cache.
+   */
   public static final String PROPERTY_CACHE_TIMEOUT = "blueprints.accumulo.propertyCacheTimeout";
+
+  /**
+   * How long to wait before flushing items from the vertex cache.
+   */
   public static final String VERTEX_CACHE_TIMEOUT = "blueprints.accumulo.vertexCacheTimeout";
+  
+  /**
+   * Labels of graph edges to preload when fetching elements.<br/>
+   * <strong>TODO</strong> Currently unused.
+   */
   public static final String PRELOAD_EDGES = "blueprints.accumulo.edge.preload";
+  
+  /**
+   * Whether to automatically index element properties.
+   */
   public static final String AUTO_INDEX = "blueprints.accumulo.index.auto";
+  
+  /**
+   * Whether to disable the operations specified by {@link IndexableGraph}.
+   */
   public static final String DISABLE_INDEX = "blueprints.accumulo.index.disable";
   
   /**
