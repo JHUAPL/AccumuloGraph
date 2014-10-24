@@ -107,6 +107,8 @@ public final class AccumuloByteSerializer {
         } catch (ClassNotFoundException cnfe) {
           throw new RuntimeException("Unexpected error deserializing object.", cnfe);
         }
+      case NULL:
+    	return null;
       default:
         throw new RuntimeException("Unexpected data type: " + (char) target[0]);
     }
