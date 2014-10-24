@@ -64,9 +64,12 @@ import com.tinkerpop.blueprints.util.StringFactory;
 
 /**
  * 
- * This is an implementation of Tinkerpop's Graph API backed by Apache Accumulo. The implementation currently Supports KeyIndexable and Indexable interfaces.
+ * This is an implementation of Tinkerpop's Graph API backed by Apache Accumulo.
+ * The implementation currently supports the {@link IndexableGraph}
+ * and {@link KeyIndexableGraph} interfaces.
  * 
- * It currently relies on 6 to N tables with the format. Every Index created by the Indexable interface gets its own table.
+ * It currently relies on 6 to N tables with the format.
+ * Every index created by the indexable interface gets its own table.
  * 
  * VertexTable
  * <table border=1>

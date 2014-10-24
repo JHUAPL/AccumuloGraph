@@ -34,9 +34,12 @@ import com.tinkerpop.blueprints.Vertex;
 
 
 /**
- * This class providers high-speed ingest into an AccumuloGraph instance in exchange for consistency guarantees. That is, users of this class must ensure
- * (outside of this class) that data is entered in a consistent way or the behavior or the resulting AccumuloGraph is undefined. For example, users are required
- * to ensure that a vertex ID provided as the source or destination of an edge exists (or will exist by the end of the ingest process). Likewise, it is the
+ * This class provides high-speed ingest into an {@link AccumuloGraph} instance
+ * in exchange for consistency guarantees. That is, users of this class must ensure
+ * (outside of this class) that data is entered in a consistent way or the behavior
+ * or the resulting AccumuloGraph is undefined. For example, users are required
+ * to ensure that a vertex ID provided as the source or destination of an edge exists
+ * (or will exist by the end of the ingest process). Likewise, it is the
  * user's responsibility to ensure vertex and edge IDs provided for properties (will) exist.
  * <P>
  * TODO define the properties that will be used (vs. those that are ignored) from the provided AccumuloGraphConfiguration.
