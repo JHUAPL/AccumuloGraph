@@ -47,12 +47,16 @@ import org.apache.hadoop.io.Text;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.IndexableGraph;
 
+/**
+ * Configuration class for setting AccumuloGraph parameters.
+ */
 public class AccumuloGraphConfiguration implements Serializable {
 
   private Configuration conf;
 
   /**
-   * The fully-qualified class name of the class that implements the TinkerPop Graph interface. This is used in a configuration object to tell the GraphFactory
+   * The fully-qualified class name of the class that implements the TinkerPop Graph interface.
+   * This is used in a configuration object to tell the GraphFactory
    * which type to instantiate.
    */
   public static final String ACCUMULO_GRAPH_CLASSNAME = AccumuloGraph.class.getCanonicalName();
