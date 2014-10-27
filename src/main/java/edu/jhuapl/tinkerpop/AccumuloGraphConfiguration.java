@@ -810,6 +810,11 @@ public class AccumuloGraphConfiguration implements Serializable {
     Instance inst = null;
     switch (getInstanceType()) {
       case Distributed:
+    	  if (getInstance() == null) {
+    		  throw new IllegalArgumentException("Must specify instance name for distributed mode");
+    	  } else if (getZooKeeperHosts() == null) {
+    		  throw new IllegalArgumentException("Must specify ZooKeeper hosts for distributed mode");
+    	  }
         inst = new ZooKeeperInstance(getInstance(), getZooKeeperHosts());
         break;
       case Mini:
