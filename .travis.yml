@@ -1,4 +1,18 @@
 language: java
 jdk:
   - openjdk7
-  
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "kd49BqB0JXweutiUMSwO2iH6R2A0AW/EsY7bkQUhOnEF8zKQUpazSDcPhuVO9Ax2BLgrZMR0NFpsTDqaAUea/LJS47Iq2w5Hf75kDAH6LM0STgxPRuNzGjT4CxNlCUF6aq/74yrFQuMfLXSRrWdIJa/0JEEJdGPqMY61+4eXBuE="
+
+addons:
+  coverity_scan:
+    project:
+      name: "JHUAPL/AccumuloGraph"
+      description: "Build submitted via Travis CI"
+    notification_email: webbrl1@live.com
+    build_command_prepend: "mvn clean"
+    build_command:   "mvn -DskipTests=true compile"
+    branch_pattern: coverity_scan
