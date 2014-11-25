@@ -220,9 +220,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @param config
    */
   public AccumuloGraph(AccumuloGraphConfiguration config) {
-    System.out.println("Here");
     config.validate();
-    System.out.println("Here");
     this.config = config;
 
     if (config.useLruCache()) {
@@ -233,10 +231,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   
     AccumuloGraphUtils.handleCreateAndClear(config);
     try {
-      System.out.println(config.getVertexTable() + " " + config.getConnector().whoami());
-      System.out.println("Here");
       setupWriters();
-      System.out.println("Here");
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -257,7 +252,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   protected Scanner getElementScanner(Class<? extends Element> type) {
-    System.out.println("getElementScanner");
     try {
       String tableName = config.getEdgeTable();
       if (type.equals(Vertex.class))
@@ -269,7 +263,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   protected Scanner getScanner(String tablename) {
-    System.out.println("getScanner");
     try {
       return config.getConnector().createScanner(tablename, config.getAuthorizations());
     } catch (TableNotFoundException e) {
@@ -353,7 +346,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   Features f;
 
   public Features getFeatures() {
-    System.out.println("getFeatures");
     if (f == null) {
       f = new Features();
       f.ignoresSuppliedIds = true;
@@ -430,7 +422,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public Vertex getVertex(Object id) {
-    System.out.println("getVertex");
     if (id == null) {
       throw ExceptionFactory.vertexIdCanNotBeNull();
     }

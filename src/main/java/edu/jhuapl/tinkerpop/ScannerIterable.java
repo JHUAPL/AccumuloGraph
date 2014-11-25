@@ -37,8 +37,6 @@ public abstract class ScannerIterable<T extends Element> implements Iterable<T>,
 
   @Override
   public Iterator<T> iterator() {
-    System.out.println(scanner);
-    
     return new ScannerIterator(new PeekingIterator<Entry<Key,Value>>(scanner.iterator()));
   }
 
