@@ -66,6 +66,8 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
         if (outVertex == null) {
           if (outId == null) {
             outVertex = parent.getEdgeVertex(id, direction);
+            if(outVertex == null)
+              return null;
             outId = outVertex.getId().toString();
           } else {
             outVertex = parent.getVertex(outId);

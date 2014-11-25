@@ -228,7 +228,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       edgeCache = new LruElementCache<Edge>(config.getLruMaxCapacity(), config.getEdgeCacheTimeoutMillis());
     }
-
+  
     AccumuloGraphUtils.handleCreateAndClear(config);
     try {
       setupWriters();
@@ -586,13 +586,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   private Text invert(Text columnFamily) {
-    if (columnFamily.toString().equals(INEDGE)) {
+    if (columnFamily.equals(TINEDGE)) {
       return TOUTEDGE;
     }
     return TINEDGE;
   }
 
   public Iterable<Vertex> getVertices() {
+    System.out.println("getVertices");
     Scanner scan = getElementScanner(Vertex.class);
     scan.fetchColumnFamily(TLABEL);
 

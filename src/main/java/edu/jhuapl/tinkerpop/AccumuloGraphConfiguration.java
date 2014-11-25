@@ -244,12 +244,12 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   public AccumuloGraphConfiguration(Configuration config) {
-    conf = new PropertiesConfiguration();
-
+    this();
+   
     Iterator<String> keys = config.getKeys();
     while (keys.hasNext()) {
       String key = keys.next();
-      conf.addProperty(key.replace("..", "."), config.getProperty(key));
+      conf.setProperty(key.replace("..", "."), config.getProperty(key));
     }
   }
 

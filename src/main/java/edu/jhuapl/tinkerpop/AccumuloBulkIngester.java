@@ -229,6 +229,11 @@ public final class AccumuloBulkIngester {
    */
   public void shutdown(boolean compact) throws AccumuloSecurityException,
     TableNotFoundException, AccumuloException {
+	// Make sure this wasn't closed already.
+    if (mtbw == null) {
+      throw new RuntimeException("Ingester was already closed");
+    }
+
     mtbw.close();
     mtbw = null;
 
