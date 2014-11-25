@@ -117,7 +117,7 @@ public class MapReduceVertex extends MapReduceElement implements Vertex {
                 return e.getVertex(direction);
               case BOTH:
                 Vertex v = e.getVertex(Direction.IN);
-                if (this.equals(v)) {
+                if (v.getId().equals(id)) {
                   return e.getVertex(Direction.OUT);
                 } else {
                   return v;
