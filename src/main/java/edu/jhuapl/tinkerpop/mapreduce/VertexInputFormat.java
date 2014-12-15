@@ -12,14 +12,12 @@ import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
-import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
@@ -30,8 +28,12 @@ import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
   static AccumuloGraphConfiguration conf;
 
+  private static final String PREFIX = VertexInputFormat.class.getSimpleName()+".";
+  private static final String GRAPH_NAME = PREFIX+"graph.name";
+
   @Override
-  public RecordReader<Text,Vertex> createRecordReader(InputSplit split, TaskAttemptContext attempt) throws IOException, InterruptedException {
+  public RecordReader<Text,Vertex> createRecordReader(InputSplit split,
+      TaskAttemptContext attempt) throws IOException, InterruptedException {
     return new VertexRecordReader();
   }
 
@@ -52,11 +54,11 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
 
       try {
         conf = new AccumuloGraphConfiguration();
-        conf.setZookeeperHosts(VertexInputFormat.getInstance(attempt).getZooKeepers());
+        conf.setZooKeeperHosts(VertexInputFormat.getInstance(attempt).getZooKeepers());
         conf.setInstanceName(VertexInputFormat.getInstance(attempt).getInstanceName());
         conf.setUser(VertexInputFormat.getPrincipal(attempt));
         conf.setPassword(VertexInputFormat.getToken(attempt));
-        conf.setGraphName(attempt.getConfiguration().get(AccumuloGraphConfiguration.GRAPH_NAME));
+        conf.setGraphName(attempt.getConfiguration().get(GRAPH_NAME));
         if (VertexInputFormat.getInstance(attempt) instanceof MockInstance) {
           conf.setInstanceType(InstanceType.Mock);
         }
@@ -116,11 +118,11 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
     VertexInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
     VertexInputFormat.setInputTableName(job, cfg.getVertexTable());
     if (cfg.getInstanceType().equals(InstanceType.Mock)) {
-      VertexInputFormat.setMockInstance(job, cfg.getInstance());
+      VertexInputFormat.setMockInstance(job, cfg.getInstanceName());
     } else {
-      VertexInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
+      VertexInputFormat.setZooKeeperInstance(job, cfg.getInstanceName(), cfg.getZooKeeperHosts());
     }
-    job.getConfiguration().set(AccumuloGraphConfiguration.GRAPH_NAME, cfg.getName());
+    job.getConfiguration().set(GRAPH_NAME, cfg.getGraphName());
   }
 
 }

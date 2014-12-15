@@ -223,10 +223,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     config.validate();
     this.config = config;
 
-    if (config.useLruCache()) {
-      vertexCache = new LruElementCache<Vertex>(config.getLruMaxCapacity(), config.getVertexCacheTimeoutMillis());
+    if (config.getLruCacheEnabled()) {
+      vertexCache = new LruElementCache<Vertex>(config.getLruMaxCapacity(),
+          config.getVertexCacheTimeout());
 
-      edgeCache = new LruElementCache<Edge>(config.getLruMaxCapacity(), config.getEdgeCacheTimeoutMillis());
+      edgeCache = new LruElementCache<Edge>(config.getLruMaxCapacity(),
+          config.getEdgeCacheTimeout());
     }
 
     AccumuloGraphUtils.handleCreateAndClear(config);
@@ -395,7 +397,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     Vertex vert = null;
-    if (!config.skipExistenceChecks()) {
+    if (!config.getSkipExistenceChecks()) {
       vert = getVertex(myID);
       if (vert != null) {
         ExceptionFactory.vertexWithIdAlreadyExists(myID);
@@ -444,7 +446,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     Scanner scan = null;
     try {
-      if (!config.skipExistenceChecks()) {
+      if (!config.getSkipExistenceChecks()) {
         // in addition to just an "existence" check, we will also load
         // any "preloaded" properties now, which saves us a round-trip
         // to Accumulo later...
@@ -490,7 +492,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (vertexCache != null) {
       vertexCache.remove(vertex.getId());
     }
-    if (!config.isIndexableGraphDisabled())
+    if (!config.getIndexableGraphDisabled())
       clearIndex(vertex.getId());
 
     Scanner scan = getElementScanner(Vertex.class);
@@ -621,7 +623,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   public Iterable<Vertex> getVertices(String key, Object value) {
     checkProperty(key, value);
-    if (config.isAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
+    if (config.getAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
       // Use the index
       Scanner s = getVertexIndexScanner();
       byte[] val = AccumuloByteSerializer.serialize(value);
@@ -641,7 +643,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           }
 
           v = (v == null ? new AccumuloVertex(AccumuloGraph.this, key.getColumnQualifier().toString()) : v);
-          int timeout = config.getPropertyCacheTimeoutMillis(key.getColumnFamily().toString());
+          int timeout = config.getPropertyCacheTimeout(key.getColumnFamily().toString());
           if (timeout != -1) {
             v.cacheProperty(key.getColumnFamily().toString(), AccumuloByteSerializer.desserialize(key.getRow().getBytes()), timeout);
           }
@@ -675,7 +677,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
             }
 
             v = (v == null ? new AccumuloVertex(AccumuloGraph.this, kv.getKey().getRow().toString()) : v);
-            int timeout = config.getPropertyCacheTimeoutMillis(kv.getKey().getColumnFamily().toString());
+            int timeout = config.getPropertyCacheTimeout(kv.getKey().getColumnFamily().toString());
             if (timeout != -1) {
               v.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.desserialize(kv.getValue().get()), timeout);
             }
@@ -755,7 +757,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
     Scanner s;
-    if (!config.skipExistenceChecks()) {
+    if (!config.getSkipExistenceChecks()) {
       s = getElementScanner(Edge.class);
       s.setRange(new Range(myID, myID));
       s.fetchColumnFamily(TLABEL);
@@ -791,7 +793,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       Entry<Key,Value> entry = iter.next();
       Key key = entry.getKey();
       String attr = key.getColumnFamily().toString();
-      Integer timeout = config.getPropertyCacheTimeoutMillis(attr);
+      Integer timeout = config.getPropertyCacheTimeout(attr);
       if (SLABEL.equals(attr)) {
         if (!key.getColumnQualifier().toString().equals(SEXISTS)) {
           AccumuloEdge edge = (AccumuloEdge) e;
@@ -809,7 +811,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public void removeEdge(Edge edge) {
-    if (!config.isIndexableGraphDisabled())
+    if (!config.getIndexableGraphDisabled())
       clearIndex(edge.getId());
 
     if (edgeCache != null) {
@@ -906,7 +908,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       key = SLABEL;
     }
 
-    if (config.isAutoIndex() || getIndexedKeys(Edge.class).contains(key)) {
+    if (config.getAutoIndex() || getIndexedKeys(Edge.class).contains(key)) {
       // Use the index
       Scanner s = getEdgeIndexScanner();
       byte[] val = AccumuloByteSerializer.serialize(value);
@@ -924,7 +926,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           }
           e = (e == null ? new AccumuloEdge(AccumuloGraph.this, kv.getKey().getColumnQualifier().toString()) : e);
 
-          int timeout = config.getPropertyCacheTimeoutMillis(kv.getKey().getColumnFamily().toString());
+          int timeout = config.getPropertyCacheTimeout(kv.getKey().getColumnFamily().toString());
           if (timeout != -1) {
             e.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.desserialize(kv.getKey().getRow().getBytes()), timeout);
           }
@@ -1033,7 +1035,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   private void checkedFlush() {
-    if (config.isAutoFlush()) {
+    if (config.getAutoFlush()) {
       flush();
     }
   }
@@ -1058,7 +1060,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       toRet = AccumuloByteSerializer.desserialize(iter.next().getValue().get());
     }
     s.close();
-    return new Pair<Integer,T>(config.getPropertyCacheTimeoutMillis(key), toRet);
+    return new Pair<Integer,T>(config.getPropertyCacheTimeout(key), toRet);
   }
 
   void preloadProperties(AccumuloElement element, Class<? extends Element> type) {
@@ -1087,7 +1089,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       Entry<Key,Value> entry = iter.next();
       Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
       element
-          .cacheProperty(entry.getKey().getColumnFamily().toString(), val, config.getPropertyCacheTimeoutMillis(entry.getKey().getColumnFamily().toString()));
+          .cacheProperty(entry.getKey().getColumnFamily().toString(), val, config.getPropertyCacheTimeout(entry.getKey().getColumnFamily().toString()));
     }
     s.close();
   }
@@ -1125,7 +1127,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       byte[] newByteVal = AccumuloByteSerializer.serialize(val);
       Mutation m = null;
 
-      if (config.isAutoIndex() || getIndexedKeys(type).contains(key)) {
+      if (config.getAutoIndex() || getIndexedKeys(type).contains(key)) {
         BatchWriter bw = getIndexBatchWriter(type);
         Object old = getProperty(type, id, key).getSecond();
         if (old != null) {
@@ -1148,7 +1150,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
-    return config.getPropertyCacheTimeoutMillis(key);
+    return config.getPropertyCacheTimeout(key);
   }
 
   private BatchWriter getBatchWriter(Class<? extends Element> type) {
@@ -1327,7 +1329,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if (config.isIndexableGraphDisabled())
+    if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner s = this.getMetadataScanner();
@@ -1354,7 +1356,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if (config.isIndexableGraphDisabled())
+    if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner scan = getScanner(config.getMetadataTable());
@@ -1378,7 +1380,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Index<? extends Element>> getIndices() {
-    if (config.isIndexableGraphDisabled())
+    if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();
     Scanner scan = getScanner(config.getMetadataTable());
@@ -1406,7 +1408,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public void dropIndex(String indexName) {
-    if (config.isIndexableGraphDisabled())
+    if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     BatchDeleter deleter = null;
     try {
@@ -1415,7 +1417,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           config.getBatchWriterConfig());
       deleter.setRanges(Collections.singleton(new Range(indexName)));
       deleter.delete();
-      config.getConnector().tableOperations().delete(config.getName() + "_index_" + indexName);
+      config.getConnector().tableOperations().delete(config.getGraphName() + "_index_" + indexName);
     } catch (Exception e) {
       throw new RuntimeException(e);
     } finally {

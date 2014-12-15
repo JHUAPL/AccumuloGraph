@@ -65,17 +65,17 @@ final class AccumuloGraphUtils {
 
       // Check edge cases.
       // No tables exist, and we are not allowed to create.
-      if (!existedBeforeClear && !cfg.isCreate()) {
+      if (!existedBeforeClear && !cfg.getCreate()) {
         throw new IllegalArgumentException("Graph does not exist, and create option is disabled");
       }
       // Tables exist, and we are not clearing them.
-      else if (existedBeforeClear && !cfg.isClear()) {
+      else if (existedBeforeClear && !cfg.getClear()) {
         // Do nothing.
         return;
       }
 
       // We want to clear tables, so do it.
-      if (cfg.isClear()) {
+      if (cfg.getClear()) {
         for (String table : cfg.getTableNames()) {
           if (tableOps.exists(table)) {
             tableOps.delete(table);
@@ -84,7 +84,7 @@ final class AccumuloGraphUtils {
       }
 
       // Tables existed, or we want to create them. So do it.
-      if (existedBeforeClear || cfg.isCreate()) {
+      if (existedBeforeClear || cfg.getCreate()) {
         for (String table : cfg.getTableNames()) {
           if (!tableOps.exists(table)) {
             tableOps.create(table);
