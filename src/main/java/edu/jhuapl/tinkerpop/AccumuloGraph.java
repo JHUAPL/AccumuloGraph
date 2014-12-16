@@ -593,7 +593,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public Iterable<Vertex> getVertices() {
-    System.out.println("getVertices");
     Scanner scan = getElementScanner(Vertex.class);
     scan.fetchColumnFamily(TLABEL);
 
