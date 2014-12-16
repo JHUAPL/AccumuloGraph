@@ -17,10 +17,12 @@ package edu.jhuapl.tinkerpop;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -86,6 +88,9 @@ public class AccumuloGraphConfiguration implements Serializable {
     Distributed, Mini, Mock
   };
 
+  /**
+   * Utility class gathering valid configuration keys.
+   */
   private static class Keys {
     public static final String GRAPH_CLASS = "blueprints.graph";
     public static final String ZK_HOSTS = "blueprints.accumulo.zkhosts";
@@ -950,4 +955,27 @@ public class AccumuloGraphConfiguration implements Serializable {
     return temp;
   }
 
+  /**
+   * Print out this configuration.
+   */
+  public void print() {
+    System.out.println(AccumuloGraphConfiguration.class+":");
+
+    Set<String> keys = new TreeSet<String>();
+    for (Field field : Keys.class.getDeclaredFields()) {
+      try {
+        keys.add((String) field.get(null));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    for (String key : keys) {
+      String value = "(null)";
+      if (conf.containsKey(key)) {
+        value = conf.getProperty(key).toString();
+      }
+      System.out.println("  "+key+" = "+value);
+    }
+  }
 }

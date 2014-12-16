@@ -18,7 +18,6 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -26,8 +25,6 @@ import javax.xml.namespace.QName;
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
 
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
@@ -149,36 +146,10 @@ public class AccumuloGraphConfigurationTest {
   }
 
   @Test
-  public void testBulkIngester() throws Exception {
-    AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig("propertyBuilder").setClear(true);
-
-    AccumuloBulkIngester ingester = new AccumuloBulkIngester(cfg);
-
-    for (String t : cfg.getTableNames()) {
-      assertTrue(cfg.getConnector().tableOperations().exists(t));
-    }
-
-    ingester.addVertex("A").finish();
-    ingester.addVertex("B").add("P1", "V1").add("P2", "2").finish();
-    ingester.addEdge("A", "B", "edge").add("P3", "V3").finish();
-    ingester.shutdown(true);
-
-    cfg.setClear(false);
-    AccumuloGraph graph = new AccumuloGraph(cfg);
-    Vertex v1 = graph.getVertex("A");
-    assertNotNull(v1);
-
-    Iterator<Edge> it = v1.getEdges(Direction.OUT).iterator();
-    assertTrue(it.hasNext());
-
-    Edge e = it.next();
-    assertEquals("edge", e.getLabel());
-
-    Vertex v2 = e.getVertex(Direction.IN);
-    assertEquals("B", v2.getId());
-    assertEquals("V1", v2.getProperty("P1"));
-    assertEquals("2", v2.getProperty("P2"));
-
-    graph.shutdown();
+  public void testPrint() throws Exception {
+    AccumuloGraphConfiguration cfg =
+        AccumuloGraphTestUtils.generateGraphConfig("printTest");
+    cfg.print();
   }
+
 }
