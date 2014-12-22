@@ -26,6 +26,10 @@ import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
+
+  private static final String PREFIX = EdgeInputFormat.class.getSimpleName()+".";
+  private static final String GRAPH_NAME = PREFIX+"graph.name";
+
   static AccumuloGraphConfiguration conf;
 
   @Override
@@ -50,11 +54,11 @@ public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
 
       try {
         conf = new AccumuloGraphConfiguration();
-        conf.setZookeeperHosts(EdgeInputFormat.getInstance(attempt).getZooKeepers());
+        conf.setZooKeeperHosts(EdgeInputFormat.getInstance(attempt).getZooKeepers());
         conf.setInstanceName(EdgeInputFormat.getInstance(attempt).getInstanceName());
         conf.setUser(EdgeInputFormat.getPrincipal(attempt));
         conf.setPassword(EdgeInputFormat.getToken(attempt));
-        conf.setGraphName(attempt.getConfiguration().get(AccumuloGraphConfiguration.GRAPH_NAME));
+        conf.setGraphName(attempt.getConfiguration().get(GRAPH_NAME));
         if (EdgeInputFormat.getInstance(attempt) instanceof MockInstance) {
           conf.setInstanceType(InstanceType.Mock);
         }
@@ -107,11 +111,11 @@ public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
     EdgeInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
     EdgeInputFormat.setInputTableName(job, cfg.getEdgeTable());
     if (cfg.getInstanceType().equals(InstanceType.Mock)) {
-      EdgeInputFormat.setMockInstance(job, cfg.getInstance());
+      EdgeInputFormat.setMockInstance(job, cfg.getInstanceName());
     } else {
-      EdgeInputFormat.setZooKeeperInstance(job, cfg.getInstance(), cfg.getZooKeeperHosts());
+      EdgeInputFormat.setZooKeeperInstance(job, cfg.getInstanceName(), cfg.getZooKeeperHosts());
     }
-    job.getConfiguration().set(AccumuloGraphConfiguration.GRAPH_NAME, cfg.getName());
+    job.getConfiguration().set(GRAPH_NAME, cfg.getGraphName());
 
   }
 

@@ -17,13 +17,12 @@ package edu.jhuapl.tinkerpop;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
@@ -44,29 +43,45 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
 
-import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.IndexableGraph;
+import com.tinkerpop.blueprints.KeyIndexableGraph;
 
 /**
  * Configuration class for setting AccumuloGraph parameters.
+ * See the setters for descriptions of each attribute.
+ * Setters return the same configuration instance to
+ * ease chained setting of parameters.
  */
 public class AccumuloGraphConfiguration implements Serializable {
-
-  private Configuration conf;
-
-  /**
-   * The fully-qualified class name of the class that implements the TinkerPop Graph interface.
-   * This is used in a configuration object to tell the GraphFactory
-   * which type to instantiate.
-   */
-  public static final String ACCUMULO_GRAPH_CLASSNAME = AccumuloGraph.class.getCanonicalName();
 
   private static final long serialVersionUID = 7024072260167873696L;
 
   /**
-   * An enumeration used by {@link AccumuloGraphConfiguration#instanceType(InstanceType)} to specify the backing Accumulo instance type. See the <A HREF=
-   * "http://accumulo.apache.org/1.6/accumulo_user_manual.html#_development_clients" >Accumulo Users' Guide</A> for more information on the differnent types of
-   * develoment clients.
+   * Backing configuration object.
+   */
+  private Configuration conf;
+
+  /**
+   * Temp directory used by getInstance when a Mini InstanceType is used.
+   */
+  private String miniClusterTempDir;
+  private MiniAccumuloCluster accumuloMiniCluster;
+
+
+  /**
+   * The fully-qualified class name of the class that implements
+   * the TinkerPop Graph interface.
+   * This is used in a configuration object to tell the GraphFactory
+   * which type to instantiate.
+   */
+  public static final String ACCUMULO_GRAPH_CLASSNAME =
+      AccumuloGraph.class.getCanonicalName();
+
+  /**
+   * An enumeration used by {@link AccumuloGraphConfiguration#setInstanceType(InstanceType)}
+   * to specify the backing Accumulo instance type.
+   * See the <A HREF="http://accumulo.apache.org/1.6/accumulo_user_manual.html#_development_clients">Accumulo Users' Guide</A>
+   * for more information on the different types of development clients.
    * 
    */
   public static enum InstanceType {
@@ -74,226 +89,162 @@ public class AccumuloGraphConfiguration implements Serializable {
   };
 
   /**
-   * Internal constant used by {@link GraphFactory}.
+   * Utility class gathering valid configuration keys.
    */
-  public static final String GRAPH_CLASS = "blueprints.graph";
-
-  /**
-   * ZooKeeper hosts string, in the same format as used by
-   * {@link ZooKeeperInstance}.
-   */
-  public static final String ZK_HOSTS = "blueprints.accumulo.zkhosts";
-  
-  /**
-   * Accumulo instance name.
-   */
-  public static final String INSTANCE = "blueprints.accumulo.instance";
-
-  /**
-   * Instance type to use with Accumulo ({@see InstanceType}).
-   */
-  public static final String INSTANCE_TYPE = "blueprints.accumulo.instance.type";
-
-  /**
-   * Accumulo username.
-   */
-  public static final String USER = "blueprints.accumulo.user";
-
-  /**
-   * Accumulo password.
-   */
-  public static final String PASSWORD = "blueprints.accumulo.password";
-
-  /**
-   * Name of the graph to create. Storage tables will be prefixed with this value.
-   */
-  public static final String GRAPH_NAME = "blueprints.accumulo.name";
-
-  /**
-   * Maximum wait time before changes are flushed to Accumulo.
-   */
-  public static final String MAX_WRITE_LATENCY = "blueprints.accumulo.write.max.latency";
-
-  /**
-   * Maximum memory usage when buffering writes.
-   */
-  public static final String MAX_WRITE_MEMORY = "blueprints.accumulo.write.max.memory";
-
-  /**
-   * Maximum number of threads to use for writing to Accumulo.
-   */
-  public static final String MAX_WRITE_THREADS = "blueprints.accumulo.write.max.threads";
-
-  /**
-   * How long to wait before declaring a write failure.
-   */
-  public static final String MAX_WRITE_TIMEOUT = "blueprints.accumulo.write.timeout";
-  
-  /**
-   * Number of Accumulo query threads to use.
-   */
-  public static final String QUERY_THREADS = "blueprints.accumulo.read.queryThreads";
-  
-  /**
-   * Accumulo authorization permissions.
-   */
-  public static final String AUTHORIZATIONS = "blueprints.accumulo.authorizations";
-
-  /**
-   * If set, immediately flush graph modifications to Accumulo.
-   */
-  public static final String AUTO_FLUSH = "blueprints.accumulo.auto.flush";
-  
-  /**
-   * Whether to create the graph tables if it does not exist.
-   * It is an error if the tables do not exist and this is not set.
-   */
-  public static final String CREATE = "blueprints.accumulo.create";
-
-  /**
-   * Whether to clear an existing graph on initialization.
-   * Clearing is done by dropping and recreating the tables.
-   */
-  public static final String CLEAR = "blueprints.accumulo.clear";
-
-  /**
-   * Used to explicitly set the Accumulo table splits.
-   */
-  public static final String SPLITS = "blueprints.accumulo.splits";
-
-  /**
-   * Column visibility.<br/>
-   * <strong>TODO</strong> Currently unused.
-   */
-  public static final String COLVIS = "blueprints.accumulo.columnVisibility";
-  
-  /**
-   * If set, when adding a graph element, do not check whether
-   * an element with that id already exists. This increases performance
-   * but the user is responsible for not readding existing elements.
-   */
-  public static final String SKIP_CHECKS = "blueprints.accumulo.skipExistenceChecks";
-
-  /**
-   * Maximum capacity for the vertex/edge cache, if enabled.
-   */
-  public static final String LRU_MAX_CAP = "blueprints.accumulo.lruMaximumCapacity";
-
-  /**
-   * List of properties to fetch with returned graph elements.
-   * This will be faster in retrieving wanted properties
-   * since they will be retrieved with the initial table scan.
-   */
-  public static final String PRELOAD_PROPERTIES = "blueprints.accumulo.property.preload";
-  
-  /**
-   * How long to wait before flushing items from the edge cache.
-   */
-  public static final String EDGE_CACHE_TIMEOUT = "blueprints.accumulo.edgeCacheTimeout";
-
-  /**
-   * How long to wait before flushing items from the property cache.
-   */
-  public static final String PROPERTY_CACHE_TIMEOUT = "blueprints.accumulo.propertyCacheTimeout";
-
-  /**
-   * How long to wait before flushing items from the vertex cache.
-   */
-  public static final String VERTEX_CACHE_TIMEOUT = "blueprints.accumulo.vertexCacheTimeout";
-  
-  /**
-   * Labels of graph edges to preload when fetching elements.<br/>
-   * <strong>TODO</strong> Currently unused.
-   */
-  public static final String PRELOAD_EDGES = "blueprints.accumulo.edge.preload";
-  
-  /**
-   * Whether to automatically index element properties.
-   */
-  public static final String AUTO_INDEX = "blueprints.accumulo.index.auto";
-  
-  /**
-   * Whether to disable the operations specified by {@link IndexableGraph}.
-   */
-  public static final String DISABLE_INDEX = "blueprints.accumulo.index.disable";
-  
-  /**
-   * Backing store that maintains configuration values.
-   */
-  private Map<String,Object> values;
-
-  private transient ColumnVisibility cachedColVis = null;
-  private transient Authorizations cachedAuths = null;
-  private transient Boolean cachedAutoFlush = null;
-  private transient Boolean cachedSkipChecks = null;
-  /**
-   * Temp directory used by getInstance when a Mini InstanceType is used.
-   */
-  private String miniClusterTempDir;
-  private MiniAccumuloCluster accumuloMiniCluster;
-
-  public AccumuloGraphConfiguration() {
-    conf = new PropertiesConfiguration();
-    values = new HashMap<String,Object>();
-
-    values.put(GRAPH_CLASS, ACCUMULO_GRAPH_CLASSNAME);
-    conf.addProperty(GRAPH_CLASS, ACCUMULO_GRAPH_CLASSNAME);
-    // set some defaults
-    setMaxWriteLatency(60000L).setMaxWriteMemory(1024L * 1024 * 20).setMaxWriteThreads(3).setMaxWriteTimeout(Long.MAX_VALUE).setAutoFlush(true).setCreate(false)
-        .setInstanceType(InstanceType.Distributed).setAuthorizations(Constants.NO_AUTHS).setQueryThreads(3).skipExistenceChecks(false);
+  private static class Keys {
+    public static final String GRAPH_CLASS = "blueprints.graph";
+    public static final String ZK_HOSTS = "blueprints.accumulo.zkhosts";
+    public static final String INSTANCE = "blueprints.accumulo.instance";
+    public static final String INSTANCE_TYPE = "blueprints.accumulo.instance.type";
+    public static final String USER = "blueprints.accumulo.user";
+    public static final String PASSWORD = "blueprints.accumulo.password";
+    public static final String GRAPH_NAME = "blueprints.accumulo.name";
+    public static final String MAX_WRITE_LATENCY = "blueprints.accumulo.write.max.latency";
+    public static final String MAX_WRITE_MEMORY = "blueprints.accumulo.write.max.memory";
+    public static final String MAX_WRITE_THREADS = "blueprints.accumulo.write.max.threads";
+    public static final String MAX_WRITE_TIMEOUT = "blueprints.accumulo.write.timeout";
+    public static final String QUERY_THREADS = "blueprints.accumulo.read.queryThreads";
+    public static final String AUTHORIZATIONS = "blueprints.accumulo.authorizations";
+    public static final String AUTO_FLUSH = "blueprints.accumulo.auto.flush";
+    public static final String CREATE = "blueprints.accumulo.create";
+    public static final String CLEAR = "blueprints.accumulo.clear";
+    public static final String SPLITS = "blueprints.accumulo.splits";
+    public static final String COLVIS = "blueprints.accumulo.columnVisibility";
+    public static final String SKIP_CHECKS = "blueprints.accumulo.skipExistenceChecks";
+    public static final String LRU_MAX_CAP = "blueprints.accumulo.lruMaximumCapacity";
+    public static final String PRELOAD_PROPERTIES = "blueprints.accumulo.property.preload";
+    public static final String EDGE_CACHE_TIMEOUT = "blueprints.accumulo.edgeCacheTimeout";
+    public static final String PROPERTY_CACHE_TIMEOUT = "blueprints.accumulo.propertyCacheTimeout";
+    public static final String VERTEX_CACHE_TIMEOUT = "blueprints.accumulo.vertexCacheTimeout";
+    public static final String PRELOAD_EDGES = "blueprints.accumulo.edge.preload";
+    public static final String AUTO_INDEX = "blueprints.accumulo.index.auto";
+    public static final String DISABLE_INDEX = "blueprints.accumulo.index.disable";
   }
 
+
+  /**
+   * Default constructor. Will initialize the configuration
+   * with default settings.
+   */
+  public AccumuloGraphConfiguration() {
+    conf = new PropertiesConfiguration();
+    conf.setProperty(Keys.GRAPH_CLASS, ACCUMULO_GRAPH_CLASSNAME);
+    setDefaults();
+  }
+
+  /**
+   * Instantiate based on a configuration 
+   * @param config
+   */
   public AccumuloGraphConfiguration(Configuration config) {
     this();
-   
     Iterator<String> keys = config.getKeys();
     while (keys.hasNext()) {
       String key = keys.next();
-      conf.setProperty(key.replace("..", "."), config.getProperty(key));
+      conf.setProperty(key.replace("..", "."),
+          config.getProperty(key));
     }
   }
 
+  /**
+   * Copy constructor.
+   * @param config
+   */
   public AccumuloGraphConfiguration(AccumuloGraphConfiguration config) {
     this(config.getConfiguration());
   }
 
   /**
-   * If the graph does not exist, whether it should be created. An exception will be throws on instantiation if the graph does not exist and this value is
-   * false.
+   * Set some reasonable defaults for this configuration.
+   */
+  private void setDefaults() {
+    setMaxWriteLatency(60000L);
+    setMaxWriteMemory(20L * 1024 * 1024);
+    setMaxWriteThreads(3);
+    setMaxWriteTimeout(Long.MAX_VALUE);
+    setQueryThreads(3);
+    setAutoFlush(true);
+    setCreate(false);
+    setInstanceType(InstanceType.Distributed);
+    setAuthorizations(Constants.NO_AUTHS);
+    setSkipExistenceChecks(false);
+  }
+
+  /**
+   * Return the backing configuration storage.
+   * @return
+   */
+  public Configuration getConfiguration() {
+    return conf;
+  }
+
+  public boolean getCreate() {
+    return conf.getBoolean(Keys.CREATE);
+  }
+
+  /**
+   * If the graph does not exist, whether it should be created.
+   * An exception will be thrown on instantiation if the graph
+   * does not exist and this value is false.
    * 
    * @param create
    * @return
    */
   public AccumuloGraphConfiguration setCreate(boolean create) {
-    conf.setProperty(CREATE, create);
+    conf.setProperty(Keys.CREATE, create);
     return this;
   }
 
+  public boolean getClear() {
+    return conf.getBoolean(Keys.CLEAR, false);
+  }
+
   /**
-   * Whether to clear out an existing graph upon instantiation.
-   * This is accomplished by dropping and recreating the backing tables.
+   * Whether to clear an existing graph on initialization.
+   * Clearing is done by dropping and recreating the backing tables.
    * @param clear
    * @return
    */
   public AccumuloGraphConfiguration setClear(boolean clear) {
-    conf.setProperty(CLEAR, clear);
+    conf.setProperty(Keys.CLEAR, clear);
     return this;
   }
 
-  public Configuration getConfiguration() {
-    return conf;
+  public InstanceType getInstanceType() {
+    return InstanceType.valueOf(conf.getString(Keys.INSTANCE_TYPE));
   }
 
   /**
-   * Set the Zookeeper hosts to use when connecting to Accumulo.
-   * This takes the same format as used in Accumulo's
-   * {@link ZooKeeperInstance} class.
+   * Instance type to use with Accumulo (see {@link InstanceType}).
+   * @param type
+   * @return
+   */
+  public AccumuloGraphConfiguration setInstanceType(InstanceType type) {
+    conf.setProperty(Keys.INSTANCE_TYPE, type.toString());
+    if (type.equals(InstanceType.Mock)) {
+      setUser("root");
+      setPassword("");
+    }
+    return this;
+  }
+
+  public String getZooKeeperHosts() {
+    return conf.getString(Keys.ZK_HOSTS);
+  }
+
+  /**
+   * ZooKeeper hosts string, in the same format as used by
+   * {@link ZooKeeperInstance}.
    * @param zookeeperHosts
    * @return
    */
-  public AccumuloGraphConfiguration setZookeeperHosts(String zookeeperHosts) {
-    conf.setProperty(ZK_HOSTS, zookeeperHosts);
+  public AccumuloGraphConfiguration setZooKeeperHosts(String zookeeperHosts) {
+    conf.setProperty(Keys.ZK_HOSTS, zookeeperHosts);
     return this;
+  }
+
+  public String getInstanceName() {
+    return conf.getString(Keys.INSTANCE);
   }
 
   /**
@@ -302,18 +253,65 @@ public class AccumuloGraphConfiguration implements Serializable {
    * @return
    */
   public AccumuloGraphConfiguration setInstanceName(String instance) {
-    conf.setProperty(INSTANCE, instance);
+    conf.setProperty(Keys.INSTANCE, instance);
     return this;
   }
 
+  public String getUser() {
+    return conf.getString(Keys.USER);
+  }
+
   /**
-   * Set username to use for Accumulo authentication.
+   * Username to use for Accumulo authentication.
    * @param user
    * @return
    */
   public AccumuloGraphConfiguration setUser(String user) {
-    conf.setProperty(USER, user);
+    conf.setProperty(Keys.USER, user);
     return this;
+  }
+
+  public ByteBuffer getPassword() {
+    return ByteBuffer.wrap(conf.getString(Keys.PASSWORD).getBytes());
+  }
+
+  /**
+   * Accumulo password used for authentication.
+   * @param password
+   * @return
+   */
+  public AccumuloGraphConfiguration setPassword(byte[] password) {
+    return setPassword(new String(password));
+  }
+
+  /**
+   * Accumulo password used for authentication.
+   * @param password
+   * @return
+   */
+  public AccumuloGraphConfiguration setPassword(String password) {
+    conf.setProperty(Keys.PASSWORD, password);
+    return this;
+  }
+
+  public Authorizations getAuthorizations() {
+    return conf.containsKey(Keys.AUTHORIZATIONS) ?
+        new Authorizations(conf.getString(Keys.AUTHORIZATIONS).getBytes()) : null;
+  }
+
+  /**
+   * Accumulo authorization permissions.
+   * @param auths
+   * @return
+   */
+  public AccumuloGraphConfiguration setAuthorizations(Authorizations auths) {
+    byte[] data = auths.getAuthorizationsArray();
+    conf.setProperty(Keys.AUTHORIZATIONS, new String(data));
+    return this;
+  }
+
+  public boolean getSkipExistenceChecks() {
+    return conf.getBoolean(Keys.SKIP_CHECKS);
   }
 
   /**
@@ -360,26 +358,43 @@ public class AccumuloGraphConfiguration implements Serializable {
    * 
    * if you are creating many edges where source and destination edges are infrequently repeated.
    * <P>
-   * Similarly, in instances where the application can guarantee that source and destinations vertices for a given new edge have already been added to the
-   * Graph, skipping the existence checks for the source and destination vertices and utilizing getVertex() directly can speed the processing.
+   * Similarly, in instances where the application can guarantee that source and destinations
+   * vertices for a given new edge have already been added to the
+   * Graph, skipping the existence checks for the source and destination
+   * vertices and utilizing getVertex() directly can speed the processing.
    * <P>
    * This flag defaults to false (checks will be made).
    * 
    * @param skip
    * @return
    */
-  public AccumuloGraphConfiguration skipExistenceChecks(boolean skip) {
-    conf.setProperty(SKIP_CHECKS, skip);
+  public AccumuloGraphConfiguration setSkipExistenceChecks(boolean skip) {
+    conf.setProperty(Keys.SKIP_CHECKS, skip);
     return this;
   }
 
+  public int getPropertyCacheTimeout(String property) {
+    if (property != null) {
+      property = "." + property;
+      int timeout = conf.getInt(Keys.PROPERTY_CACHE_TIMEOUT+property, -1);
+      if (timeout >= 0) {
+        return timeout;
+      }
+    }
+    return conf.getInt(Keys.PROPERTY_CACHE_TIMEOUT, -1);
+  }
+
   /**
-   * Sets the number of milliseconds since retrieval that a property value will be maintained in a RAM cache before that value is expired. If this value is
+   * Sets the number of milliseconds since retrieval that a property value will
+   * be maintained in a RAM cache before that value is expired. If this value is
    * unset or set to 0 (or a negative number) no caching will be performed.
    * <P>
-   * A round-trip to Accumulo to retrieve a property value is an expensive operation. Setting this value to a positive number allows the AccumuloGraph to cache
-   * retrieved values and use those values (without re-consulting the backing Accumulo store) for the specified time. In situations where the graph is changing
-   * slowly and/or properties are revisited frequently, this can achieve a significant reduction in latency at the expense of consistency.
+   * A round-trip to Accumulo to retrieve a property value is an expensive operation.
+   * Setting this value to a positive number allows the AccumuloGraph to cache
+   * retrieved values and use those values (without re-consulting the backing Accumulo
+   * store) for the specified time. In situations where the graph is changing
+   * slowly and/or properties are revisited frequently, this can achieve a
+   * significant reduction in latency at the expense of consistency.
    * <P>
    * The default is unset (no caching).
    * 
@@ -387,35 +402,42 @@ public class AccumuloGraphConfiguration implements Serializable {
    *          the maximum number of milliseconds properties can be held in RAM
    * @return
    */
- 
   public AccumuloGraphConfiguration setPropertyCacheTimeout(String property, int millis) {
-	  if (millis < 0){
-		  throw new IllegalArgumentException("Timeout value cannot be negative.");
-	  }
-	  if(property != null){
-		  property = "."+property;
-		  if (millis <= 0) {
-			  conf.clearProperty(PROPERTY_CACHE_TIMEOUT+property);
-		  } else {
-			  conf.setProperty(PROPERTY_CACHE_TIMEOUT+property, millis);
-		  }
-	  } else{
-		  if (millis <= 0) {
-			  conf.clearProperty(PROPERTY_CACHE_TIMEOUT);
-		  } else {
-			  conf.setProperty(PROPERTY_CACHE_TIMEOUT, millis);
-		  }
-	  }
-	    return this;
-	  }
-  
+    if (millis < 0){
+      throw new IllegalArgumentException("Timeout value cannot be negative.");
+    }
+    if(property != null){
+      property = "."+property;
+      if (millis <= 0) {
+        conf.clearProperty(Keys.PROPERTY_CACHE_TIMEOUT+property);
+      } else {
+        conf.setProperty(Keys.PROPERTY_CACHE_TIMEOUT+property, millis);
+      }
+    } else{
+      if (millis <= 0) {
+        conf.clearProperty(Keys.PROPERTY_CACHE_TIMEOUT);
+      } else {
+        conf.setProperty(Keys.PROPERTY_CACHE_TIMEOUT, millis);
+      }
+    }
+    return this;
+  }
+
+  public int getVertexCacheTimeout() {
+    return conf.getInt(Keys.VERTEX_CACHE_TIMEOUT, 30000);
+  }
+
   /**
-   * Sets the number of milliseconds since retrieval that a Vertex instance will be maintained in a RAM cache before that value is expired. If this value is
+   * Sets the number of milliseconds since retrieval that a Vertex instance will be maintained
+   * in a RAM cache before that value is expired. If this value is
    * unset or set to 0 (or a negative number) no caching will be performed.
    * <P>
-   * A round-trip to Accumulo to retrieve a Vertex is an expensive operation. Setting this value to a positive number allows the AccumuloGraph to cache
-   * retrieved Vertices and use those references (without re-consulting the backing Accumulo store) for the specified time. In situations where the graph is
-   * changing slowly and/or Vertices are revisited frequently, this can achieve a significant reduction in latency at the expense of consistency.
+   * A round-trip to Accumulo to retrieve a Vertex is an expensive operation.
+   * Setting this value to a positive number allows the AccumuloGraph to cache
+   * retrieved Vertices and use those references (without re-consulting the backing
+   * Accumulo store) for the specified time. In situations where the graph is
+   * changing slowly and/or Vertices are revisited frequently, this can achieve a
+   * significant reduction in latency at the expense of consistency.
    * <P>
    * The default is unset (no caching).
    * 
@@ -425,20 +447,28 @@ public class AccumuloGraphConfiguration implements Serializable {
    */
   public AccumuloGraphConfiguration setVertexCacheTimeout(int millis) {
     if (millis <= 0) {
-      conf.clearProperty(VERTEX_CACHE_TIMEOUT);
+      conf.clearProperty(Keys.VERTEX_CACHE_TIMEOUT);
     } else {
-      conf.setProperty(VERTEX_CACHE_TIMEOUT, millis);
+      conf.setProperty(Keys.VERTEX_CACHE_TIMEOUT, millis);
     }
     return this;
   }
 
+  public int getEdgeCacheTimeout() {
+    return conf.getInt(Keys.EDGE_CACHE_TIMEOUT, 30000);
+  }
+
   /**
-   * Sets the number of milliseconds since retrieval that an Edge instance will be maintained in a RAM cache before that value is expired. If this value is
+   * Sets the number of milliseconds since retrieval that an Edge instance will be maintained
+   * in a RAM cache before that value is expired. If this value is
    * unset or set to 0 (or a negative number) no caching will be performed.
    * <P>
-   * A round-trip to Accumulo to retrieve an Edge is an expensive operation. Setting this value to a positive number allows the AccumuloGraph to cache retrieved
-   * Edges and use those references (without re-consulting the backing Accumulo store) for the specified time. In situations where the graph is changing slowly
-   * and/or Edges are revisited frequently, this can achieve a significant reduction in latency at the expense of consistency.
+   * A round-trip to Accumulo to retrieve an Edge is an expensive operation.
+   * Setting this value to a positive number allows the AccumuloGraph to cache retrieved
+   * Edges and use those references (without re-consulting the backing Accumulo store)
+   * for the specified time. In situations where the graph is changing slowly
+   * and/or Edges are revisited frequently, this can achieve a significant reduction
+   * in latency at the expense of consistency.
    * <P>
    * The default is unset (no caching).
    * 
@@ -448,17 +478,19 @@ public class AccumuloGraphConfiguration implements Serializable {
    */
   public AccumuloGraphConfiguration setEdgeCacheTimeout(int millis) {
     if (millis <= 0) {
-      conf.clearProperty(EDGE_CACHE_TIMEOUT);
+      conf.clearProperty(Keys.EDGE_CACHE_TIMEOUT);
     } else {
-      conf.setProperty(EDGE_CACHE_TIMEOUT, millis);
+      conf.setProperty(Keys.EDGE_CACHE_TIMEOUT, millis);
     }
     return this;
   }
 
+  public int getQueryThreads() {
+    return conf.getInt(Keys.QUERY_THREADS);
+  }
+
   /**
-   * The number of query threads to use when accessing the backing Accumulo store. This value must be greater than or equal to one or an
-   * IllegalArgumentException will be thrown.
-   * 
+   * Number of Accumulo query threads to use.
    * @param threads
    * @return
    */
@@ -466,73 +498,102 @@ public class AccumuloGraphConfiguration implements Serializable {
     if (threads < 1) {
       throw new IllegalArgumentException("You must provide at least 1 query thread.");
     }
-    conf.setProperty(QUERY_THREADS, threads);
+    conf.setProperty(Keys.QUERY_THREADS, threads);
     return this;
   }
 
-  public AccumuloGraphConfiguration setInstanceType(InstanceType type) {
-    conf.setProperty(INSTANCE_TYPE, type.toString());
-    if (type.equals(InstanceType.Mock)) {
-      setUser("root");
-      setPassword("");
-    }
-    return this;
-  }
-
-  public AccumuloGraphConfiguration setColumnVisibility(ColumnVisibility colVis) {
-    conf.setProperty(COLVIS, new String(colVis.flatten()));
-    return this;
+  public ColumnVisibility getColumnVisibility() {
+    return new ColumnVisibility(conf.getString(Keys.COLVIS).getBytes());
   }
 
   /**
-   * The Graph can utilize a least-recently used (LRU) cache to avoid round-trip checks to Accumulo at the cost of consistency. Set this value to the maximum
-   * number of vertices or edges to be cached. A negative number means do not cache any values.
+   * Column visibility.<p/>
+   * <strong>NOTE:</strong> Currently unused.
+   * @param colVis
+   * @return
+   */
+  public AccumuloGraphConfiguration setColumnVisibility(ColumnVisibility colVis) {
+    conf.setProperty(Keys.COLVIS, new String(colVis.flatten()));
+    return this;
+  }
+
+  public boolean getLruCacheEnabled() {
+    return getLruMaxCapacity() > 0;
+  }
+
+  public int getLruMaxCapacity() {
+    return conf.getInt(Keys.LRU_MAX_CAP, -1);
+  }
+
+  /**
+   * The Graph can use a least-recently used (LRU) cache to avoid
+   * round-trip checks to Accumulo at the cost of consistency. Set this
+   * value to the maximum number of vertices or edges to be cached.
+   * A negative number means do not cache any values.<p/>
    * 
-   * TODO this probably should be a time-based cache eventually.
+   * TODO This should probably be time-based.
    * 
    * @param maxSize
    * @return
    */
   public AccumuloGraphConfiguration setLruMaxCapacity(int max) {
-    conf.setProperty(LRU_MAX_CAP, max);
+    conf.setProperty(Keys.LRU_MAX_CAP, max);
     return this;
   }
 
-  public AccumuloGraphConfiguration setAutoIndex(boolean ison) {
-    conf.setProperty(AUTO_INDEX, ison);
-    return this;
-  }
-
-  public boolean isAutoIndex() {
-    Object bool = conf.getProperty(AUTO_INDEX);
+  public boolean getAutoIndex() {
+    Object bool = conf.getProperty(Keys.AUTO_INDEX);
     if (bool == null)
       return false;
     return (Boolean) bool;
   }
-  
+
   /**
-   * Disables the IndexableGraph functions
+   * Whether to automatically index element properties.
+   * @param enable
+   * @return
+   */
+  public AccumuloGraphConfiguration setAutoIndex(boolean enable) {
+    conf.setProperty(Keys.AUTO_INDEX, enable);
+    return this;
+  }
+
+  public boolean getIndexableGraphDisabled() {
+    Object bool = conf.getProperty(Keys.DISABLE_INDEX);
+    if (bool == null)
+      return false;
+    return (Boolean) bool;
+  }
+
+  /**
+   * Disables the {@link IndexableGraph} functions.
    * Turning it off will improve the performance of removing elements
-   * Note: This disables IndexableGraph NOT KeyIndexableGraph
+   * Note: This disables IndexableGraph, not {@link KeyIndexableGraph}.
    * @param disable
    * @return this configuration
    */
   public AccumuloGraphConfiguration setIndexableGraphDisabled(boolean disable) {
-    conf.setProperty(DISABLE_INDEX, disable);
+    conf.setProperty(Keys.DISABLE_INDEX, disable);
     return this;
   }
-  
-  public boolean isIndexableGraphDisabled(){
-    Object bool = conf.getProperty(DISABLE_INDEX);
-    if (bool == null)
-      return false;
-    return (Boolean) bool;
+
+  public SortedSet<Text> getSplits() {
+    String[] val = conf.getStringArray(Keys.SPLITS);
+    if ((val == null) || (val.length == 0)) {
+      return null;
+    }
+    SortedSet<Text> splits = new TreeSet<Text>();
+    for (String s : val) {
+      splits.add(new Text(s));
+    }
+    return splits;
   }
 
   /**
-   * A space-separated, ordered list of splits to be applied to the backing Accumulo table.
-   * The splits are only applied if the graph does not already exist and the config
-   * {@link #setCreate(boolean)} is set to true.
+   * A space-separated, ordered list of splits to be applied
+   * to the backing Accumulo table. The splits are only applied if the
+   * graph does not already exist and {@link #setCreate(boolean)}
+   * is true.
    * @param splits
    * @return
    */
@@ -544,95 +605,77 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   /**
-   * An ordered list of splits to be applied to the backing Accumulo table.
-   * The splits are only applied if the graph does not already exist and the config
-   * {@link #setCreate(boolean)} is set to true.
+   * Set table splits (see {@link #setSplits(String)})
+   * but specified as an array of splits.
    * @param splits
    * @return
    */
   public AccumuloGraphConfiguration setSplits(String[] splits) {
-    conf.setProperty(SPLITS, splits != null ? Arrays.asList(splits) : null);
+    conf.setProperty(Keys.SPLITS, splits != null ? Arrays.asList(splits) : null);
     return this;
   }
 
-  /**
-   * Accumulo password used for authentication.
-   * @param password
-   * @return
-   */
-  public AccumuloGraphConfiguration setPassword(byte[] password) {
-    return setPassword(new String(password));
+  public boolean getAutoFlush() {
+    return conf.getBoolean(Keys.AUTO_FLUSH);
   }
 
   /**
-   * Accumulo password used for authentication.
-   * @param password
-   * @return
-   */
-  public AccumuloGraphConfiguration setPassword(String password) {
-    conf.setProperty(PASSWORD, password);
-    return this;
-  }
-
-  /**
-   * Used by JUnit Tests to set the miniClusterTempDirectory. If not set in advance of a test, getConnector will use a Java Temporary Folder which will not be
-   * deleted afterwards.
-   * 
-   * @param miniClusterTempDir
-   */
-  public void setMiniClusterTempDir(String miniClusterTempDir) {
-    this.miniClusterTempDir = miniClusterTempDir;
-  }
-
-  /**
-   * A flag if the AccumuloGraph should immediately flush each update to the backing AccumuloStore (true) or not (false). The TinkerPop API expects immediate
-   * consistency requiring each individual update to be immediately flushed to Accumulo. However, this incurs significant overhead. For applications at scale
-   * that do not require immediate consistency, this flag allows the user to lessen the TinkerPop restriction.
-   * <P>
-   * To support the expected TinkerPop behavior, the default value is true. However, it is strongly recommended that this option be disabled.
+   * Whether updates should be immediately flushed to the backing
+   * Accumulo store (true) or not (false). The TinkerPop API expects immediate
+   * consistency requiring each individual update to be immediately
+   * flushed to Accumulo.
+   * However, this incurs significant overhead. For applications at scale
+   * that do not require immediate consistency, this flag allows the user
+   * to lessen the TinkerPop restriction.<p/>
+   * This is enabled by default to support the expected TinkerPop behavior.
+   * However, it is strongly recommended that this option be disabled.
    * 
    * @param autoFlush
    * @return
    */
   public AccumuloGraphConfiguration setAutoFlush(boolean autoFlush) {
-    conf.setProperty(AUTO_FLUSH, autoFlush);
+    conf.setProperty(Keys.AUTO_FLUSH, autoFlush);
     return this;
   }
 
-  public AccumuloGraphConfiguration setGraphName(String name) {
-    conf.setProperty(GRAPH_NAME, name);
-    return this;
-  }
-
-  public AccumuloGraphConfiguration setMaxWriteLatency(long latency) {
-    if (latency < 0) {
-      throw new IllegalArgumentException("Maximum write latency must be a postive number, " + "or '0' for no maximum.");
-    }
-
-    conf.setProperty(MAX_WRITE_LATENCY, latency);
-    return this;
-  }
-
-  public AccumuloGraphConfiguration setMaxWriteTimeout(long timeout) {
-    if (timeout < 0) {
-      throw new IllegalArgumentException("Maximum write timeout must be a postive number, " + "or '0' for no maximum.");
-    }
-
-    conf.setProperty(MAX_WRITE_TIMEOUT, timeout);
-    return this;
+  public String getGraphName() {
+    return conf.getString(Keys.GRAPH_NAME);
   }
 
   /**
-   * A trip to the backing-Accumulo store to obtain data is a relatively expensive operation. In cases where the end-user knows there are certain sets of
-   * properties that will always/very likely be obtained, it may be more efficient to grab all of those properties at once as the element existence is
-   * confirmed. In other cases (e.g., rarely used or very large properties) it may be more efficient to wait to obtain the data until the program determines the
+   * Name of the graph to create. Storage tables will be prefixed with this value.
+   * @param name
+   * @return
+   */
+  public AccumuloGraphConfiguration setGraphName(String name) {
+    conf.setProperty(Keys.GRAPH_NAME, name);
+    return this;
+  }
+
+  public String[] getPreloadedProperties() {
+    if (containsKey(Keys.PRELOAD_PROPERTIES)) {
+      return conf.getStringArray(Keys.PRELOAD_PROPERTIES);
+    }
+    return null;
+  }
+
+  /**
+   * A trip to the backing-Accumulo store to obtain data is a relatively expensive operation.
+   * In cases where the end-user knows there are certain sets of
+   * properties that will always/very likely be obtained, it may be more efficient to
+   * grab all of those properties at once as the element existence is
+   * confirmed. In other cases (e.g., rarely used or very large properties)
+   * it may be more efficient to wait to obtain the data until the program determines the
    * property is in fact needed.
    * <P>
-   * Deferred property loading is the default. By setting this configuration value, any keys in the provided property list will be automatically loaded in bulk
-   * when it makes sense (i.e., when the system has to make a trip out to Accumulo anyway). Other proerties not in the list will continue to be lazily and
+   * Deferred property loading is the default. By setting this configuration
+   * value, any keys in the provided property list will be automatically loaded in bulk
+   * when it makes sense (i.e., when the system has to make a trip out to Accumulo
+   * anyway). Other proerties not in the list will continue to be lazily and
    * individually loaded.
    * <P>
-   * In order to set this value, you must first define a postive property cache timeout value ({@link #propertyCacheTimeout(int)}; it does not make sense to
+   * In order to set this value, you must first define a positive property
+   * cache timeout value ({@link #setPropertyCacheTimeout(String, int)}; it does not make sense to
    * pre-load data if you do not allow caching.
    * 
    * @param propertyKeys
@@ -643,179 +686,125 @@ public class AccumuloGraphConfiguration implements Serializable {
       throw new NullPointerException("Property keys cannot be null.");
     }
 
-    conf.setProperty(PRELOAD_PROPERTIES, propertyKeys);
+    conf.setProperty(Keys.PRELOAD_PROPERTIES, propertyKeys);
     return this;
   }
 
+  public String[] getPreloadedEdgeLabels() {
+    if (containsKey(Keys.PRELOAD_EDGES)) {
+      return conf.getStringArray(Keys.PRELOAD_EDGES);
+    }
+    return null;
+  }
+
+  /**
+   * Labels of graph edges to preload when fetching elements.<p/>
+   * <strong>TODO</strong> Currently unused.
+   * @param edgeLabels
+   * @return
+   */
   public AccumuloGraphConfiguration setPreloadedEdgeLabels(String[] edgeLabels) {
     if (edgeLabels == null) {
       throw new NullPointerException("Edge labels cannot be null.");
     }
 
-    Integer timeout = getEdgeCacheTimeoutMillis();
+    Integer timeout = getEdgeCacheTimeout();
     if (timeout == null) {
       throw new IllegalArgumentException("You cannot preload edges " + "without first setting #edgeCacheTimeout(int millis) " + "to a positive value.");
     }
 
-    conf.setProperty(PRELOAD_EDGES, edgeLabels);
+    conf.setProperty(Keys.PRELOAD_EDGES, edgeLabels);
     return this;
-  }
-
-  public AccumuloGraphConfiguration setMaxWriteMemory(long mem) {
-    if (mem <= 0) {
-      throw new IllegalArgumentException("Maximum write memory must be a postive number.");
-    }
-    conf.setProperty(MAX_WRITE_MEMORY, mem);
-    return this;
-  }
-
-  public AccumuloGraphConfiguration setMaxWriteThreads(int threads) {
-    if (threads < 1) {
-      throw new IllegalArgumentException("Maximum write threads must be a postive number.");
-    }
-    conf.setProperty(MAX_WRITE_THREADS, threads);
-    return this;
-  }
-
-  public AccumuloGraphConfiguration setAuthorizations(Authorizations auths) {
-    byte[] data = auths.getAuthorizationsArray();
-    conf.setProperty(AUTHORIZATIONS, new String(data));
-    return this;
-  }
-
-  public boolean isCreate() {
-    return conf.getBoolean(CREATE);
-  }
-
-  public boolean isClear() {
-    return conf.getBoolean(CLEAR, false);
-  }
-
-  public InstanceType getInstanceType() {
-    return InstanceType.valueOf(conf.getString(INSTANCE_TYPE));
-  }
-
-  public Authorizations getAuthorizations() {
-    if (cachedAuths == null) {
-      String auths = conf.getString(AUTHORIZATIONS);
-      if (auths != null) {
-        cachedAuths = new Authorizations(auths.getBytes());
-      }
-    }
-    return cachedAuths;
-  }
-
-  public String getUser() {
-    return conf.getString(USER);
-  }
-
-  public ByteBuffer getPassword() {
-    return ByteBuffer.wrap(conf.getString(PASSWORD).getBytes());
-  }
-
-  public String getInstance() {
-    return conf.getString(INSTANCE);
-  }
-
-  public String getZooKeeperHosts() {
-    return conf.getString(ZK_HOSTS);
-  }
-
-  public boolean isAutoFlush() {
-    if (cachedAutoFlush == null) {
-      cachedAutoFlush = conf.getBoolean(AUTO_FLUSH);
-    }
-    return cachedAutoFlush;
-  }
-
-  public Integer getPropertyCacheTimeoutMillis(String property) {
-	  if(property != null){
-		  property = "." + property;
-		  Integer timeout = conf.getInteger(PROPERTY_CACHE_TIMEOUT+property, -1);
-		  if (timeout >=0) {
-			  return timeout;
-		  }
-	  }
-	  return conf.getInteger(PROPERTY_CACHE_TIMEOUT,-1);
-  }
-
-  public Integer getEdgeCacheTimeoutMillis() {
-    return conf.getInteger(EDGE_CACHE_TIMEOUT, 30000);
-  }
-
-  public Integer getVertexCacheTimeoutMillis() {
-    return conf.getInteger(VERTEX_CACHE_TIMEOUT, 30000);
-  }
-
-  public boolean skipExistenceChecks() {
-    if (cachedSkipChecks == null) {
-      cachedSkipChecks = conf.getBoolean(SKIP_CHECKS);
-    }
-    return cachedSkipChecks;
-  }
-
-  public long getMaxWriteMemory() {
-    return conf.getLong(MAX_WRITE_MEMORY);
-  }
-
-  public long getMaxWriteTimeout() {
-    return conf.getLong(MAX_WRITE_TIMEOUT);
-  }
-
-  public BatchWriterConfig getBatchWriterConfig() {
-    return new BatchWriterConfig().setMaxLatency(this.getMaxWriteLatency(), TimeUnit.MILLISECONDS).setMaxMemory(this.getMaxWriteMemory())
-        .setMaxWriteThreads(this.getMaxWriteThreads()).setTimeout(getMaxWriteTimeout(), TimeUnit.MILLISECONDS);
-  }
-
-  public SortedSet<Text> getSplits() {
-    String[] val = conf.getStringArray(SPLITS);
-    if ((val == null) || (val.length == 0)) {
-      return null;
-    }
-    SortedSet<Text> splits = new TreeSet<Text>();
-    for (String s : val) {
-      splits.add(new Text(s));
-    }
-    return splits;
   }
 
   public long getMaxWriteLatency() {
-    return conf.getLong(MAX_WRITE_LATENCY);
+    return conf.getLong(Keys.MAX_WRITE_LATENCY);
+  }
+
+  /**
+   * Maximum wait time before changes are flushed to Accumulo (milliseconds).
+   * @param millis
+   * @return
+   */
+  public AccumuloGraphConfiguration setMaxWriteLatency(long millis) {
+    if (millis < 0) {
+      throw new IllegalArgumentException("Maximum write latency must be a positive number, " + "or '0' for no maximum.");
+    }
+    conf.setProperty(Keys.MAX_WRITE_LATENCY, millis);
+    return this;
+  }
+
+  public long getMaxWriteMemory() {
+    return conf.getLong(Keys.MAX_WRITE_MEMORY);
+  }
+
+  /**
+   * Maximum memory usage when buffering writes.
+   * @param mem
+   * @return
+   */
+  public AccumuloGraphConfiguration setMaxWriteMemory(long mem) {
+    if (mem <= 0) {
+      throw new IllegalArgumentException("Maximum write memory must be a positive number.");
+    }
+    conf.setProperty(Keys.MAX_WRITE_MEMORY, mem);
+    return this;
   }
 
   public int getMaxWriteThreads() {
-    return conf.getInt(MAX_WRITE_THREADS);
+    return conf.getInt(Keys.MAX_WRITE_THREADS);
   }
 
-  public String getName() {
-    return conf.getString(GRAPH_NAME);
-  }
-
-  public boolean useLruCache() {
-    return getLruMaxCapacity() > 0;
-  }
-
-  public int getLruMaxCapacity() {
-    return conf.getInt(LRU_MAX_CAP, -1);
-  }
-
-  public ColumnVisibility getColumnVisibility() {
-    if (cachedColVis == null) {
-      cachedColVis = new ColumnVisibility(conf.getString(COLVIS).getBytes());
+  /**
+   * Maximum number of threads to use for writing to Accumulo.
+   * @param threads
+   * @return
+   */
+  public AccumuloGraphConfiguration setMaxWriteThreads(int threads) {
+    if (threads < 1) {
+      throw new IllegalArgumentException("Maximum write threads must be positive.");
     }
-    return cachedColVis;
+    conf.setProperty(Keys.MAX_WRITE_THREADS, threads);
+    return this;
   }
 
-  public Connector getConnector() throws AccumuloException, AccumuloSecurityException, IOException, InterruptedException {
+  public long getMaxWriteTimeout() {
+    return conf.getLong(Keys.MAX_WRITE_TIMEOUT);
+  }
+
+  /**
+   * How long to wait before declaring a write failure (milliseconds).
+   * @param millis
+   * @return
+   */
+  public AccumuloGraphConfiguration setMaxWriteTimeout(long millis) {
+    if (millis < 0) {
+      throw new IllegalArgumentException("Maximum write timeout must be a positive number, "
+          + "or '0' for no maximum.");
+    }
+    conf.setProperty(Keys.MAX_WRITE_TIMEOUT, millis);
+    return this;
+  }
+
+  /**
+   * Create a {@link Connector} from this configuration.
+   * @return
+   * @throws AccumuloException
+   * @throws AccumuloSecurityException
+   * @throws IOException
+   * @throws InterruptedException
+   */
+  public Connector getConnector() throws AccumuloException, AccumuloSecurityException,
+  IOException, InterruptedException {
     Instance inst = null;
     switch (getInstanceType()) {
       case Distributed:
-    	  if (getInstance() == null) {
-    		  throw new IllegalArgumentException("Must specify instance name for distributed mode");
-    	  } else if (getZooKeeperHosts() == null) {
-    		  throw new IllegalArgumentException("Must specify ZooKeeper hosts for distributed mode");
-    	  }
-        inst = new ZooKeeperInstance(getInstance(), getZooKeeperHosts());
+        if (getInstanceName() == null) {
+          throw new IllegalArgumentException("Must specify instance name for distributed mode");
+        } else if (getZooKeeperHosts() == null) {
+          throw new IllegalArgumentException("Must specify ZooKeeper hosts for distributed mode");
+        }
+        inst = new ZooKeeperInstance(getInstanceName(), getZooKeeperHosts());
         break;
       case Mini:
         File dir = null;
@@ -836,7 +825,7 @@ public class AccumuloGraphConfiguration implements Serializable {
         inst = new ZooKeeperInstance(accumuloMiniCluster.getInstanceName(), accumuloMiniCluster.getZooKeepers());
         throw new UnsupportedOperationException("TODO");
       case Mock:
-        inst = new MockInstance(getInstance());
+        inst = new MockInstance(getInstanceName());
         break;
       default:
         throw new RuntimeException("Unexpected instance type: " + inst);
@@ -846,104 +835,107 @@ public class AccumuloGraphConfiguration implements Serializable {
     return c;
   }
 
-  public String[] getPreloadedProperties() {
-    if (containsKey(PRELOAD_PROPERTIES)) {
-      return conf.getStringArray(PRELOAD_PROPERTIES);
-    }
-    return null;
+  /**
+   * Create a {@link BatchWriterConfig} based on this configuration.
+   * @return
+   */
+  public BatchWriterConfig getBatchWriterConfig() {
+    return new BatchWriterConfig().setMaxLatency(getMaxWriteLatency(), TimeUnit.MILLISECONDS)
+        .setMaxMemory(getMaxWriteMemory())
+        .setMaxWriteThreads(getMaxWriteThreads())
+        .setTimeout(getMaxWriteTimeout(), TimeUnit.MILLISECONDS);
   }
 
-  public String[] getPreloadedEdges() {
-    if (containsKey(PRELOAD_EDGES)) {
-      return conf.getStringArray(PRELOAD_EDGES);
-    }
-    return null;
+  /**
+   * Used by JUnit Tests to set the miniClusterTempDirectory.
+   * If not set in advance of a test, getConnector will use a
+   * Java Temporary Folder which will not be deleted afterwards.
+   * 
+   * @param miniClusterTempDir
+   */
+  public void setMiniClusterTempDir(String miniClusterTempDir) {
+    this.miniClusterTempDir = miniClusterTempDir;
   }
 
-  public int getQueryThreads() {
-    return conf.getInt(QUERY_THREADS);
-  }
-
-  public boolean containsKey(String key) {
+  private boolean containsKey(String key) {
     return conf.containsKey(key);
   }
 
-  public boolean isEmpty() {
-    return conf.isEmpty();
-  }
-
   public String getVertexTable() {
-    return getName() + "_vertex";
+    return getGraphName() + "_vertex";
   }
 
   public String getEdgeTable() {
-    return getName() + "_edge";
+    return getGraphName() + "_edge";
+  }
+
+  public String getKeyMetadataTable() {
+    return getMetadataTable() + "KEY";
   }
 
   String getVertexIndexTable() {
-    return getName() + "_vertex_index";
+    return getGraphName() + "_vertex_index";
   }
 
   String getEdgeIndexTable() {
-    return getName() + "_edge_index";
+    return getGraphName() + "_edge_index";
   }
 
   String getMetadataTable() {
-    return getName() + "_meta";
+    return getGraphName() + "_meta";
   }
 
-  List<String> tableList;
+  String getKeyVertexIndexTable() {
+    return getGraphName() + "_vertex_index_key";
+  }
+
+  String getKeyEdgeIndexTable() {
+    return getGraphName() + "_edge_index_key";
+  }
 
   List<String> getTableNames() {
-    if (tableList == null) {
-      tableList = Arrays.asList(getVertexTable(), getEdgeTable(), getVertexIndexTable(), getEdgeIndexTable(), getMetadataTable(), getKeyMetadataTable());
-    }
-    return tableList;
+    return Arrays.asList(getVertexTable(),
+        getEdgeTable(), getVertexIndexTable(), getEdgeIndexTable(),
+        getMetadataTable(), getKeyMetadataTable());
   }
 
-  protected void addPropertyDirect(String key, Object value) {
-    if ((key.equals(PRELOAD_PROPERTIES)) || (key.equals(PRELOAD_EDGES)) || (key.equals(SPLITS))) {
-      List<String> list = (List<String>) values.get(key);
-      if (list == null) {
-        list = new ArrayList<String>();
-        values.put(key, list);
-      }
-      list.add(value.toString());
-    } else {
-      values.put(key, value);
-    }
-  }
-
+  /**
+   * Ensure that required properties are set for this
+   * configuration.
+   */
   public void validate() {
 
     switch (getInstanceType()) {
       case Distributed:
-        checkPropertyValue(ZK_HOSTS, getZooKeeperHosts(), false);
-        checkPropertyValue(USER, getUser(), false);
+        checkPropertyValue(Keys.ZK_HOSTS, getZooKeeperHosts(), false);
+        checkPropertyValue(Keys.USER, getUser(), false);
         // no break intentional
       case Mini:
-        checkPropertyValue(INSTANCE, getInstance(), false);
-        checkPropertyValue(PASSWORD, new String(getPassword().array()), true);
+        checkPropertyValue(Keys.INSTANCE, getInstanceName(), false);
+        checkPropertyValue(Keys.PASSWORD, new String(getPassword().array()), true);
         // no break intentional
       case Mock:
-        checkPropertyValue(GRAPH_NAME, getName(), false);
+        checkPropertyValue(Keys.GRAPH_NAME, getGraphName(), false);
         break;
       default:
         throw new RuntimeException("Unexpected instance type: " + getInstanceType());
     }
 
-    Integer timeout = getPropertyCacheTimeoutMillis(null);
+    int timeout = getPropertyCacheTimeout(null);
 
     if (timeout <= 0) {
-    	String[] props = conf.getStringArray(PRELOAD_PROPERTIES);
-    	for(int i=0; i < props.length; i++){
-    		timeout = getPropertyCacheTimeoutMillis(props[i]);
-    		if (timeout <=0){break;}
-    	}
+      String[] props = conf.getStringArray(Keys.PRELOAD_PROPERTIES);
+      for (int i = 0; i < props.length; i++) {
+        timeout = getPropertyCacheTimeout(props[i]);
+        if (timeout <= 0) {
+          break;
+        }
+      }
     }
-    if(timeout <= 0 && conf.getProperty(PRELOAD_PROPERTIES) != null) {
-    	throw new IllegalArgumentException("You cannot preload properties " + "without first setting #propertyCacheTimeout(String property, int millis) " + "to a positive value.");
 
+    if (timeout <= 0 && conf.getProperty(Keys.PRELOAD_PROPERTIES) != null) {
+      throw new IllegalArgumentException("You cannot preload properties "
+          + "without first setting #propertyCacheTimeout(String property, int millis) " + "to a positive value.");
     }
   }
 
@@ -956,35 +948,34 @@ public class AccumuloGraphConfiguration implements Serializable {
     }
   }
 
-  public String getKeyMetadataTable() {
-    return getMetadataTable() + "KEY";
-  }
-
-  String getKeyVertexIndexTable() {
-    return getName() + "_vertex_index_key";
-  }
-
-  String getKeyEdgeIndexTable() {
-    return getName() + "_edge_index_key";
+  private File createTempDir() throws IOException {
+    File temp = File.createTempFile(AccumuloGraphConfiguration.class.getSimpleName(), ".mini.tmp");
+    temp.delete();
+    temp.mkdir();
+    return temp;
   }
 
   /**
-   * Creates a temporary directory. Under the java.io.tmpdir property location.
-   * 
-   * @return
+   * Print out this configuration.
    */
-  private File createTempDir() {
-    final int ATTEMPTS = 100;
-    File parent = new File(System.getProperty("java.io.tmpdir"));
-    String child = System.currentTimeMillis() + "-";
+  public void print() {
+    System.out.println(AccumuloGraphConfiguration.class+":");
 
-    for (int counter = 0; counter < ATTEMPTS; counter++) {
-      File tempDir = new File(parent, child + counter);
-      if (tempDir.mkdir()) {
-        return tempDir;
+    Set<String> keys = new TreeSet<String>();
+    for (Field field : Keys.class.getDeclaredFields()) {
+      try {
+        keys.add((String) field.get(null));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }
-    throw new IllegalStateException("Failed to create directory, tried directories: " + child + "0 to " + child + (ATTEMPTS - 1));
-  }
 
+    for (String key : keys) {
+      String value = "(null)";
+      if (conf.containsKey(key)) {
+        value = conf.getProperty(key).toString();
+      }
+      System.out.println("  "+key+" = "+value);
+    }
+  }
 }

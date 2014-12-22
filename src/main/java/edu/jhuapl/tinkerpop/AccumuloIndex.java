@@ -48,7 +48,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     indexedType = t;
     this.parent = parent;
     this.indexName = indexName;
-    tableName = parent.config.getName() + "_index_" + indexName;// + "_" +
+    tableName = parent.config.getGraphName() + "_index_" + indexName;// + "_" +
     // t;
 
     try {
