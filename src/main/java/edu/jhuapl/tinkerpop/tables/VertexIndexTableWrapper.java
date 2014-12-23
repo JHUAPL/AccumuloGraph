@@ -27,7 +27,8 @@ public class VertexIndexTableWrapper extends IndexTableWrapper {
    * @param mtbw
    * @param tableName
    */
-  public VertexIndexTableWrapper(AccumuloGraphConfiguration config, MultiTableBatchWriter mtbw) {
+  public VertexIndexTableWrapper(AccumuloGraphConfiguration config,
+      MultiTableBatchWriter mtbw) {
     super(config, mtbw, config.getVertexIndexTable());
   }
 

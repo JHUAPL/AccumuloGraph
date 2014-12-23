@@ -25,6 +25,6 @@ public class EdgeTableWrapper extends ElementTableWrapper {
 
   public EdgeTableWrapper(AccumuloGraphConfiguration config,
       MultiTableBatchWriter writer) {
-    super(config, writer, Edge.class);
+    super(config, writer, config.getEdgeTable());
   }
 }

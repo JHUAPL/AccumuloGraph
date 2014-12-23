@@ -16,7 +16,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
@@ -27,7 +26,6 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.Element;
-import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
@@ -41,12 +39,9 @@ import edu.jhuapl.tinkerpop.AccumuloGraphException;
  */
 public abstract class ElementTableWrapper extends BaseTableWrapper {
 
-  private Class<? extends Element> type;
-
   public ElementTableWrapper(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter writer, Class<? extends Element> elementType) {
-    super(config, writer);
-    this.type = elementType;
+      MultiTableBatchWriter writer, String tableName) {
+    super(config, writer, tableName);
   }
 
   /**
@@ -57,7 +52,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @return
    */
   public <V> V readProperty(String id, String key) {
-    Scanner s = getElementScanner();
+    Scanner s = getScanner();
 
     s.setRange(new Range(id));
 
@@ -86,7 +81,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @return
    */
   public Set<String> readPropertyKeys(String id) {
-    Scanner s = getElementScanner();
+    Scanner s = getScanner();
 
     s.setRange(new Range(id));
 
@@ -119,7 +114,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
     try {
       Mutation m = new Mutation(id);
       m.putDelete(key.getBytes(), AccumuloGraph.EMPTY);
-      getElementWriter().addMutation(m);
+      getWriter().addMutation(m);
 
     } catch (MutationsRejectedException e) {
       throw new AccumuloGraphException(e);
@@ -137,27 +132,8 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
     Mutation m = new Mutation(id);
     m.put(key.getBytes(), AccumuloGraph.EMPTY, bytes);
     try {
-      getElementWriter().addMutation(m);
+      getWriter().addMutation(m);
     } catch (MutationsRejectedException e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
-  private Scanner getElementScanner() {
-    try {
-      return config.getConnector().createScanner(type.equals(Vertex.class) ?
-          config.getVertexTable() : config.getEdgeTable(), config.getAuthorizations());
-
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
-  private BatchWriter getElementWriter() {
-    try {
-      return mtbw.getBatchWriter(type.equals(Vertex.class) ?
-          config.getVertexTable() : config.getEdgeTable());
-    } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
   }

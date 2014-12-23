@@ -11,19 +11,14 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
-import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
-import org.apache.accumulo.core.client.Scanner;
 
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
-import edu.jhuapl.tinkerpop.AccumuloGraphException;
 
 /**
  * Wrapper around index tables.
  */
 public abstract class IndexTableWrapper extends BaseTableWrapper {
-
-  private String tableName;
 
   /**
    * @param config
@@ -31,26 +26,6 @@ public abstract class IndexTableWrapper extends BaseTableWrapper {
    */
   protected IndexTableWrapper(AccumuloGraphConfiguration config,
       MultiTableBatchWriter mtbw, String tableName) {
-    super(config, mtbw);
-    this.tableName = tableName;
+    super(config, mtbw, tableName);
   }
-
-  private Scanner getIndexScanner() {
-    try {
-      return config.getConnector().createScanner(tableName,
-          config.getAuthorizations());
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
-  private BatchWriter getIndexWriter() {
-    try {
-      return mtbw.getBatchWriter(tableName);
-
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
 }

@@ -25,6 +25,6 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
   public VertexTableWrapper(AccumuloGraphConfiguration config,
       MultiTableBatchWriter writer) {
-    super(config, writer, Vertex.class);
+    super(config, writer, config.getVertexTable());
   }
 }
