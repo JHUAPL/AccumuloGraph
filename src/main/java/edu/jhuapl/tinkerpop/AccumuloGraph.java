@@ -347,6 +347,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   // best way. To be fixed later
   Features f;
 
+  @Override
   public Features getFeatures() {
     if (f == null) {
       f = new Features();
@@ -384,6 +385,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return f;
   }
 
+  @Override
   public Vertex addVertex(Object id) {
     String myID;
     if (id == null) {
@@ -423,6 +425,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return vert;
   }
 
+  @Override
   public Vertex getVertex(Object id) {
     if (id == null) {
       throw ExceptionFactory.vertexIdCanNotBeNull();
@@ -488,6 +491,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return vertex;
   }
 
+  @Override
   public void removeVertex(Vertex vertex) {
     if (vertexCache != null) {
       vertexCache.remove(vertex.getId());
@@ -594,6 +598,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return TINEDGE;
   }
 
+  @Override
   public Iterable<Vertex> getVertices() {
     Scanner scan = getElementScanner(Vertex.class);
     scan.fetchColumnFamily(TLABEL);
@@ -621,6 +626,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     };
   }
 
+  @Override
   public Iterable<Vertex> getVertices(String key, Object value) {
     checkProperty(key, value);
     if (config.getAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
@@ -695,6 +701,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public Edge addEdge(Object id, Vertex outVertex, Vertex inVertex, String label) {
     if (label == null) {
       throw ExceptionFactory.edgeLabelCanNotBeNull();
@@ -737,6 +744,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return edge;
   }
 
+  @Override
   public Edge getEdge(Object id) {
     String myID;
     if (id == null) {
@@ -810,6 +818,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public void removeEdge(Edge edge) {
     if (!config.getIndexableGraphDisabled())
       clearIndex(edge.getId());
@@ -869,6 +878,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public Iterable<Edge> getEdges() {
     BatchScanner scan = getElementBatchScanner(Edge.class);
     scan.fetchColumnFamily(TLABEL);
@@ -902,6 +912,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     };
   }
 
+  @Override
   public Iterable<Edge> getEdges(String key, Object value) {
     nullCheckProperty(key, value);
     if (key.equalsIgnoreCase("label")) {
@@ -970,10 +981,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   // TODO Eventually
+  @Override
   public GraphQuery query() {
     return new DefaultGraphQuery(this);
   }
 
+  @Override
   public void shutdown() {
     try {
       writer.close();
@@ -1321,11 +1334,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public String toString() {
     return "accumulograph";
   }
 
-  public <T extends Element> Index<T> createIndex(String indexName, Class<T> indexClass, Parameter... indexParameters) {
+  @Override
+  public <T extends Element> Index<T> createIndex(String indexName,
+      Class<T> indexClass, Parameter... indexParameters) {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
@@ -1352,6 +1368,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public <T extends Element> Index<T> getIndex(String indexName, Class<T> indexClass) {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
@@ -1389,7 +1406,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
-        toRet.add(new AccumuloIndex(getClass(k.getColumnFamily().toString()), this, k.getRow().toString()));
+        toRet.add(new AccumuloIndex(getClass(k.getColumnFamily().toString()),
+            this, k.getRow().toString()));
       }
       return toRet;
     } catch (Exception e) {
@@ -1426,6 +1444,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public <T extends Element> void dropKeyIndex(String key, Class<T> elementClass) {
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
@@ -1456,7 +1475,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     checkedFlush();
   }
 
-  public <T extends Element> void createKeyIndex(String key, Class<T> elementClass, Parameter... indexParameters) {
+  @Override
+  public <T extends Element> void createKeyIndex(String key,
+      Class<T> elementClass, Parameter... indexParameters) {
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
@@ -1498,6 +1519,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   }
 
+  @Override
   public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
