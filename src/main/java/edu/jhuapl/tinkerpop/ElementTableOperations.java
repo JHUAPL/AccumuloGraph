@@ -11,7 +11,9 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop;
 
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.Scanner;
@@ -39,7 +41,8 @@ abstract class ElementTableOperations {
   }
 
   /**
-   * Read the given property from the backing table.
+   * Read the given property from the backing table
+   * for the given element id.
    * @param id
    * @param key
    * @return
@@ -66,6 +69,36 @@ abstract class ElementTableOperations {
     s.close();
 
     return value;
+  }
+
+  /**
+   * Get all property keys for the given element id.
+   * @param id
+   * @return
+   */
+  protected Set<String> readPropertyKeys(String id) {
+    Scanner s = getElementScanner();
+
+    s.setRange(new Range(id));
+
+    Set<String> keys = new HashSet<String>();
+
+    Iterator<Entry<Key,Value>> iter = s.iterator();
+    while (iter.hasNext()) {
+      Entry<Key, Value> e = iter.next();
+      Key k = e.getKey();
+      String cf = k.getColumnFamily().toString();
+      keys.add(cf);
+    }
+
+    s.close();
+
+    // Remove some special keys.
+    keys.remove(AccumuloGraph.TINEDGE.toString());
+    keys.remove(AccumuloGraph.TLABEL.toString());
+    keys.remove(AccumuloGraph.TOUTEDGE.toString());
+
+    return keys;
   }
 
   private Scanner getElementScanner() {

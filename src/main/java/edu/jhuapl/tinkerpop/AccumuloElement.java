@@ -29,7 +29,7 @@ public abstract class AccumuloElement implements Element {
 
   private Class<? extends Element> type;
 
-  private Map<String,Pair<Long,Object>> propertiesCache;
+  private Map<String, Pair<Long, Object>> propertiesCache;
 
   protected AccumuloElement(AccumuloGraph parent, String id, Class<? extends Element> type) {
     this.parent = parent;
@@ -120,9 +120,9 @@ public abstract class AccumuloElement implements Element {
     }
 
     if (propertiesCache == null) {
-      propertiesCache = new HashMap<String,Pair<Long,Object>>();
+      propertiesCache = new HashMap<String, Pair<Long, Object>>();
     }
-    Pair<Long,Object> tsVal = new Pair<Long,Object>(System.currentTimeMillis() + timeoutMillis, value);
+    Pair<Long, Object> tsVal = new Pair<Long, Object>(System.currentTimeMillis() + timeoutMillis, value);
     propertiesCache.put(key, tsVal);
   }
 

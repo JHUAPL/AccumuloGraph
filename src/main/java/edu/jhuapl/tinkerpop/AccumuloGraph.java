@@ -136,10 +136,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public static final byte[] LABEL = SLABEL.getBytes();
   public static final byte[] INEDGE = SINEDGE.getBytes();
   public static final byte[] OUTEDGE = SOUTEDGE.getBytes();
-  protected static final Text TEXISTS = new Text(EXISTS);
-  protected static final Text TINEDGE = new Text(INEDGE);
-  protected static final Text TOUTEDGE = new Text(OUTEDGE);
-  protected static final Text TLABEL = new Text(LABEL);
+  static final Text TEXISTS = new Text(EXISTS);
+  static final Text TINEDGE = new Text(INEDGE);
+  static final Text TOUTEDGE = new Text(OUTEDGE);
+  static final Text TLABEL = new Text(LABEL);
 
   MultiTableBatchWriter writer;
   BatchWriter vertexBW;
@@ -1045,21 +1045,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   Set<String> getPropertyKeys(Class<? extends Element> type, String id) {
-    Scanner s = getElementScanner(type);
-    s.setRange(new Range(id));
-    Set<String> toRet = new HashSet<String>();
-    Iterator<Entry<Key,Value>> iter = s.iterator();
-    while (iter.hasNext()) {
-      Entry<Key,Value> e = iter.next();
-      Key k = e.getKey();
-      String cf = k.getColumnFamily().toString();
-      toRet.add(cf);
+    if (type.equals(Vertex.class)) {
+      return vertexOps.readPropertyKeys(id);
+    } else {
+      return edgeOps.readPropertyKeys(id);
     }
-    toRet.remove(TINEDGE.toString());
-    toRet.remove(TLABEL.toString());
-    toRet.remove(TOUTEDGE.toString());
-    s.close();
-    return toRet;
   }
 
   /**
