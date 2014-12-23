@@ -16,8 +16,12 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.MultiTableBatchWriter;
+import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.Text;
@@ -33,11 +37,13 @@ abstract class ElementTableOperations {
 
   private AccumuloGraphConfiguration config;
   private Class<? extends Element> type;
+  private MultiTableBatchWriter mtbw;
 
   public ElementTableOperations(AccumuloGraphConfiguration config,
-      Class<? extends Element> elementType) {
+      MultiTableBatchWriter writer, Class<? extends Element> elementType) {
     this.config = config;
     this.type = elementType;
+    this.mtbw = writer;
   }
 
   /**
@@ -101,6 +107,18 @@ abstract class ElementTableOperations {
     return keys;
   }
 
+  protected void clearProperty(String id, String key) {
+    try {
+      Mutation m = new Mutation(id);
+      m.putDelete(key.getBytes(), AccumuloGraph.EMPTY);
+      BatchWriter bw = getBatchWriter();
+      bw.addMutation(m);
+
+    } catch (MutationsRejectedException e) {
+      throw new AccumuloGraphException(e);
+    }
+  }
+
   private Scanner getElementScanner() {
     try {
       return config.getConnector().createScanner(type.equals(Vertex.class) ?
@@ -111,7 +129,16 @@ abstract class ElementTableOperations {
     }
   }
 
+  private BatchWriter getBatchWriter() {
+    try {
+      return mtbw.getBatchWriter(type.equals(Vertex.class) ?
+          config.getVertexTable() : config.getEdgeTable());
+    } catch (Exception e) {
+      throw new AccumuloGraphException(e);
+    }
+  }
+
   public void close() {
-    // TODO
+    // TODO?
   }
 }

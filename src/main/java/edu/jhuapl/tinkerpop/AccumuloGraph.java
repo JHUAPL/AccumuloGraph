@@ -172,9 +172,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           config.getEdgeCacheTimeout());
     }
 
-    vertexOps = new VertexTableOperations(config);
-    edgeOps = new EdgeTableOperations(config);
-
     AccumuloGraphUtils.handleCreateAndClear(config);
 
     try {
@@ -182,6 +179,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
+
+    vertexOps = new VertexTableOperations(config, writer);
+    edgeOps = new EdgeTableOperations(config, writer);
   }
 
   private void setupWriters() throws Exception {
@@ -1114,12 +1114,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     T obj = (T) getProperty(type, id, key).getSecond();
     try {
       if (obj != null) {
+        if (type.equals(Vertex.class)) {
+          vertexOps.clearProperty(id, key);
+        } else {
+          edgeOps.clearProperty(id, key);
+        }
+
         byte[] val = AccumuloByteSerializer.serialize(obj);
-        Mutation m = new Mutation(id);
-        m.putDelete(key.getBytes(), EMPTY);
-        BatchWriter bw = getBatchWriter(type);
-        bw.addMutation(m);
-        m = new Mutation(val);
+        Mutation m = new Mutation(val);
         m.putDelete(key, id);
         getIndexBatchWriter(type).addMutation(m);
         checkedFlush();

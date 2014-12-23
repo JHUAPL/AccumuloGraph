@@ -61,8 +61,6 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     return indexName;
   }
 
-
-
   public void put(String key, Object value, Element element) {
     element.setProperty(key, value);
     Mutation m = new Mutation(AccumuloByteSerializer.serialize(value));

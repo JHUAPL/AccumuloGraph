@@ -11,6 +11,8 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop;
 
+import org.apache.accumulo.core.client.MultiTableBatchWriter;
+
 import com.tinkerpop.blueprints.Vertex;
 
 
@@ -19,7 +21,8 @@ import com.tinkerpop.blueprints.Vertex;
  */
 public class VertexTableOperations extends ElementTableOperations {
 
-  public VertexTableOperations(AccumuloGraphConfiguration config) {
-    super(config, Vertex.class);
+  public VertexTableOperations(AccumuloGraphConfiguration config,
+      MultiTableBatchWriter writer) {
+    super(config, writer, Vertex.class);
   }
 }

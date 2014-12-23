@@ -11,6 +11,8 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop;
 
+import org.apache.accumulo.core.client.MultiTableBatchWriter;
+
 import com.tinkerpop.blueprints.Edge;
 
 
@@ -19,7 +21,8 @@ import com.tinkerpop.blueprints.Edge;
  */
 public class EdgeTableOperations extends ElementTableOperations {
 
-  public EdgeTableOperations(AccumuloGraphConfiguration config) {
-    super(config, Edge.class);
+  public EdgeTableOperations(AccumuloGraphConfiguration config,
+      MultiTableBatchWriter writer) {
+    super(config, writer, Edge.class);
   }
 }
