@@ -107,13 +107,34 @@ abstract class ElementTableOperations {
     return keys;
   }
 
+  /**
+   * Delete the property entry from property table.
+   * @param id
+   * @param key
+   */
   protected void clearProperty(String id, String key) {
     try {
       Mutation m = new Mutation(id);
       m.putDelete(key.getBytes(), AccumuloGraph.EMPTY);
-      BatchWriter bw = getBatchWriter();
-      bw.addMutation(m);
+      getTableWriter().addMutation(m);
 
+    } catch (MutationsRejectedException e) {
+      throw new AccumuloGraphException(e);
+    }
+  }
+
+  /**
+   * Write the given property to the property table.
+   * @param id
+   * @param key
+   * @param value
+   */
+  protected void writeProperty(String id, String key, Object value) {
+    byte[] bytes = AccumuloByteSerializer.serialize(value);
+    Mutation m = new Mutation(id);
+    m.put(key.getBytes(), AccumuloGraph.EMPTY, bytes);
+    try {
+      getTableWriter().addMutation(m);
     } catch (MutationsRejectedException e) {
       throw new AccumuloGraphException(e);
     }
@@ -125,11 +146,11 @@ abstract class ElementTableOperations {
           config.getVertexTable() : config.getEdgeTable(), config.getAuthorizations());
 
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
   }
 
-  private BatchWriter getBatchWriter() {
+  private BatchWriter getTableWriter() {
     try {
       return mtbw.getBatchWriter(type.equals(Vertex.class) ?
           config.getVertexTable() : config.getEdgeTable());
