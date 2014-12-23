@@ -9,20 +9,22 @@
  *                                                                            *
  * For any other permissions, please contact the Legal Office at JHU/APL.     *
  ******************************************************************************/
-package edu.jhuapl.tinkerpop;
+package edu.jhuapl.tinkerpop.tables;
 
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 
-import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.Edge;
+
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 
 
 /**
- * TODO
+ * Wrapper around {@link Edge} tables.
  */
-public class VertexTableOperations extends ElementTableOperations {
+public class EdgeTableWrapper extends ElementTableWrapper {
 
-  public VertexTableOperations(AccumuloGraphConfiguration config,
+  public EdgeTableWrapper(AccumuloGraphConfiguration config,
       MultiTableBatchWriter writer) {
-    super(config, writer, Vertex.class);
+    super(config, writer, Edge.class);
   }
 }

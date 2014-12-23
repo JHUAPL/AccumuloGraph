@@ -9,7 +9,7 @@
  *                                                                            *
  * For any other permissions, please contact the Legal Office at JHU/APL.     *
  ******************************************************************************/
-package edu.jhuapl.tinkerpop;
+package edu.jhuapl.tinkerpop.tables;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -30,16 +30,22 @@ import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.StringFactory;
 
+import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
+import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
+
 /**
- * Class responsible for Element-based table operations.
+ * Wrapper around tables with operations
+ * common to {@link Element}s.
  */
-abstract class ElementTableOperations {
+public abstract class ElementTableWrapper {
 
   private AccumuloGraphConfiguration config;
   private Class<? extends Element> type;
   private MultiTableBatchWriter mtbw;
 
-  public ElementTableOperations(AccumuloGraphConfiguration config,
+  public ElementTableWrapper(AccumuloGraphConfiguration config,
       MultiTableBatchWriter writer, Class<? extends Element> elementType) {
     this.config = config;
     this.type = elementType;
@@ -53,7 +59,7 @@ abstract class ElementTableOperations {
    * @param key
    * @return
    */
-  protected <V> V readProperty(String id, String key) {
+  public <V> V readProperty(String id, String key) {
     Scanner s = getElementScanner();
 
     s.setRange(new Range(id));
@@ -82,7 +88,7 @@ abstract class ElementTableOperations {
    * @param id
    * @return
    */
-  protected Set<String> readPropertyKeys(String id) {
+  public Set<String> readPropertyKeys(String id) {
     Scanner s = getElementScanner();
 
     s.setRange(new Range(id));
@@ -112,7 +118,7 @@ abstract class ElementTableOperations {
    * @param id
    * @param key
    */
-  protected void clearProperty(String id, String key) {
+  public void clearProperty(String id, String key) {
     try {
       Mutation m = new Mutation(id);
       m.putDelete(key.getBytes(), AccumuloGraph.EMPTY);
@@ -129,7 +135,7 @@ abstract class ElementTableOperations {
    * @param key
    * @param value
    */
-  protected void writeProperty(String id, String key, Object value) {
+  public void writeProperty(String id, String key, Object value) {
     byte[] bytes = AccumuloByteSerializer.serialize(value);
     Mutation m = new Mutation(id);
     m.put(key.getBytes(), AccumuloGraph.EMPTY, bytes);

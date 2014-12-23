@@ -62,6 +62,10 @@ import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 import com.tinkerpop.blueprints.util.StringFactory;
 
+import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
+import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
+import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
+
 /**
  * 
  * This is an implementation of TinkerPop's graph API
@@ -125,7 +129,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   protected AccumuloGraphConfiguration config;
 
-  static byte[] EMPTY = new byte[0];
+  public static final byte[] EMPTY = new byte[0];
 
   public static final String IDDELIM = "_";
   public static final String SLABEL = "L";
@@ -136,17 +140,17 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public static final byte[] LABEL = SLABEL.getBytes();
   public static final byte[] INEDGE = SINEDGE.getBytes();
   public static final byte[] OUTEDGE = SOUTEDGE.getBytes();
-  static final Text TEXISTS = new Text(EXISTS);
-  static final Text TINEDGE = new Text(INEDGE);
-  static final Text TOUTEDGE = new Text(OUTEDGE);
-  static final Text TLABEL = new Text(LABEL);
+  public static final Text TEXISTS = new Text(EXISTS);
+  public static final Text TINEDGE = new Text(INEDGE);
+  public static final Text TOUTEDGE = new Text(OUTEDGE);
+  public static final Text TLABEL = new Text(LABEL);
 
   MultiTableBatchWriter writer;
   BatchWriter vertexBW;
   BatchWriter edgeBW;
 
-  VertexTableOperations vertexOps;
-  EdgeTableOperations edgeOps;
+  VertexTableWrapper vertexWrapper;
+  EdgeTableWrapper edgeWrapper;
 
   LruElementCache<Vertex> vertexCache;
   LruElementCache<Edge> edgeCache;
@@ -180,8 +184,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw new AccumuloGraphException(e);
     }
 
-    vertexOps = new VertexTableOperations(config, writer);
-    edgeOps = new EdgeTableOperations(config, writer);
+    vertexWrapper = new VertexTableWrapper(config, writer);
+    edgeWrapper = new EdgeTableWrapper(config, writer);
   }
 
   private void setupWriters() throws Exception {
@@ -935,8 +939,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public void shutdown() {
     try {
       writer.close();
-      vertexOps.close();
-      edgeOps.close();
+      vertexWrapper.close();
+      edgeWrapper.close();
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
@@ -1004,7 +1008,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   // with the backing Accumulo data store...
 
   <T> Pair<Integer, T> getProperty(Class<? extends Element> type, String id, String key) {
-    T value = getElementTableOps(type).readProperty(id, key);
+    T value = getElementTableWrapper(type).readProperty(id, key);
     return new Pair<Integer, T>(config.getPropertyCacheTimeout(key), value);
   }
 
@@ -1040,7 +1044,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   Set<String> getPropertyKeys(Class<? extends Element> type, String id) {
-    return getElementTableOps(type).readPropertyKeys(id);
+    return getElementTableWrapper(type).readPropertyKeys(id);
   }
 
   /**
@@ -1074,7 +1078,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         checkedFlush();
       }
 
-      getElementTableOps(type).writeProperty(id, key, val);
+      getElementTableWrapper(type).writeProperty(id, key, val);
 
       checkedFlush();
     } catch (MutationsRejectedException e) {
@@ -1083,8 +1087,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return config.getPropertyCacheTimeout(key);
   }
   
-  private ElementTableOperations getElementTableOps(Class<? extends Element> type) {
-    return type.equals(Vertex.class) ? vertexOps : edgeOps;
+  private ElementTableWrapper getElementTableWrapper(Class<? extends Element> type) {
+    return type.equals(Vertex.class) ? vertexWrapper : edgeWrapper;
   }
 
   private BatchWriter getIndexBatchWriter(Class<? extends Element> type) {
@@ -1101,7 +1105,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     T obj = (T) getProperty(type, id, key).getSecond();
     try {
       if (obj != null) {
-        getElementTableOps(type).clearProperty(id, key);
+        getElementTableWrapper(type).clearProperty(id, key);
 
         byte[] val = AccumuloByteSerializer.serialize(obj);
         Mutation m = new Mutation(val);
