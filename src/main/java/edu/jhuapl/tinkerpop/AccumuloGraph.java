@@ -81,7 +81,7 @@ import com.tinkerpop.blueprints.util.StringFactory;
  *    <tr><td>VertexID</td><td>LABEL</td><td>EXISTS</td><td>[empty]</td></tr>
  *    <tr><td>VertexID</td><td>INEDGE</td><td>InVertexID_EdgeID</td><td>EdgeLabel</td></tr>
  *    <tr><td>VertexID</td><td>OUTEDGE</td><td>OutVertexID_EdgeID</td><td>EdgeLabel</td></tr>
- *    <tr><td>VertexID</td><td>PropertyKey</td><td>[empty]</td><td>PropertyValue</td></tr>
+ *    <tr><td>VertexID</td><td>PropertyKey</td><td>[empty]</td><td>Encoded Value</td></tr>
  *  </tbody>
  * </table>
  * 
@@ -106,7 +106,7 @@ import com.tinkerpop.blueprints.util.StringFactory;
  *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
  *  </thead>
  *  <tbody>
- *    <tr><td>Encoded PropertyValue</td><td>PropertyKey</td><td>ElementID</td><td>[empty]</td></tr>
+ *    <tr><td>Encoded Value</td><td>PropertyKey</td><td>ElementID</td><td>[empty]</td></tr>
  *  </tbody>
  * </table>
  * 

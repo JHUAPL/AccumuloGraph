@@ -37,6 +37,7 @@ public abstract class AccumuloElement implements Element {
     this.type = type;
   }
 
+  @Override
   public <T> T getProperty(String key) {
     if (propertiesCache == null) {
       // lazily create the properties cache...
@@ -71,11 +72,13 @@ public abstract class AccumuloElement implements Element {
     return parent.getPropertyKeys(type, id);
   }
 
+  @Override
   public void setProperty(String key, Object value) {
     Integer timeout = parent.setProperty(type, id, key, value);
     cacheProperty(key, value, timeout);
   }
 
+  @Override
   public <T> T removeProperty(String key) {
     if (propertiesCache != null) {
       // we have the cached value but we still need to pass this on to the
@@ -88,10 +91,12 @@ public abstract class AccumuloElement implements Element {
     return parent.removeProperty(type, id, key);
   }
 
+  @Override
   public Object getId() {
     return id;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if (obj == null) {
       return false;

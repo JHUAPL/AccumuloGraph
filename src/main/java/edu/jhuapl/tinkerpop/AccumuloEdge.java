@@ -50,6 +50,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     this.outId = outVertex;
   }
 
+  @Override
   public Vertex getVertex(Direction direction) throws IllegalArgumentException {
     switch (direction) {
       case IN:
@@ -79,6 +80,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     }
   }
 
+  @Override
   public String getLabel() {
     // TODO less special treatment for "LABEL" property...
     if (label != null) {
@@ -87,6 +89,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     return getProperty(StringFactory.LABEL);
   }
 
+  @Override
   public void remove() {
     parent.removeEdge(this);
   }
@@ -111,6 +114,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     this.label = label;
   }
 
+  @Override
   public String toString() {
     return "[" + getId() + ":" + getVertex(Direction.OUT) + " -> " + getLabel() + " -> " + getVertex(Direction.IN) + "]";
   }
