@@ -145,6 +145,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   BatchWriter vertexBW;
   BatchWriter edgeBW;
 
+  VertexTableOperations vertexOps;
+  EdgeTableOperations edgeOps;
+
   LruElementCache<Vertex> vertexCache;
   LruElementCache<Edge> edgeCache;
 
@@ -169,7 +172,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           config.getEdgeCacheTimeout());
     }
 
+    vertexOps = new VertexTableOperations(config);
+    edgeOps = new EdgeTableOperations(config);
+
     AccumuloGraphUtils.handleCreateAndClear(config);
+
     try {
       setupWriters();
     } catch (Exception e) {
@@ -928,6 +935,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public void shutdown() {
     try {
       writer.close();
+      vertexOps.close();
+      edgeOps.close();
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
@@ -994,24 +1003,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   // methods used by AccumuloElement, AccumuloVertex, AccumuloEdge to interact
   // with the backing Accumulo data store...
 
-  <T> Pair<Integer,T> getProperty(Class<? extends Element> type, String id, String key) {
-    Text colf = null;
-    if (StringFactory.LABEL.equals(key)) {
-      colf = AccumuloGraph.TLABEL;
+  <T> Pair<Integer, T> getProperty(Class<? extends Element> type, String id, String key) {
+    T value;
+    if (type.equals(Vertex.class)) {
+      value = vertexOps.readProperty(id, key);
     } else {
-      colf = new Text(key);
+      value = edgeOps.readProperty(id, key);
     }
-
-    Scanner s = getElementScanner(type);
-    s.setRange(new Range(id));
-    s.fetchColumnFamily(colf);
-    T toRet = null;
-    Iterator<Entry<Key,Value>> iter = s.iterator();
-    if (iter.hasNext()) {
-      toRet = AccumuloByteSerializer.deserialize(iter.next().getValue().get());
-    }
-    s.close();
-    return new Pair<Integer,T>(config.getPropertyCacheTimeout(key), toRet);
+    return new Pair<Integer, T>(config.getPropertyCacheTimeout(key), value);
   }
 
   void preloadProperties(AccumuloElement element, Class<? extends Element> type) {
@@ -1064,7 +1063,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   /**
-   * Sets the property. Requires a round-trip to Accumulo to see if the property exists iff the provided key has an index. Therefore, for best performance if at
+   * Sets the property. Requires a round-trip to Accumulo to see if the property exists iff
+   * the provided key has an index. Therefore, for best performance if at
    * all possible create indices after bulk ingest.
    * 
    * @param type

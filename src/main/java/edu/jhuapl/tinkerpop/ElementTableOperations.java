@@ -38,7 +38,13 @@ abstract class ElementTableOperations {
     this.type = elementType;
   }
 
-  protected <V> V getProperty(String id, String key) {
+  /**
+   * Read the given property from the backing table.
+   * @param id
+   * @param key
+   * @return
+   */
+  protected <V> V readProperty(String id, String key) {
     Scanner s = getElementScanner();
 
     s.setRange(new Range(id));

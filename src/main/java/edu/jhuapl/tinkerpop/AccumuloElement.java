@@ -51,7 +51,7 @@ public abstract class AccumuloElement implements Element {
       parent.preloadProperties(this, type);
     }
 
-    Pair<Long,Object> val = propertiesCache.get(key);
+    Pair<Long, Object> val = propertiesCache.get(key);
     if (val != null) {
       if (val.getFirst() < System.currentTimeMillis()) {
         // this cached value has timed out..
