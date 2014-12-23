@@ -101,7 +101,7 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
               break;
             default:
               String propertyKey = currentKey.getColumnFamily().toString();
-              Object propertyValue = AccumuloByteSerializer.desserialize(entry.getValue().get());
+              Object propertyValue = AccumuloByteSerializer.deserialize(entry.getValue().get());
               vertex.prepareProperty(propertyKey, propertyValue);
           }
         }

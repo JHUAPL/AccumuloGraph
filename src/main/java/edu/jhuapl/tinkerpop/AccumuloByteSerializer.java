@@ -53,7 +53,7 @@ public final class AccumuloByteSerializer {
     }
   };
 
-  public static <T> T desserialize(byte[] target) {
+  public static <T> T deserialize(byte[] target) {
     if (target[0] == NULL) {
       return null;
     }

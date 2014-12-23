@@ -90,11 +90,11 @@ public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
               String[] ids = currentKey.getColumnQualifier().toString().split(parent.IDDELIM);
               edge.setSourceId(ids[1]);
               edge.setDestId(ids[0]);
-              edge.setLabel(AccumuloByteSerializer.desserialize(entry.getValue().get()).toString());
+              edge.setLabel(AccumuloByteSerializer.deserialize(entry.getValue().get()).toString());
               break;
             default:
               String propertyKey = currentKey.getColumnFamily().toString();
-              Object propertyValue = AccumuloByteSerializer.desserialize(entry.getValue().get());
+              Object propertyValue = AccumuloByteSerializer.deserialize(entry.getValue().get());
               edge.prepareProperty(propertyKey, propertyValue);
           }
         }

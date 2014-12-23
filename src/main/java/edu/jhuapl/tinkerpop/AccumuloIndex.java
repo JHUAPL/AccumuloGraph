@@ -14,17 +14,13 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.ScannerBase;
-import org.apache.accumulo.core.client.TableExistsException;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
@@ -39,13 +35,13 @@ import com.tinkerpop.blueprints.Index;
 
 
 public class AccumuloIndex<T extends Element> implements Index<T> {
-  Class indexedType;
+  Class<T> indexedType;
   AccumuloGraph parent;
   String indexName;
   String tableName;
 
-  public AccumuloIndex(Class t, AccumuloGraph parent, String indexName) {
-    indexedType = t;
+  public AccumuloIndex(Class<T> t, AccumuloGraph parent, String indexName) {
+    this.indexedType = t;
     this.parent = parent;
     this.indexName = indexName;
     tableName = parent.config.getGraphName() + "_index_" + indexName;// + "_" +
@@ -56,7 +52,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
         parent.config.getConnector().tableOperations().create(tableName);
       }
     } catch (Exception e) {
-     throw new RuntimeException(e);
+      throw new RuntimeException(e);
     }
 
   }
@@ -132,9 +128,9 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     AccumuloGraph parent;
     ScannerBase scan;
     boolean isClosed;
-    Class indexedType;
+    Class<T> indexedType;
 
-    IndexIterable(AccumuloGraph parent, ScannerBase scan, Class t) {
+    IndexIterable(AccumuloGraph parent, ScannerBase scan, Class<T> t) {
       this.scan = scan;
       this.parent = parent;
       isClosed = false;
@@ -143,30 +139,26 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
     public Iterator<T> iterator() {
       if (!isClosed) {
-        if(indexedType.equals(Edge.class)){
-          
-            return new ScannerIterable<T>(parent, scan) {
+        return new ScannerIterable<T>(parent, scan) {
 
-              @Override
-              public T next(PeekingIterator<Entry<Key,Value>> iterator) {
-                // TODO better use of information readily
-                // available...
-                return (T) new AccumuloEdge(parent, iterator.next().getKey().getColumnQualifier().toString());
-              }
-            }.iterator();
-        }else{ 
-            return new ScannerIterable<T>(parent, scan) {
-
-              @Override
-              public T next(PeekingIterator<Entry<Key,Value>> iterator) {
-                // TODO better use of information readily
-                // available...
-                return (T) new AccumuloVertex(parent, iterator.next().getKey().getColumnQualifier().toString());
-              }
-            }.iterator();
-        }
+          @Override
+          public T next(PeekingIterator<Entry<Key, Value>> iterator) {
+            String id = iterator.next()
+                .getKey().getColumnQualifier().toString();
+            // TODO better use of information readily
+            // available...
+            if (indexedType.equals(Edge.class)) {
+              return (T) new AccumuloEdge(parent, id);
+            }
+            else {
+              return (T) new AccumuloVertex(parent, id);
+            }
+          }
+        }.iterator();
       }
-      return null;
+      else {
+        return null;
+      }
     }
 
     public void close() {
@@ -182,5 +174,4 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
   public Class<T> getIndexClass() {
     return indexedType;
   }
-
 }

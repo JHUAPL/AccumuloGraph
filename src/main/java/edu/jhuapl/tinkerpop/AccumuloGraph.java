@@ -64,123 +64,61 @@ import com.tinkerpop.blueprints.util.StringFactory;
 
 /**
  * 
- * This is an implementation of Tinkerpop's Graph API backed by Apache Accumulo.
- * The implementation currently supports the {@link IndexableGraph}
- * and {@link KeyIndexableGraph} interfaces.
+ * This is an implementation of TinkerPop's graph API
+ * backed by Apache Accumulo. In addition to the basic
+ * Graph interface, the implementation
+ * supports {@link IndexableGraph} and {@link KeyIndexableGraph}.
  * 
- * It currently relies on 6 to N tables with the format.
- * Every index created by the indexable interface gets its own table.
+ * <p/>Tables have the following formats.
  * 
- * VertexTable
- * <table border=1>
- * <thead>
- * <tr>
- * <th>ROWID</th>
- * <th>COLFAM</th>
- * <th>COLQAL</th>
- * <th>VALUE</th>
- * </tr>
- * </thead> <tbody>
- * <tr>
- * <td>VertexID</td>
- * <td>LABEL</td>
- * <td>EXISTS</td>
- * <td>[empty]</td>
- * </tr>
- * <tr>
- * <td>VertexID</td>
- * <td>INEDGE</td>
- * <td>InVertedID_EdgeID</td>
- * <td>EdgeLabel</td>
- * </tr>
- * <tr>
- * <td>VertexID</td>
- * <td>OUTEDGE</td>
- * <td>OutVertedID_EdgeID</td>
- * <td>EdgeLabel</td>
- * </tr>
- * <tr>
- * <td>VertexID</td>
- * <td>PropertyKey</td>
- * <td>[empty]</td>
- * <td>PropertyValue</td>
- * </tr>
- * </tbody>
+ * <p/>
+ * <table border="1">
+ *  <caption>Vertex table</caption>
+ *  <thead>
+ *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
+ *  </thead>
+ *  <tbody>
+ *    <tr><td>VertexID</td><td>LABEL</td><td>EXISTS</td><td>[empty]</td></tr>
+ *    <tr><td>VertexID</td><td>INEDGE</td><td>InVertexID_EdgeID</td><td>EdgeLabel</td></tr>
+ *    <tr><td>VertexID</td><td>OUTEDGE</td><td>OutVertexID_EdgeID</td><td>EdgeLabel</td></tr>
+ *    <tr><td>VertexID</td><td>PropertyKey</td><td>[empty]</td><td>PropertyValue</td></tr>
+ *  </tbody>
  * </table>
  * 
- * EdgeTable
- * <table border=1>
- * <thead>
- * <tr>
- * <th>ROWID</th>
- * <th>COLFAM</th>
- * <th>COLQAL</th>
- * <th>VALUE</th>
- * </tr>
- * </thead> <tbody>
- * <tr>
- * <td>EdgeID</td>
- * <td>LABEL</td>
- * <td>[empty]</td>
- * <td>Encoded LabelValue</td>
- * </tr>
- * <tr>
- * <td>EdgeID</td>
- * <td>INEDGE</td>
- * <td>InVertedID</td>
- * <td>[empty]</td>
- * </tr>
- * <tr>
- * <td>EdgeID</td>
- * <td>OUTEDGE</td>
- * <td>OutVertedID</td>
- * <td>[empty]</td>
- * </tr>
- * <tr>
- * <td>EdgeID</td>
- * <td>PropertyKey</td>
- * <td>[empty]</td>
- * <td>Encoded Value</td>
- * </tr>
- * </tbody>
+ * <p/>
+ * <table border="1">
+ *  <caption>Edge table</caption>
+ *  <thead>
+ *    <tr> <th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
+ *  </thead>
+ *  <tbody>
+ *    <tr><td>EdgeID</td><td>LABEL</td><td>[empty]</td><td>Encoded LabelValue</td></tr>
+ *    <tr><td>EdgeID</td><td>INEDGE</td><td>InVertexID</td><td>[empty]</td></tr>
+ *    <tr><td>EdgeID</td><td>OUTEDGE</td><td>OutVertexID</td><td>[empty]</td></tr>
+ *    <tr><td>EdgeID</td><td>PropertyKey</td><td>[empty]</td><td>Encoded Value</td></tr>
+ *  </tbody>
  * </table>
  * 
- * VertexIndexTable/EdgeIndexTable
- * <table border=1>
- * <thead>
- * <tr>
- * <th>ROWID</th>
- * <th>COLFAM</th>
- * <th>COLQAL</th>
- * <th>VALUE</th>
- * </tr>
- * </thead> <tbody>
- * <tr>
- * <td>Encoded PropertyValue</td>
- * <td>PropertyKey</td>
- * <td>ElementID</td>
- * <td>[empty]</td>
- * </tr>
- * </tbody>
+ * <p/>
+ * <table border="1">
+ *  <caption>Vertex / edge index tables (each index gets its own table)</caption>
+ *  <thead>
+ *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
+ *  </thead>
+ *  <tbody>
+ *    <tr><td>Encoded PropertyValue</td><td>PropertyKey</td><td>ElementID</td><td>[empty]</td></tr>
+ *  </tbody>
  * </table>
  * 
- * MetadataTable/KeyMetadataTable
- * <table border=1>
- * <thead>
- * <tr>
- * <th>ROWID</th>
- * <th>COLFAM</th>
- * <th>COLQAL</th>
- * <th>VALUE</th>
- * </tr>
- * </thead> <tbody>
- * <tr>
- * <td>IndexName</td>
- * <td>IndexClassType</td>
- * <td>[empty]</td>
- * <td>[empty]</td>
- * </tr>
- * </tbody>
+ * <p/>
+ * <table border="1">
+ *  <caption>Metadata/key metadata tables</caption>
+ *  <thead>
+ *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
+ *  </thead>
+ *  <tbody>
+ *    <tr><td>IndexName</td><td>IndexClassType</td><td>[empty]</td><td>[empty]</td></tr>
+ *  </tbody>
  * </table>
  */
 public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
@@ -651,7 +589,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           v = (v == null ? new AccumuloVertex(AccumuloGraph.this, key.getColumnQualifier().toString()) : v);
           int timeout = config.getPropertyCacheTimeout(key.getColumnFamily().toString());
           if (timeout != -1) {
-            v.cacheProperty(key.getColumnFamily().toString(), AccumuloByteSerializer.desserialize(key.getRow().getBytes()), timeout);
+            v.cacheProperty(key.getColumnFamily().toString(), AccumuloByteSerializer.deserialize(key.getRow().getBytes()), timeout);
           }
 
           if (vertexCache != null) {
@@ -685,7 +623,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
             v = (v == null ? new AccumuloVertex(AccumuloGraph.this, kv.getKey().getRow().toString()) : v);
             int timeout = config.getPropertyCacheTimeout(kv.getKey().getColumnFamily().toString());
             if (timeout != -1) {
-              v.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.desserialize(kv.getValue().get()), timeout);
+              v.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.deserialize(kv.getValue().get()), timeout);
             }
 
             if (vertexCache != null) {
@@ -812,7 +750,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         }
         continue;
       }
-      Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
+      Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
       e.cacheProperty(attr, val, timeout);
 
     }
@@ -896,7 +834,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         // TODO I dont know if this should work with a batch scanner....
         Entry<Key,Value> entry = iterator.next();
         AccumuloEdge edge = new AccumuloEdge(AccumuloGraph.this, entry.getKey().getRow().toString(), AccumuloByteSerializer
-            .desserialize(entry.getValue().get()).toString());
+            .deserialize(entry.getValue().get()).toString());
 
         String rowid = entry.getKey().getRow().toString();
         List<Entry<Key,Value>> vals = new ArrayList<Entry<Key,Value>>();
@@ -939,7 +877,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
           int timeout = config.getPropertyCacheTimeout(kv.getKey().getColumnFamily().toString());
           if (timeout != -1) {
-            e.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.desserialize(kv.getKey().getRow().getBytes()), timeout);
+            e.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.deserialize(kv.getKey().getRow().getBytes()), timeout);
           }
 
           if (edgeCache != null) {
@@ -1070,7 +1008,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     T toRet = null;
     Iterator<Entry<Key,Value>> iter = s.iterator();
     if (iter.hasNext()) {
-      toRet = AccumuloByteSerializer.desserialize(iter.next().getValue().get());
+      toRet = AccumuloByteSerializer.deserialize(iter.next().getValue().get());
     }
     s.close();
     return new Pair<Integer,T>(config.getPropertyCacheTimeout(key), toRet);
@@ -1100,7 +1038,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     // Integer timeout = config.getPropertyCacheTimeoutMillis(); // Change this
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
-      Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
+      Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
       element
           .cacheProperty(entry.getKey().getColumnFamily().toString(), val, config.getPropertyCacheTimeout(entry.getKey().getColumnFamily().toString()));
     }
