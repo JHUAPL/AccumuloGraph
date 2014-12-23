@@ -336,16 +336,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Vertex addVertex(Object id) {
-    String myID;
     if (id == null) {
-      myID = UUID.randomUUID().toString();
-    } else {
-      try {
-        myID = id.toString();// (String) id;
-      } catch (ClassCastException e) {
-        return null;
-      }
+      id = UUID.randomUUID();
     }
+
+    String myID = id.toString();
 
     Vertex vert = null;
     if (!config.getSkipExistenceChecks()) {
@@ -355,17 +350,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
 
-    Mutation m = new Mutation(myID);
-    m.put(LABEL, EXISTS, EMPTY);
-
-    try {
-      vertexBW.addMutation(m);
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-      return null;
-    }
-
+    vertexWrapper.writeVertex(myID);
     checkedFlush();
+
     vert = new AccumuloVertex(this, myID);
 
     if (vertexCache != null) {
@@ -1086,7 +1073,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
     return config.getPropertyCacheTimeout(key);
   }
-  
+
   private ElementTableWrapper getElementTableWrapper(Class<? extends Element> type) {
     return type.equals(Vertex.class) ? vertexWrapper : edgeWrapper;
   }

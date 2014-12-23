@@ -12,10 +12,14 @@
 package edu.jhuapl.tinkerpop.tables;
 
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
+import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.data.Mutation;
 
 import com.tinkerpop.blueprints.Vertex;
 
+import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
 
 
 /**
@@ -26,5 +30,19 @@ public class VertexTableWrapper extends ElementTableWrapper {
   public VertexTableWrapper(AccumuloGraphConfiguration config,
       MultiTableBatchWriter writer) {
     super(config, writer, config.getVertexTable());
+  }
+
+  /**
+   * Write a vertex with the given id.
+   * @param id
+   */
+  public void writeVertex(String id) {
+    Mutation m = new Mutation(id);
+    m.put(AccumuloGraph.LABEL, AccumuloGraph.EXISTS, AccumuloGraph.EMPTY);
+    try {
+      getWriter().addMutation(m);
+    } catch (MutationsRejectedException e) {
+      throw new AccumuloGraphException(e);
+    }
   }
 }
