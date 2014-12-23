@@ -517,6 +517,11 @@ public class AccumuloGraphConfiguration implements Serializable {
     return this;
   }
 
+  /**
+   * True if the LRU cache is enabled (i.e., LRU max capacity is positive).
+   * See {@link #setLruMaxCapacity(int)}.
+   * @return
+   */
   public boolean getLruCacheEnabled() {
     return getLruMaxCapacity() > 0;
   }
@@ -653,7 +658,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   public String[] getPreloadedProperties() {
-    if (containsKey(Keys.PRELOAD_PROPERTIES)) {
+    if (conf.containsKey(Keys.PRELOAD_PROPERTIES)) {
       return conf.getStringArray(Keys.PRELOAD_PROPERTIES);
     }
     return null;
@@ -691,7 +696,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   public String[] getPreloadedEdgeLabels() {
-    if (containsKey(Keys.PRELOAD_EDGES)) {
+    if (conf.containsKey(Keys.PRELOAD_EDGES)) {
       return conf.getStringArray(Keys.PRELOAD_EDGES);
     }
     return null;
@@ -857,10 +862,6 @@ public class AccumuloGraphConfiguration implements Serializable {
     this.miniClusterTempDir = miniClusterTempDir;
   }
 
-  private boolean containsKey(String key) {
-    return conf.containsKey(key);
-  }
-
   public String getVertexTable() {
     return getGraphName() + "_vertex";
   }
@@ -977,5 +978,130 @@ public class AccumuloGraphConfiguration implements Serializable {
       }
       System.out.println("  "+key+" = "+value);
     }
+  }
+
+
+  // Old deprecated method names.
+
+  /**
+   * @deprecated This is an old method name. Use {@link #setZooKeeperHosts(String)}.
+   * @param zookeeperHosts
+   * @return
+   */
+  public AccumuloGraphConfiguration setZookeeperHosts(String zookeeperHosts) {
+    return setZooKeeperHosts(zookeeperHosts);
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #setSkipExistenceChecks(boolean)}.
+   * @param skip
+   * @return
+   */
+  public AccumuloGraphConfiguration skipExistenceChecks(boolean skip) {
+    return setSkipExistenceChecks(skip);
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getAutoIndex()}.
+   * @return
+   */
+  public boolean isAutoIndex() {
+    return getAutoIndex();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getIndexableGraphDisabled()}.
+   * @return
+   */
+  public boolean isIndexableGraphDisabled() {
+    return getIndexableGraphDisabled();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getCreate()}.
+   * @return
+   */
+  public boolean isCreate() {
+    return getCreate();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getClear()}.
+   * @return
+   */
+  public boolean isClear() {
+    return getClear();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getInstanceName()}.
+   * @return
+   */
+  public String getInstance() {
+    return getInstanceName();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getAutoFlush()}.
+   * @return
+   */
+  public boolean isAutoFlush() {
+    return getAutoFlush();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getPropertyCacheTimeout(String)}.
+   * @return
+   */
+  public Integer getPropertyCacheTimeoutMillis(String property) {
+    return getPropertyCacheTimeout(property);
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getEdgeCacheTimeout()}.
+   * @return
+   */
+  public Integer getEdgeCacheTimeoutMillis() {
+    return getEdgeCacheTimeout();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getVertexCacheTimeout()}.
+   * @return
+   */
+  public Integer getVertexCacheTimeoutMillis() {
+    return getVertexCacheTimeout();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getSkipExistenceChecks()}.
+   * @return
+   */
+  public boolean skipExistenceChecks() {
+    return getSkipExistenceChecks();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getGraphName()}.
+   * @return
+   */
+  public String getName() {
+    return getGraphName();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getLruCacheEnabled()}.
+   * @return
+   */
+  public boolean useLruCache() {
+    return getLruCacheEnabled();
+  }
+
+  /**
+   * @deprecated This is an old method name. Use {@link #getPreloadedEdgeLabels()}.
+   * @return
+   */
+  public String[] getPreloadedEdges() {
+    return getPreloadedEdgeLabels();
   }
 }
