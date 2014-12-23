@@ -557,7 +557,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         scan.fetchColumnFamily(new Text(x));
       }
     }
-    return new ScannerIterable<Vertex>(this, scan) {
+    return new ScannerIterable<Vertex>(scan) {
 
       @Override
       public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
@@ -586,7 +586,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       s.setRange(new Range(tVal, tVal));
       s.fetchColumnFamily(new Text(key));
 
-      return new ScannerIterable<Vertex>(this, s) {
+      return new ScannerIterable<Vertex>(s) {
 
         @Override
         public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
@@ -620,7 +620,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         RegExFilter.setRegexs(is, null, null, null, Pattern.quote(new String(val)), false);
         scan.addScanIterator(is);
 
-        return new ScannerIterable<Vertex>(this, scan) {
+        return new ScannerIterable<Vertex>(scan) {
 
           @Override
           public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
@@ -838,7 +838,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
 
-    return new ScannerIterable<Edge>(this, scan) {
+    return new ScannerIterable<Edge>(scan) {
 
       @Override
       public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
@@ -876,7 +876,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       s.setRange(new Range(tVal, tVal));
       s.fetchColumnFamily(new Text(key));
 
-      return new ScannerIterable<Edge>(this, s) {
+      return new ScannerIterable<Edge>(s) {
         @Override
         public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
           AccumuloEdge e = null;
@@ -908,7 +908,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         RegExFilter.setRegexs(is, null, null, null, Pattern.quote(new String(val)), false);
         scan.addScanIterator(is);
 
-        return new ScannerIterable<Edge>(this, scan) {
+        return new ScannerIterable<Edge>(scan) {
 
           @Override
           public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
@@ -1134,7 +1134,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       applyRegexValueFilter(scan, labels);
     }
 
-    return new ScannerIterable<Edge>(this, scan) {
+    return new ScannerIterable<Edge>(scan) {
 
       @Override
       public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
@@ -1186,7 +1186,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       applyRegexValueFilter(scan, labels);
     }
 
-    return new ScannerIterable<Vertex>(this, scan) {
+    return new ScannerIterable<Vertex>(scan) {
 
       @Override
       public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {

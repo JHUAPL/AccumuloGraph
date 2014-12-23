@@ -27,11 +27,9 @@ import com.tinkerpop.blueprints.Element;
 
 public abstract class ScannerIterable<T extends Element> implements Iterable<T>, Closeable {
 
-  AccumuloGraph parent;
   ScannerBase scanner;
 
-  ScannerIterable(AccumuloGraph parent, ScannerBase scanner) {
-    this.parent = parent;
+  ScannerIterable(ScannerBase scanner) {
     this.scanner = scanner;
   }
 

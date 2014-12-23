@@ -144,7 +144,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     @Override
     public Iterator<T> iterator() {
       if (!isClosed) {
-        return new ScannerIterable<T>(parent, scan) {
+        return new ScannerIterable<T>(scan) {
 
           @Override
           public T next(PeekingIterator<Entry<Key, Value>> iterator) {
