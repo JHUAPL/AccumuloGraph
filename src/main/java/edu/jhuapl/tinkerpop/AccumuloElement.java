@@ -61,7 +61,7 @@ public abstract class AccumuloElement implements Element {
         return (T) val.getSecond();
       }
     }
-    Pair<Integer,T> pair = parent.getProperty(type, id, key);
+    Pair<Integer, T> pair = parent.getProperty(type, id, key);
     if (pair.getFirst() != null) {
       cacheProperty(key, pair.getSecond(), pair.getFirst());
     }

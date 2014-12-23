@@ -745,7 +745,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return edge;
   }
 
-  private void preloadProperties(Iterator<Entry<Key,Value>> iter, AccumuloElement e) {
+  private void preloadProperties(Iterator<Entry<Key, Value>> iter, AccumuloElement e) {
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
       Key key = entry.getKey();
@@ -1032,13 +1032,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       s.fetchColumnFamily(colf);
     }
 
-    Iterator<Entry<Key,Value>> iter = s.iterator();
+    Iterator<Entry<Key, Value>> iter = s.iterator();
     // Integer timeout = config.getPropertyCacheTimeoutMillis(); // Change this
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
       Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
-      element
-          .cacheProperty(entry.getKey().getColumnFamily().toString(), val, config.getPropertyCacheTimeout(entry.getKey().getColumnFamily().toString()));
+      element.cacheProperty(entry.getKey().getColumnFamily().toString(),
+          val, config.getPropertyCacheTimeout(entry.getKey().getColumnFamily().toString()));
     }
     s.close();
   }

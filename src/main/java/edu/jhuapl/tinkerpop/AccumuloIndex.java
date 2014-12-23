@@ -57,10 +57,12 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
   }
 
+  @Override
   public String getIndexName() {
     return indexName;
   }
 
+  @Override
   public void put(String key, Object value, Element element) {
     element.setProperty(key, value);
     Mutation m = new Mutation(AccumuloByteSerializer.serialize(value));
@@ -75,6 +77,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
   }
 
+  @Override
   public CloseableIterable<T> get(String key, Object value) {
     Scanner scan = getScanner();
     byte[] id = AccumuloByteSerializer.serialize(value);
@@ -84,11 +87,13 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     return new IndexIterable(parent, scan, indexedType);
   }
 
+  @Override
   public CloseableIterable<T> query(String key, Object query) {
     throw new UnsupportedOperationException();
 
   }
 
+  @Override
   public long count(String key, Object value) {
     CloseableIterable<T> iterable = get(key, value);
     Iterator<T> iter = iterable.iterator();
@@ -101,6 +106,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     return count;
   }
 
+  @Override
   public void remove(String key, Object value, Element element) {
     Mutation m = new Mutation(AccumuloByteSerializer.serialize(value));
     m.putDelete(key.getBytes(), element.getId().toString().getBytes());
@@ -135,6 +141,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
       indexedType = t;
     }
 
+    @Override
     public Iterator<T> iterator() {
       if (!isClosed) {
         return new ScannerIterable<T>(parent, scan) {

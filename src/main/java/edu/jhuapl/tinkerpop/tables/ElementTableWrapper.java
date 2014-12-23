@@ -39,17 +39,14 @@ import edu.jhuapl.tinkerpop.AccumuloGraphException;
  * Wrapper around tables with operations
  * common to {@link Element}s.
  */
-public abstract class ElementTableWrapper {
+public abstract class ElementTableWrapper extends BaseTableWrapper {
 
-  private AccumuloGraphConfiguration config;
   private Class<? extends Element> type;
-  private MultiTableBatchWriter mtbw;
 
   public ElementTableWrapper(AccumuloGraphConfiguration config,
       MultiTableBatchWriter writer, Class<? extends Element> elementType) {
-    this.config = config;
+    super(config, writer);
     this.type = elementType;
-    this.mtbw = writer;
   }
 
   /**
@@ -122,7 +119,7 @@ public abstract class ElementTableWrapper {
     try {
       Mutation m = new Mutation(id);
       m.putDelete(key.getBytes(), AccumuloGraph.EMPTY);
-      getTableWriter().addMutation(m);
+      getElementWriter().addMutation(m);
 
     } catch (MutationsRejectedException e) {
       throw new AccumuloGraphException(e);
@@ -140,7 +137,7 @@ public abstract class ElementTableWrapper {
     Mutation m = new Mutation(id);
     m.put(key.getBytes(), AccumuloGraph.EMPTY, bytes);
     try {
-      getTableWriter().addMutation(m);
+      getElementWriter().addMutation(m);
     } catch (MutationsRejectedException e) {
       throw new AccumuloGraphException(e);
     }
@@ -156,7 +153,7 @@ public abstract class ElementTableWrapper {
     }
   }
 
-  private BatchWriter getTableWriter() {
+  private BatchWriter getElementWriter() {
     try {
       return mtbw.getBatchWriter(type.equals(Vertex.class) ?
           config.getVertexTable() : config.getEdgeTable());
