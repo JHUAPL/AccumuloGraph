@@ -874,24 +874,16 @@ public class AccumuloGraphConfiguration implements Serializable {
     return getMetadataTable() + "KEY";
   }
 
-  String getVertexIndexTable() {
+  public String getVertexIndexTable() {
     return getGraphName() + "_vertex_index";
   }
 
-  String getEdgeIndexTable() {
+  public String getEdgeIndexTable() {
     return getGraphName() + "_edge_index";
   }
 
   String getMetadataTable() {
     return getGraphName() + "_meta";
-  }
-
-  String getKeyVertexIndexTable() {
-    return getGraphName() + "_vertex_index_key";
-  }
-
-  String getKeyEdgeIndexTable() {
-    return getGraphName() + "_edge_index_key";
   }
 
   List<String> getTableNames() {
