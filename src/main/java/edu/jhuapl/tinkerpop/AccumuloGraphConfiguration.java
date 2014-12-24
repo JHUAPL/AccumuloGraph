@@ -397,6 +397,10 @@ public class AccumuloGraphConfiguration implements Serializable {
    * slowly and/or properties are revisited frequently, this can achieve a
    * significant reduction in latency at the expense of consistency.
    * <P>
+   * If the <tt>property</tt> parameter is null, this sets the default timeout
+   * for all properties. Otherwise, only the specified property's timeout
+   * is set.
+   * <p/>
    * The default is unset (no caching).
    * 
    * @param millis
@@ -404,17 +408,18 @@ public class AccumuloGraphConfiguration implements Serializable {
    * @return
    */
   public AccumuloGraphConfiguration setPropertyCacheTimeout(String property, int millis) {
-    if (millis < 0){
+    if (millis < 0) {
       throw new IllegalArgumentException("Timeout value cannot be negative.");
     }
-    if(property != null){
+
+    if (property != null) {
       property = "."+property;
       if (millis <= 0) {
         conf.clearProperty(Keys.PROPERTY_CACHE_TIMEOUT+property);
       } else {
         conf.setProperty(Keys.PROPERTY_CACHE_TIMEOUT+property, millis);
       }
-    } else{
+    } else {
       if (millis <= 0) {
         conf.clearProperty(Keys.PROPERTY_CACHE_TIMEOUT);
       } else {

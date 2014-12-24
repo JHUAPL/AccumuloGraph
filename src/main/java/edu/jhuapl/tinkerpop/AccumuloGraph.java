@@ -586,10 +586,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           }
 
           v = (v == null ? new AccumuloVertex(AccumuloGraph.this, key.getColumnQualifier().toString()) : v);
-          int timeout = config.getPropertyCacheTimeout(key.getColumnFamily().toString());
-          if (timeout != -1) {
-            v.cacheProperty(key.getColumnFamily().toString(), AccumuloByteSerializer.deserialize(key.getRow().getBytes()), timeout);
-          }
+          v.cacheProperty(key.getColumnFamily().toString(),
+              AccumuloByteSerializer.deserialize(key.getRow().getBytes()));
 
           if (vertexCache != null) {
             vertexCache.cache(v);
@@ -620,10 +618,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
             }
 
             v = (v == null ? new AccumuloVertex(AccumuloGraph.this, kv.getKey().getRow().toString()) : v);
-            int timeout = config.getPropertyCacheTimeout(kv.getKey().getColumnFamily().toString());
-            if (timeout != -1) {
-              v.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.deserialize(kv.getValue().get()), timeout);
-            }
+            v.cacheProperty(kv.getKey().getColumnFamily().toString(),
+                AccumuloByteSerializer.deserialize(kv.getValue().get()));
 
             if (vertexCache != null) {
               vertexCache.cache(v);
@@ -726,7 +722,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       Entry<Key,Value> entry = iter.next();
       Key key = entry.getKey();
       String attr = key.getColumnFamily().toString();
-      Integer timeout = config.getPropertyCacheTimeout(attr);
       if (SLABEL.equals(attr)) {
         if (!key.getColumnQualifier().toString().equals(SEXISTS)) {
           AccumuloEdge edge = (AccumuloEdge) e;
@@ -738,8 +733,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         continue;
       }
       Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
-      e.cacheProperty(attr, val, timeout);
-
+      e.cacheProperty(attr, val);
     }
   }
 
@@ -862,10 +856,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           }
           e = (e == null ? new AccumuloEdge(AccumuloGraph.this, kv.getKey().getColumnQualifier().toString()) : e);
 
-          int timeout = config.getPropertyCacheTimeout(kv.getKey().getColumnFamily().toString());
-          if (timeout != -1) {
-            e.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.deserialize(kv.getKey().getRow().getBytes()), timeout);
-          }
+          e.cacheProperty(kv.getKey().getColumnFamily().toString(),
+                AccumuloByteSerializer.deserialize(kv.getKey().getRow().getBytes()));
 
           if (edgeCache != null) {
             edgeCache.cache(e);
@@ -1013,8 +1005,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
       Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
-      element.cacheProperty(entry.getKey().getColumnFamily().toString(),
-          val, config.getPropertyCacheTimeout(entry.getKey().getColumnFamily().toString()));
+      element.cacheProperty(entry.getKey().getColumnFamily().toString(), val);
     }
     s.close();
   }
@@ -1024,16 +1015,16 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   /**
-   * Sets the property. Requires a round-trip to Accumulo to see if the property exists iff
-   * the provided key has an index. Therefore, for best performance if at
-   * all possible create indices after bulk ingest.
+   * Sets the property. Requires a round-trip to Accumulo to see if the property exists
+   * iff the provided key has an index. Therefore, for best performance, if at
+   * all possible, create indices after bulk ingest.
    * 
    * @param type
    * @param id
    * @param key
    * @param val
    */
-  Integer setProperty(Class<? extends Element> type, String id, String key, Object val) {
+  void setProperty(Class<? extends Element> type, String id, String key, Object val) {
     checkProperty(key, val);
     try {
       byte[] newByteVal = AccumuloByteSerializer.serialize(val);
@@ -1060,7 +1051,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
-    return config.getPropertyCacheTimeout(key);
   }
 
   private ElementTableWrapper getElementTableWrapper(Class<? extends Element> type) {
