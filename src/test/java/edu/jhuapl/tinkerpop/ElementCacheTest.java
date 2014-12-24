@@ -78,7 +78,7 @@ public class ElementCacheTest {
     Graph graph = GraphFactory.open(cfg.getConfiguration());
 
     ElementCache<Element> cache =
-        new ElementCache<Element>(10, 2000);
+        new ElementCache<Element>(10, 1000);
 
     Vertex v1 = graph.addVertex(1);
     Vertex v2 = graph.addVertex(2);
@@ -87,7 +87,7 @@ public class ElementCacheTest {
 
     cache.cache(v1);
     assertNotNull(cache.retrieve(v1.getId()));
-    Thread.sleep(3000);
+    Thread.sleep(1500);
     assertNull(cache.retrieve(v1.getId()));
 
     Edge e = graph.addEdge(null, v1, v2, "label");
@@ -95,7 +95,7 @@ public class ElementCacheTest {
 
     cache.cache(e);
     assertNotNull(cache.retrieve(e.getId()));
-    Thread.sleep(3000);
+    Thread.sleep(1500);
     assertNull(cache.retrieve(e.getId()));
 
     graph.shutdown();
