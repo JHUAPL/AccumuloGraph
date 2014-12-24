@@ -14,6 +14,7 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Map;
 import java.util.Set;
 
 import org.apache.accumulo.core.util.Pair;
@@ -112,4 +113,9 @@ public abstract class AccumuloElement implements Element {
     propertyCache.put(key, value);
   }
 
+  void cacheAllProperties(Map<String, Object> props) {
+    for (String key : props.keySet()) {
+      cacheProperty(key, props.get(key));
+    }
+  }
 }

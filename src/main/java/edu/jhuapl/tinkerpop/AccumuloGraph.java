@@ -396,10 +396,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       if (props == null) {
         return null;
       }
-
-      for (String key : props.keySet()) {
-        vertex.cacheProperty(key, props.get(key));
-      }
+      vertex.cacheAllProperties(props);
     }
 
     if (vertexCache != null) {
@@ -681,10 +678,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       if (props == null) {
         return null;
       }
-
-      for (String key : props.keySet()) {
-        edge.cacheProperty(key, props.get(key));
-      }
+      edge.cacheAllProperties(props);
     }
 
     if (edgeCache != null) {
