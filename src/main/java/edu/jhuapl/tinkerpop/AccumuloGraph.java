@@ -148,11 +148,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   BatchWriter vertexBW;
   BatchWriter edgeBW;
 
+  ElementCache<Vertex> vertexCache;
+  ElementCache<Edge> edgeCache;
+
   VertexTableWrapper vertexWrapper;
   EdgeTableWrapper edgeWrapper;
-
-  LruElementCache<Vertex> vertexCache;
-  LruElementCache<Edge> edgeCache;
 
   public AccumuloGraph(Configuration cfg) {
     this(new AccumuloGraphConfiguration(cfg));
@@ -167,11 +167,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     config.validate();
     this.config = config;
 
-    if (config.getLruCacheEnabled()) {
-      vertexCache = new LruElementCache<Vertex>(config.getLruMaxCapacity(),
+    if (config.getVertexCacheEnabled()) {
+      vertexCache = new ElementCache<Vertex>(config.getVertexCacheSize(),
           config.getVertexCacheTimeout());
+    }
 
-      edgeCache = new LruElementCache<Edge>(config.getLruMaxCapacity(),
+    if (config.getEdgeCacheEnabled()) {
+      edgeCache = new ElementCache<Edge>(config.getEdgeCacheSize(),
           config.getEdgeCacheTimeout());
     }
 
