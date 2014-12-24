@@ -161,11 +161,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     config.validate();
     this.config = config;
 
-    if (config.getLruCacheEnabled()) {
-      vertexCache = new LruElementCache<Vertex>(config.getLruMaxCapacity(),
+    if (config.getVertexCacheEnabled()) {
+      vertexCache = new LruElementCache<Vertex>(config.getVertexCacheSize(),
           config.getVertexCacheTimeout());
+    }
 
-      edgeCache = new LruElementCache<Edge>(config.getLruMaxCapacity(),
+    if (config.getEdgeCacheEnabled()) {
+      edgeCache = new LruElementCache<Edge>(config.getEdgeCacheSize(),
           config.getEdgeCacheTimeout());
     }
 

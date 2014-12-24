@@ -152,4 +152,67 @@ public class AccumuloGraphConfigurationTest {
     cfg.print();
   }
 
+  @Test
+  public void testInvalidCacheParams() throws Exception {
+    int size = 100;
+    int timeout = 30000;
+
+    AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils
+        .generateGraphConfig("cacheParams");
+    cfg.validate();
+
+
+    // Vertex cache.
+
+    assertFalse(cfg.getVertexCacheEnabled());
+
+    try {
+      cfg.setVertexCacheParams(-1, timeout);
+      fail();
+    } catch (Exception e) { }
+
+    try {
+      cfg.setVertexCacheParams(size, -1);
+      fail();
+    } catch (Exception e) { }
+
+    assertFalse(cfg.getVertexCacheEnabled());
+
+    cfg.setVertexCacheParams(size, timeout);
+    cfg.validate();
+    assertTrue(cfg.getVertexCacheEnabled());
+    assertEquals(size, cfg.getVertexCacheSize());
+    assertEquals(timeout, cfg.getVertexCacheTimeout());
+
+    cfg.setVertexCacheParams(-1, -1);
+    cfg.validate();
+    assertFalse(cfg.getVertexCacheEnabled());
+
+
+    // Edge cache.
+
+    assertFalse(cfg.getEdgeCacheEnabled());
+
+    try {
+      cfg.setEdgeCacheParams(-1, timeout);
+      fail();
+    } catch (Exception e) { }
+
+    try {
+      cfg.setEdgeCacheParams(size, -1);
+      fail();
+    } catch (Exception e) { }
+
+    assertFalse(cfg.getEdgeCacheEnabled());
+
+    cfg.setEdgeCacheParams(size, timeout);
+    cfg.validate();
+    assertTrue(cfg.getEdgeCacheEnabled());
+    assertEquals(size, cfg.getEdgeCacheSize());
+    assertEquals(timeout, cfg.getEdgeCacheTimeout());
+
+    cfg.setEdgeCacheParams(-1, -1);
+    cfg.validate();
+    assertFalse(cfg.getEdgeCacheEnabled());
+  }
 }
