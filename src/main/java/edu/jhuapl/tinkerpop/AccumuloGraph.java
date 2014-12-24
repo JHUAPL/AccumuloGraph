@@ -145,8 +145,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   BatchWriter vertexBW;
   BatchWriter edgeBW;
 
-  LruElementCache<Vertex> vertexCache;
-  LruElementCache<Edge> edgeCache;
+  ElementCache<Vertex> vertexCache;
+  ElementCache<Edge> edgeCache;
 
   public AccumuloGraph(Configuration cfg) {
     this(new AccumuloGraphConfiguration(cfg));
@@ -162,12 +162,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     this.config = config;
 
     if (config.getVertexCacheEnabled()) {
-      vertexCache = new LruElementCache<Vertex>(config.getVertexCacheSize(),
+      vertexCache = new ElementCache<Vertex>(config.getVertexCacheSize(),
           config.getVertexCacheTimeout());
     }
 
     if (config.getEdgeCacheEnabled()) {
-      edgeCache = new LruElementCache<Edge>(config.getEdgeCacheSize(),
+      edgeCache = new ElementCache<Edge>(config.getEdgeCacheSize(),
           config.getEdgeCacheTimeout());
     }
 
