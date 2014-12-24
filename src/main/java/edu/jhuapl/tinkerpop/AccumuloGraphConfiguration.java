@@ -111,11 +111,12 @@ public class AccumuloGraphConfiguration implements Serializable {
     public static final String SPLITS = "blueprints.accumulo.splits";
     public static final String COLVIS = "blueprints.accumulo.columnVisibility";
     public static final String SKIP_CHECKS = "blueprints.accumulo.skipExistenceChecks";
-    public static final String LRU_MAX_CAP = "blueprints.accumulo.lruMaximumCapacity";
     public static final String PRELOAD_PROPERTIES = "blueprints.accumulo.property.preload";
-    public static final String EDGE_CACHE_TIMEOUT = "blueprints.accumulo.edgeCacheTimeout";
     public static final String PROPERTY_CACHE_TIMEOUT = "blueprints.accumulo.propertyCacheTimeout";
+    public static final String EDGE_CACHE_SIZE = "blueprints.accumulo.edgeCacheSize";
+    public static final String EDGE_CACHE_TIMEOUT = "blueprints.accumulo.edgeCacheTimeout";
     public static final String VERTEX_CACHE_TIMEOUT = "blueprints.accumulo.vertexCacheTimeout";
+    public static final String VERTEX_CACHE_SIZE = "blueprints.accumulo.vertexCacheSize";
     public static final String PRELOAD_EDGES = "blueprints.accumulo.edge.preload";
     public static final String AUTO_INDEX = "blueprints.accumulo.index.auto";
     public static final String DISABLE_INDEX = "blueprints.accumulo.index.disable";
@@ -423,13 +424,27 @@ public class AccumuloGraphConfiguration implements Serializable {
     return this;
   }
 
+  /**
+   * Whether the vertex cache is enabled (i.e., both
+   * size and timeout are positive).
+   * @return
+   */
+  public boolean getVertexCacheEnabled() {
+    return getVertexCacheSize() > 0 && getVertexCacheTimeout() > 0;
+  }
+
+  public int getVertexCacheSize() {
+    return conf.getInt(Keys.VERTEX_CACHE_SIZE, -1);
+  }
+
   public int getVertexCacheTimeout() {
-    return conf.getInt(Keys.VERTEX_CACHE_TIMEOUT, 30000);
+    return conf.getInt(Keys.VERTEX_CACHE_TIMEOUT, -1);
   }
 
   /**
    * Sets the number of milliseconds since retrieval that a Vertex instance will be maintained
-   * in a RAM cache before that value is expired. If this value is
+   * in a RAM cache before that value is expired. Also set the maximum
+   * size of the cache. If these values are
    * unset or set to 0 (or a negative number) no caching will be performed.
    * <P>
    * A round-trip to Accumulo to retrieve a Vertex is an expensive operation.
@@ -441,27 +456,53 @@ public class AccumuloGraphConfiguration implements Serializable {
    * <P>
    * The default is unset (no caching).
    * 
+   * @param size
+   *          maximum size of the cache
    * @param millis
    *          the maximum number of milliseconds a Vertex should be held in RAM
    * @return
    */
-  public AccumuloGraphConfiguration setVertexCacheTimeout(int millis) {
+  public AccumuloGraphConfiguration setVertexCacheParams(int size, int millis) {
+    if ((size <= 0 || millis <= 0) && (size > 0 || millis > 0)) {
+      throw new IllegalArgumentException("Parameters must be both non-positive or both positive");
+    }
+
+    if (size <= 0) {
+      conf.clearProperty(Keys.VERTEX_CACHE_SIZE);
+    } else {
+      conf.setProperty(Keys.VERTEX_CACHE_SIZE, size);
+    }
+
     if (millis <= 0) {
       conf.clearProperty(Keys.VERTEX_CACHE_TIMEOUT);
     } else {
       conf.setProperty(Keys.VERTEX_CACHE_TIMEOUT, millis);
     }
+
     return this;
   }
 
+  /**
+   * Whether the edge cache is enabled (i.e., both
+   * size and timeout are positive).
+   * @return
+   */
+  public boolean getEdgeCacheEnabled() {
+    return getEdgeCacheSize() > 0 && getEdgeCacheTimeout() > 0;
+  }
+
+  public int getEdgeCacheSize() {
+    return conf.getInt(Keys.EDGE_CACHE_SIZE, -1);
+  }
+
   public int getEdgeCacheTimeout() {
-    return conf.getInt(Keys.EDGE_CACHE_TIMEOUT, 30000);
+    return conf.getInt(Keys.EDGE_CACHE_TIMEOUT, -1);
   }
 
   /**
    * Sets the number of milliseconds since retrieval that an Edge instance will be maintained
-   * in a RAM cache before that value is expired. If this value is
-   * unset or set to 0 (or a negative number) no caching will be performed.
+   * in a RAM cache before that value is expired. Also set the maximum size of the cache.
+   * If these values are unset or set to 0 (or a negative number) no caching will be performed.
    * <P>
    * A round-trip to Accumulo to retrieve an Edge is an expensive operation.
    * Setting this value to a positive number allows the AccumuloGraph to cache retrieved
@@ -472,16 +513,29 @@ public class AccumuloGraphConfiguration implements Serializable {
    * <P>
    * The default is unset (no caching).
    * 
+   * @param size
+   *          maximum size of the cache
    * @param millis
    *          the maximum number of milliseconds an Edge should be held in RAM
    * @return
    */
-  public AccumuloGraphConfiguration setEdgeCacheTimeout(int millis) {
+  public AccumuloGraphConfiguration setEdgeCacheParams(int size, int millis) {
+    if ((size <= 0 || millis <= 0) && (size > 0 || millis > 0)) {
+      throw new IllegalArgumentException("Parameters must be both non-positive or both positive");
+    }
+
+    if (size <= 0) {
+      conf.clearProperty(Keys.EDGE_CACHE_SIZE);
+    } else {
+      conf.setProperty(Keys.EDGE_CACHE_SIZE, size);
+    }
+
     if (millis <= 0) {
       conf.clearProperty(Keys.EDGE_CACHE_TIMEOUT);
     } else {
       conf.setProperty(Keys.EDGE_CACHE_TIMEOUT, millis);
     }
+
     return this;
   }
 
@@ -514,35 +568,6 @@ public class AccumuloGraphConfiguration implements Serializable {
    */
   public AccumuloGraphConfiguration setColumnVisibility(ColumnVisibility colVis) {
     conf.setProperty(Keys.COLVIS, new String(colVis.flatten()));
-    return this;
-  }
-
-  /**
-   * True if the LRU cache is enabled (i.e., LRU max capacity is positive).
-   * See {@link #setLruMaxCapacity(int)}.
-   * @return
-   */
-  public boolean getLruCacheEnabled() {
-    return getLruMaxCapacity() > 0;
-  }
-
-  public int getLruMaxCapacity() {
-    return conf.getInt(Keys.LRU_MAX_CAP, -1);
-  }
-
-  /**
-   * The Graph can use a least-recently used (LRU) cache to avoid
-   * round-trip checks to Accumulo at the cost of consistency. Set this
-   * value to the maximum number of vertices or edges to be cached.
-   * A negative number means do not cache any values.<p/>
-   * 
-   * TODO This should probably be time-based.
-   * 
-   * @param maxSize
-   * @return
-   */
-  public AccumuloGraphConfiguration setLruMaxCapacity(int max) {
-    conf.setProperty(Keys.LRU_MAX_CAP, max);
     return this;
   }
 
@@ -1087,14 +1112,6 @@ public class AccumuloGraphConfiguration implements Serializable {
    */
   public String getName() {
     return getGraphName();
-  }
-
-  /**
-   * @deprecated This is an old method name. Use {@link #getLruCacheEnabled()}.
-   * @return
-   */
-  public boolean useLruCache() {
-    return getLruCacheEnabled();
   }
 
   /**
