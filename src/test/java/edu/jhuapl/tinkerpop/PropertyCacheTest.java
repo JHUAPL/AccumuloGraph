@@ -55,6 +55,7 @@ public class PropertyCacheTest {
     assertNull(cache.get("K3"));
   }
 
+  @Test
   public void testSpecificCachedProperty() throws Exception {
     AccumuloGraphConfiguration cfg =
         AccumuloGraphTestUtils.generateGraphConfig("specificCached");
