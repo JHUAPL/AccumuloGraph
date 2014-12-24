@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -337,7 +336,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   @Override
   public Vertex addVertex(Object id) {
     if (id == null) {
-      id = UUID.randomUUID();
+      id = AccumuloGraphUtils.generateId();
     }
 
     String myID = id.toString();
@@ -350,10 +349,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
 
+    vert = new AccumuloVertex(this, myID);
+
     vertexWrapper.writeVertex(myID);
     checkedFlush();
-
-    vert = new AccumuloVertex(this, myID);
 
     if (vertexCache != null) {
       vertexCache.cache(vert);
@@ -642,38 +641,26 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (label == null) {
       throw ExceptionFactory.edgeLabelCanNotBeNull();
     }
-    String myID;
     if (id == null) {
-      myID = UUID.randomUUID().toString();
-    } else {
-      try {
-        myID = id.toString();
-      } catch (ClassCastException e) {
-        return null;
-      }
+      id = AccumuloGraphUtils.generateId();
     }
+
+    String myID = id.toString();
+
+    AccumuloEdge edge = new AccumuloEdge(this, myID,
+        label, inVertex, outVertex);
 
     // TODO we arent suppose to make sure the given edge ID doesn't already
     // exist?
 
-    try {
-      Mutation m = new Mutation(myID);
-      m.put(LABEL, (inVertex.getId().toString() + IDDELIM + outVertex.getId().toString()).getBytes(), AccumuloByteSerializer.serialize(label));
-      edgeBW.addMutation(m);
-      m = new Mutation(inVertex.getId().toString());
-      m.put(INEDGE, (outVertex.getId().toString() + IDDELIM + myID).getBytes(), (IDDELIM + label).getBytes());
-      vertexBW.addMutation(m);
-      m = new Mutation(outVertex.getId().toString());
-      m.put(OUTEDGE, (inVertex.getId().toString() + IDDELIM + myID).getBytes(), (IDDELIM + label).getBytes());
-      vertexBW.addMutation(m);
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-      return null;
-    }
+    String outId = outVertex.getId().toString();
+    String inId = inVertex.getId().toString();
+
+    edgeWrapper.writeEdge(myID, outId, inId, label);
+    vertexWrapper.writeEdgeEndpoints(myID, outId, inId, label);
 
     checkedFlush();
 
-    AccumuloEdge edge = new AccumuloEdge(this, myID, label, inVertex, outVertex);
     if (edgeCache != null) {
       edgeCache.cache(edge);
     }

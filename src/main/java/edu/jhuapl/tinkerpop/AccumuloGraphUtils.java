@@ -15,6 +15,7 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.SortedSet;
+import java.util.UUID;
 
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.io.Text;
@@ -75,5 +76,13 @@ final class AccumuloGraphUtils {
     } catch (Exception e) {
       throw new IllegalArgumentException(e);
     }
+  }
+
+  /**
+   * Generate an element id.
+   * @return
+   */
+  public static String generateId() {
+    return UUID.randomUUID().toString();
   }
 }

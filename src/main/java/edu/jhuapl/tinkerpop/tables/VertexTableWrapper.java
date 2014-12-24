@@ -34,6 +34,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
   /**
    * Write a vertex with the given id.
+   * Note: This does not currently write the vertex's properties.
    * @param id
    */
   public void writeVertex(String id) {
@@ -41,6 +42,33 @@ public class VertexTableWrapper extends ElementTableWrapper {
     m.put(AccumuloGraph.LABEL, AccumuloGraph.EXISTS, AccumuloGraph.EMPTY);
     try {
       getWriter().addMutation(m);
+    } catch (MutationsRejectedException e) {
+      throw new AccumuloGraphException(e);
+    }
+  }
+
+  /**
+   * Write edge endpoint information to the vertex table.
+   * @param id
+   * @param outVertexId
+   * @param inVertexId
+   * @param label
+   */
+  public void writeEdgeEndpoints(String id, String outVertexId,
+      String inVertexId, String label) {
+    try {
+      Mutation m = new Mutation(inVertexId);
+      m.put(AccumuloGraph.INEDGE,
+          (outVertexId + AccumuloGraph.IDDELIM + id).getBytes(),
+          (AccumuloGraph.IDDELIM + label).getBytes());
+      getWriter().addMutation(m);
+
+      m = new Mutation(outVertexId);
+      m.put(AccumuloGraph.OUTEDGE,
+          (inVertexId + AccumuloGraph.IDDELIM + id).getBytes(),
+          (AccumuloGraph.IDDELIM + label).getBytes());
+      getWriter().addMutation(m);
+
     } catch (MutationsRejectedException e) {
       throw new AccumuloGraphException(e);
     }
