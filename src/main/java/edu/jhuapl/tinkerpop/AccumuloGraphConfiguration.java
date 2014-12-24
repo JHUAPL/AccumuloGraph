@@ -424,7 +424,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   public int getVertexCacheTimeout() {
-    return conf.getInt(Keys.VERTEX_CACHE_TIMEOUT, 30000);
+    return conf.getInt(Keys.VERTEX_CACHE_TIMEOUT, -1);
   }
 
   /**
@@ -455,7 +455,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   public int getEdgeCacheTimeout() {
-    return conf.getInt(Keys.EDGE_CACHE_TIMEOUT, 30000);
+    return conf.getInt(Keys.EDGE_CACHE_TIMEOUT, -1);
   }
 
   /**
