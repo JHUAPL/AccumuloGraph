@@ -342,7 +342,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (!config.getSkipExistenceChecks()) {
       vert = getVertex(myID);
       if (vert != null) {
-        ExceptionFactory.vertexWithIdAlreadyExists(myID);
+        throw ExceptionFactory.vertexWithIdAlreadyExists(myID);
       }
     }
 
@@ -377,29 +377,28 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       return null;
     }
 
-    Vertex vertex = null;
     if (vertexCache != null) {
-      vertex = vertexCache.retrieve(myID);
+      Vertex vertex = vertexCache.retrieve(myID);
       if (vertex != null) {
         return vertex;
       }
     }
 
-    vertex = new AccumuloVertex(this, myID);
+    Vertex vertex = new AccumuloVertex(this, myID);
 
     Scanner scan = null;
     try {
       if (!config.getSkipExistenceChecks()) {
         // in addition to just an "existence" check, we will also load
         // any "preloaded" properties now, which saves us a round-trip
-        // to Accumulo later...
+        // to Accumulo later.
         scan = getElementScanner(Vertex.class);
         scan.setRange(new Range(myID));
         scan.fetchColumn(TLABEL, TEXISTS);
 
         String[] preload = config.getPreloadedProperties();
         if (preload != null) {
-          // user has requested specific properties...
+          // user has requested specific properties.
           Text colf = new Text("");
           for (String key : preload) {
             if (StringFactory.LABEL.equals(key)) {
