@@ -405,6 +405,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (vertexCache != null) {
       vertexCache.cache(vertex);
     }
+
     return vertex;
   }
 
@@ -658,42 +659,38 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
 
-    Edge edge = null;
     if (edgeCache != null) {
-      edge = edgeCache.retrieve(myID);
+      Edge edge = edgeCache.retrieve(myID);
       if (edge != null) {
         return edge;
       }
     }
-    Scanner s;
-    if (!config.getSkipExistenceChecks()) {
-      s = getElementScanner(Edge.class);
-      s.setRange(new Range(myID, myID));
-      s.fetchColumnFamily(TLABEL);
 
-      if (config.getPreloadedProperties() != null) {
-        for (String x : config.getPreloadedProperties()) {
-          s.fetchColumnFamily(new Text(x));
-        }
+    AccumuloEdge edge = new AccumuloEdge(this, myID);
+
+    if (!config.getSkipExistenceChecks()) {
+      // In addition to just an "existence" check, we will also load
+      // any "preloaded" properties now, which saves us a round-trip
+      // to Accumulo later.
+      String[] preload = config.getPreloadedProperties();
+      if (preload == null) {
+        preload = new String[]{};
       }
 
-      boolean found = s.iterator().hasNext();
-      s.close();
-      if (!found) {
+      Map<String, Object> props = edgeWrapper.readProperties(myID, preload);
+      if (props == null) {
         return null;
       }
-    } else {
-      return new AccumuloEdge(this, myID);
+
+      for (String key : props.keySet()) {
+        edge.cacheProperty(key, props.get(key));
+      }
     }
-
-    // Preload The Properties
-    edge = new AccumuloEdge(this, myID);
-
-    preloadProperties(s.iterator(), (AccumuloElement) edge);
 
     if (edgeCache != null) {
       edgeCache.cache(edge);
     }
+
     return edge;
   }
 
