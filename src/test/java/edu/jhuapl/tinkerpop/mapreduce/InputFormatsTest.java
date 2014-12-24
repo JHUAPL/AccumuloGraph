@@ -136,35 +136,50 @@ public class InputFormatsTest {
   @Test
   public void testVertexInputMap() throws Exception {
     final String INSTANCE_NAME = "_mapreduce_instance";
-    final String TEST_TABLE_1 = "_mapreduce_table_1";
+    final String TEST_TABLE_NAME = "_mapreduce_table_vertexInputMap";
 
     if (!System.getProperty("os.name").startsWith("Windows")) {
-      Graph g = GraphFactory.open(new AccumuloGraphConfiguration().setInstanceName(INSTANCE_NAME).setUser("root").setPassword("".getBytes())
-          .setGraphName(TEST_TABLE_1).setInstanceType(InstanceType.Mock).setCreate(true).getConfiguration());
+      Graph g = GraphFactory.open(new AccumuloGraphConfiguration().setInstanceName(INSTANCE_NAME)
+          .setUser("root").setPassword("".getBytes())
+          .setGraphName(TEST_TABLE_NAME).setInstanceType(InstanceType.Mock)
+          .setCreate(true).getConfiguration());
+
       for (int i = 0; i < 100; i++) {
         g.addVertex(i + "");
       }
-      assertEquals(0, MRTester.main(new String[] {"root", "", TEST_TABLE_1, INSTANCE_NAME, "false"}));
+
+      assertEquals(0, MRTester.main(new String[]{"root", "",
+          TEST_TABLE_NAME, INSTANCE_NAME, "false"}));
       assertNull(e1);
       assertNull(e2);
+
+      g.shutdown();
     }
   }
 
   @Test
   public void testEdgeInputMap() throws Exception {
     final String INSTANCE_NAME = "_mapreduce_instance";
-    final String TEST_TABLE_1 = "_mapreduce_table_1";
+    final String TEST_TABLE_NAME = "_mapreduce_table_edgeInputMap";
 
     if (!System.getProperty("os.name").startsWith("Windows")) {
-      Graph g = GraphFactory.open(new AccumuloGraphConfiguration().setInstanceName(INSTANCE_NAME).setUser("root").setPassword("".getBytes())
-          .setGraphName(TEST_TABLE_1).setInstanceType(InstanceType.Mock).setAutoFlush(true).setCreate(true).getConfiguration());
-      for (int i = 0; i < 100; i++) {
-        g.addEdge(null, g.addVertex(i + ""), g.addVertex(i + "a"), "knows");
+      Graph g = GraphFactory.open(new AccumuloGraphConfiguration().setInstanceName(INSTANCE_NAME)
+          .setUser("root").setPassword("".getBytes())
+          .setGraphName(TEST_TABLE_NAME).setInstanceType(InstanceType.Mock)
+          .setAutoFlush(true).setCreate(true).getConfiguration());
 
+      for (int i = 0; i < 100; i++) {
+        Vertex v1 = g.addVertex(i+"");
+        Vertex v2 = g.addVertex(i+"a");
+        g.addEdge(null, v1, v2, "knows");
       }
-      assertEquals(0, MRTester.main(new String[] {"root", "", TEST_TABLE_1, INSTANCE_NAME, "true"}));
+
+      assertEquals(0, MRTester.main(new String[]{"root", "",
+          TEST_TABLE_NAME, INSTANCE_NAME, "true"}));
       assertNull(e1);
       assertNull(e2);
+
+      g.shutdown();
     }
   }
 
