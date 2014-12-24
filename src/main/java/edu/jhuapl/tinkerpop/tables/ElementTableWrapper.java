@@ -11,8 +11,10 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -73,6 +75,59 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
     s.close();
 
     return value;
+  }
+
+  /**
+   * Read the given properties for the given element id.
+   * This may return an empty map for elements with no properties.
+   * If the element does not exist, return null.
+   * @param id
+   * @param propertyKeys
+   * @return
+   */
+  public Map<String, Object> readProperties(String id, String... propertyKeys) {
+    Scanner s = getScanner();
+    s.setRange(new Range(id));
+    s.fetchColumnFamily(AccumuloGraph.TLABEL);
+
+    for (String key : propertyKeys) {
+      s.fetchColumnFamily(new Text(key));
+    }
+
+    Iterator<Entry<Key, Value>> iter = s.iterator();
+
+    boolean found = iter.hasNext();
+    s.close();
+
+    if (!found) {
+      return null;
+    }
+
+    Map<String, Object> props = new HashMap<String, Object>();
+
+    while (iter.hasNext()) {
+      Entry<Key, Value> entry = iter.next();
+      Key key = entry.getKey();
+
+      if (!isExistenceKey(key)) {
+        String attr = key.getColumnFamily().toString();
+        Object value = AccumuloByteSerializer.deserialize(entry.getValue().get());
+        props.put(attr, value);
+      }
+    }
+
+    return props;
+  }
+
+  /**
+   * Test whether the given Accumulo key represents an
+   * element's existence (i.e. not a property).
+   * @param key
+   * @return
+   */
+  private static boolean isExistenceKey(Key key) {
+    return AccumuloGraph.TLABEL.equals(key.getColumnFamily()) &&
+        AccumuloGraph.TEXISTS.equals(key.getColumnQualifier());
   }
 
   /**

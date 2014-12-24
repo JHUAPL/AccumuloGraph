@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
@@ -381,43 +382,23 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
 
-    Vertex vertex = new AccumuloVertex(this, myID);
-
-    Scanner scan = null;
-    try {
-      if (!config.getSkipExistenceChecks()) {
-        // in addition to just an "existence" check, we will also load
-        // any "preloaded" properties now, which saves us a round-trip
-        // to Accumulo later.
-        scan = getElementScanner(Vertex.class);
-        scan.setRange(new Range(myID));
-        scan.fetchColumn(TLABEL, TEXISTS);
-
-        String[] preload = config.getPreloadedProperties();
-        if (preload != null) {
-          // user has requested specific properties.
-          Text colf = new Text("");
-          for (String key : preload) {
-            if (StringFactory.LABEL.equals(key)) {
-              colf.set(AccumuloGraph.LABEL);
-            } else {
-              colf.set(key);
-            }
-            scan.fetchColumnFamily(colf);
-          }
-        }
-
-        Iterator<Entry<Key,Value>> iter = scan.iterator();
-        if (!iter.hasNext()) {
-          return null;
-        }
-
-        preloadProperties(iter, (AccumuloElement) vertex);
-
+    AccumuloVertex vertex = new AccumuloVertex(this, myID);
+    if (!config.getSkipExistenceChecks()) {
+      // In addition to just an "existence" check, we will also load
+      // any "preloaded" properties now, which saves us a round-trip
+      // to Accumulo later.
+      String[] preload = config.getPreloadedProperties();
+      if (preload == null) {
+        preload = new String[]{};
       }
-    } finally {
-      if (scan != null) {
-        scan.close();
+
+      Map<String, Object> props = vertexWrapper.readProperties(myID, preload);
+      if (props == null) {
+        return null;
+      }
+
+      for (String key : props.keySet()) {
+        vertex.cacheProperty(key, props.get(key));
       }
     }
 
@@ -856,7 +837,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           e = (e == null ? new AccumuloEdge(AccumuloGraph.this, kv.getKey().getColumnQualifier().toString()) : e);
 
           e.cacheProperty(kv.getKey().getColumnFamily().toString(),
-                AccumuloByteSerializer.deserialize(kv.getKey().getRow().getBytes()));
+              AccumuloByteSerializer.deserialize(kv.getKey().getRow().getBytes()));
 
           if (edgeCache != null) {
             edgeCache.cache(e);
