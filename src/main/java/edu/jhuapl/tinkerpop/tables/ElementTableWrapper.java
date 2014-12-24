@@ -94,19 +94,26 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
       s.fetchColumnFamily(new Text(key));
     }
 
-    Iterator<Entry<Key, Value>> iter = s.iterator();
-
-    boolean found = iter.hasNext();
+    Map<String, Object> props = parseProperties(s);
     s.close();
 
-    if (!found) {
-      return null;
-    }
+    return props;
+  }
 
-    Map<String, Object> props = new HashMap<String, Object>();
+  /**
+   * Parse raw Accumulo entries into a property map.
+   * If there are no entries, return null.
+   * @param entries
+   * @return
+   */
+  private Map<String, Object> parseProperties(Iterable<Entry<Key, Value>> entries) {
+    Map<String, Object> props = null;
 
-    while (iter.hasNext()) {
-      Entry<Key, Value> entry = iter.next();
+    for (Entry<Key, Value> entry : entries) {
+      if (props == null) {
+        props = new HashMap<String, Object>();
+      }
+
       Key key = entry.getKey();
 
       if (!isExistenceKey(key)) {
@@ -142,11 +149,8 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
 
     Set<String> keys = new HashSet<String>();
 
-    Iterator<Entry<Key,Value>> iter = s.iterator();
-    while (iter.hasNext()) {
-      Entry<Key, Value> e = iter.next();
-      Key k = e.getKey();
-      String cf = k.getColumnFamily().toString();
+    for (Entry<Key, Value> entry : s) {
+      String cf = entry.getKey().getColumnFamily().toString();
       keys.add(cf);
     }
 
