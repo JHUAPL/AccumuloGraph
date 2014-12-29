@@ -175,7 +175,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     try {
       setupWriters();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
   }
 
@@ -200,7 +200,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         tableName = config.getVertexTable();
       return config.getConnector().createScanner(tableName, config.getAuthorizations());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
   }
 
@@ -277,7 +277,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       x.setRanges(Collections.singletonList(new Range()));
       return x;
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
   }
 
@@ -409,7 +409,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       vertexdeleter = config.getConnector().createBatchDeleter(config.getVertexTable(), config.getAuthorizations(), config.getQueryThreads(),
           config.getBatchWriterConfig());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
     Iterator<Entry<Key,Value>> iter = scan.iterator();
     List<Range> ranges = new ArrayList<Range>();
@@ -451,7 +451,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       vertexdeleter.setRanges(ranges);
       vertexdeleter.delete();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       if (edgedeleter != null)
         edgedeleter.close();
@@ -480,7 +480,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         del.addScanIterator(is);
         del.delete();
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw new AccumuloGraphException(e);
       } finally {
         if (del != null)
           del.close();
@@ -756,7 +756,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       edgedeleter.setRanges(Collections.singleton(new Range(edge.getId().toString())));
       edgedeleter.delete();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       if (edgedeleter != null)
         edgedeleter.close();
@@ -912,7 +912,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
       setupWriters();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
 
   }
@@ -1062,7 +1062,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   <T> T removeProperty(Class<? extends Element> type, String id, String key) {
     if (StringFactory.LABEL.equals(key) || SLABEL.equals(key)) {
-      throw new RuntimeException("Cannot remove the " + StringFactory.LABEL + " property.");
+      throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
     }
 
     T obj = (T) getProperty(type, id, key).getSecond();
@@ -1293,7 +1293,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
       return toRet;
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       scan.close();
     }
@@ -1319,7 +1319,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       deleter.delete();
       config.getConnector().tableOperations().delete(config.getGraphName() + "_index_" + indexName);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       if (deleter != null)
         deleter.close();
@@ -1349,7 +1349,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       bd.fetchColumnFamily(new Text(key));
       bd.delete();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       if (bd != null)
         bd.close();
@@ -1391,7 +1391,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           bw.addMutation(mu);
         } catch (MutationsRejectedException e) {
           // TODO handle this better.
-          throw new RuntimeException(e);
+          throw new AccumuloGraphException(e);
         }
       }
     } finally {
