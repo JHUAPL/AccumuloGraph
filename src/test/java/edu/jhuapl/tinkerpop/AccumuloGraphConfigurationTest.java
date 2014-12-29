@@ -25,8 +25,11 @@ import javax.xml.namespace.QName;
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
 
+import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
+
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloGraphConfigurationTest {
 
@@ -214,5 +217,39 @@ public class AccumuloGraphConfigurationTest {
     cfg.setEdgeCacheParams(-1, -1);
     cfg.validate();
     assertFalse(cfg.getEdgeCacheEnabled());
+  }
+
+  @Test
+  public void testBasicMockGraph() throws Exception {
+    AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration()
+      .setInstanceType(InstanceType.Mock)
+      .setGraphName("mockGraph");
+
+    Graph graph = GraphFactory.open(cfg.getConfiguration());
+
+    for (int i = 0; i < 10; i++) {
+      graph.addVertex(i);
+    }
+    assertEquals(10, count(graph.getVertices()));
+
+    for (int i = 0; i < 9; i++) {
+      System.out.println(graph.getVertex(i));
+      for (int k = 1; k < 10; k++) {
+        graph.addEdge(null, graph.getVertex(i),
+            graph.getVertex(k), "edge");
+      }
+    }
+    assertEquals(81, count(graph.getEdges()));
+
+    graph.shutdown();
+  }
+  
+  @SuppressWarnings("unused")
+  private static int count(Iterable<?> iter) {
+    int i = 0;
+    for (Object obj : iter) {
+      i++;
+    }
+    return i;
   }
 }

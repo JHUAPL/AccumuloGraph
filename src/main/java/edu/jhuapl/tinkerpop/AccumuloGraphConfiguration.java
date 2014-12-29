@@ -225,6 +225,7 @@ public class AccumuloGraphConfiguration implements Serializable {
     if (type.equals(InstanceType.Mock)) {
       setUser("root");
       setPassword("");
+      setCreate(true);
     }
     return this;
   }
