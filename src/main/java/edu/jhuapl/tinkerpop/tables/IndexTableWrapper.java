@@ -11,9 +11,7 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.GlobalInstances;
 
 /**
  * Wrapper around index tables.
@@ -24,8 +22,7 @@ public abstract class IndexTableWrapper extends BaseTableWrapper {
    * @param config
    * @param mtbw
    */
-  protected IndexTableWrapper(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter mtbw, String tableName) {
-    super(config, mtbw, tableName);
+  protected IndexTableWrapper(GlobalInstances globals, String tableName) {
+    super(globals, tableName);
   }
 }

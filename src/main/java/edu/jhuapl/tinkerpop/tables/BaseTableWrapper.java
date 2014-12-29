@@ -12,32 +12,28 @@
 package edu.jhuapl.tinkerpop.tables;
 
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.Scanner;
 
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
+import edu.jhuapl.tinkerpop.GlobalInstances;
 
 /**
  * Table wrapper with common functionality.
  */
 public abstract class BaseTableWrapper {
 
-  protected AccumuloGraphConfiguration config;
-  protected MultiTableBatchWriter mtbw;
+  protected GlobalInstances globals;
   private String tableName;
 
-  public BaseTableWrapper(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter mtbw, String tableName) {
-    this.config = config;
-    this.mtbw = mtbw;
+  public BaseTableWrapper(GlobalInstances globals, String tableName) {
+    this.globals = globals;
     this.tableName = tableName;
   }
 
   protected Scanner getScanner() {
     try {
-      return config.getConnector().createScanner(tableName,
-          config.getAuthorizations());
+      return globals.getConfig().getConnector().createScanner(tableName,
+          globals.getConfig().getAuthorizations());
 
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
@@ -46,7 +42,7 @@ public abstract class BaseTableWrapper {
 
   protected BatchWriter getWriter() {
     try {
-      return mtbw.getBatchWriter(tableName);
+      return globals.getMtbw().getBatchWriter(tableName);
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }

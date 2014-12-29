@@ -29,8 +29,7 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
 public class EdgeTableWrapper extends ElementTableWrapper {
 
   public EdgeTableWrapper(GlobalInstances globals) {
-    super(globals.getConfig(), globals.getMtbw(),
-        globals.getConfig().getEdgeTableName());
+    super(globals, globals.getConfig().getEdgeTableName());
   }
 
   /**

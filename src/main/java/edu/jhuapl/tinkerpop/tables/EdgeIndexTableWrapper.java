@@ -11,11 +11,9 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-
 import com.tinkerpop.blueprints.Edge;
 
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.GlobalInstances;
 
 /**
  * Wrapper around {@link Edge} index table.
@@ -27,9 +25,8 @@ public class EdgeIndexTableWrapper extends IndexTableWrapper {
    * @param mtbw
    * @param tableName
    */
-  public EdgeIndexTableWrapper(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter mtbw) {
-    super(config, mtbw, config.getEdgeKeyIndexTableName());
+  public EdgeIndexTableWrapper(GlobalInstances globals) {
+    super(globals, globals.getConfig().getEdgeKeyIndexTableName());
   }
 
 }

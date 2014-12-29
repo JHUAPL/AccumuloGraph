@@ -11,16 +11,25 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
+import java.util.Map.Entry;
+
 import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
+import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.util.PeekingIterator;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
+import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.ScannerIterable;
 
 
 /**
@@ -29,8 +38,7 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
 public class VertexTableWrapper extends ElementTableWrapper {
 
   public VertexTableWrapper(GlobalInstances globals) {
-    super(globals.getConfig(), globals.getMtbw(),
-        globals.getConfig().getVertexTableName());
+    super(globals, globals.getConfig().getVertexTableName());
   }
 
   /**
@@ -74,5 +82,45 @@ public class VertexTableWrapper extends ElementTableWrapper {
     } catch (MutationsRejectedException e) {
       throw new AccumuloGraphException(e);
     }
+  }
+
+  public Iterable<Edge> getEdges(String vertexId, Direction direction,
+      String... labels) {
+    Scanner scan = getScanner();
+    scan.setRange(new Range(vertexId));
+    if (direction.equals(Direction.IN)) {
+      scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
+    } else if (direction.equals(Direction.OUT)) {
+      scan.fetchColumnFamily(AccumuloGraph.TOUTEDGE);
+    } else {
+      scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
+      scan.fetchColumnFamily(AccumuloGraph.TOUTEDGE);
+    }
+
+    if (labels.length > 0) {
+      applyEdgeLabelValueFilter(scan, labels);
+    }
+
+    return new ScannerIterable<Edge>(scan) {
+
+      @Override
+      public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
+        // TODO better use of information readily available...
+        // TODO could also check local cache before creating a new
+        // instance?
+
+        Entry<Key,Value> kv = iterator.next();
+
+        String[] parts = kv.getKey().getColumnQualifier().toString().split(AccumuloGraph.IDDELIM);
+        String label = (new String(kv.getValue().get())).split("_")[1];
+        if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
+          return new AccumuloEdge(globals, parts[1], label, kv.getKey().getRow().toString(), parts[0]);
+
+        } else {
+          return new AccumuloEdge(globals, parts[1], label, parts[0], kv.getKey().getRow().toString());
+
+        }
+      }
+    };
   }
 }

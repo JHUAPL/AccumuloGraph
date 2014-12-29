@@ -13,6 +13,9 @@ package edu.jhuapl.tinkerpop;
 
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 
+import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
+import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
+
 /**
  * Internal class gathering together instances of
  * objects needed for various AccumuloGraph components.
@@ -22,6 +25,8 @@ public class GlobalInstances {
   private final AccumuloGraph graph;
   private final AccumuloGraphConfiguration config;
   private final MultiTableBatchWriter mtbw;
+  private VertexTableWrapper vertexWrapper;
+  private EdgeTableWrapper edgeWrapper;
 
   public GlobalInstances(AccumuloGraph graph,
       AccumuloGraphConfiguration config, MultiTableBatchWriter mtbw) {
@@ -40,5 +45,31 @@ public class GlobalInstances {
 
   public MultiTableBatchWriter getMtbw() {
     return mtbw;
+  }
+
+  public VertexTableWrapper getVertexWrapper() {
+    return vertexWrapper;
+  }
+
+  public EdgeTableWrapper getEdgeWrapper() {
+    return edgeWrapper;
+  }
+
+  /**
+   * TODO: Refactor these away when the {@link #graph} member is gone.
+   * @param vertexWrapper
+   */
+  @Deprecated
+  public void setVertexWrapper(VertexTableWrapper vertexWrapper) {
+    this.vertexWrapper = vertexWrapper;
+  }
+
+  /**
+   * TODO: Refactor these away when the {@link #graph} member is gone.
+   * @param vertexWrapper
+   */
+  @Deprecated
+  public void setEdgeWrapper(EdgeTableWrapper edgeWrapper) {
+    this.edgeWrapper = edgeWrapper;
   }
 }

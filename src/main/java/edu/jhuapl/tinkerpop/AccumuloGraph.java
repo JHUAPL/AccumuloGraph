@@ -192,6 +192,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     vertexWrapper = new VertexTableWrapper(globals);
     edgeWrapper = new EdgeTableWrapper(globals);
+
+    globals.setVertexWrapper(vertexWrapper);
+    globals.setEdgeWrapper(edgeWrapper);
   }
 
   private void setupWriters() throws Exception {
@@ -1007,44 +1010,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       e.printStackTrace();
     }
     return obj;
-  }
-
-  Iterable<Edge> getEdges(String vertexId, Direction direction, String... labels) {
-    Scanner scan = getElementScanner(Vertex.class);
-    scan.setRange(new Range(vertexId));
-    if (direction.equals(Direction.IN)) {
-      scan.fetchColumnFamily(TINEDGE);
-    } else if (direction.equals(Direction.OUT)) {
-      scan.fetchColumnFamily(TOUTEDGE);
-    } else {
-      scan.fetchColumnFamily(TINEDGE);
-      scan.fetchColumnFamily(TOUTEDGE);
-    }
-    if (labels.length > 0) {
-      applyRegexValueFilter(scan, labels);
-    }
-
-    return new ScannerIterable<Edge>(scan) {
-
-      @Override
-      public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
-        // TODO better use of information readily available...
-        // TODO could also check local cache before creating a new
-        // instance?
-
-        Entry<Key,Value> kv = iterator.next();
-
-        String[] parts = kv.getKey().getColumnQualifier().toString().split(IDDELIM);
-        String label = (new String(kv.getValue().get())).split("_")[1];
-        if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
-          return new AccumuloEdge(globals, parts[1], label, kv.getKey().getRow().toString(), parts[0]);
-
-        } else {
-          return new AccumuloEdge(globals, parts[1], label, parts[0], kv.getKey().getRow().toString());
-
-        }
-      }
-    };
   }
 
   private void applyRegexValueFilter(Scanner scan, String... labels) {

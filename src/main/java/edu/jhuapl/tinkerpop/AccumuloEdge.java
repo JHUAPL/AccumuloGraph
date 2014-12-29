@@ -43,7 +43,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     this.outVertex = outVertex;
   }
 
-  AccumuloEdge(GlobalInstances globals, String id, String label, String inVertex, String outVertex) {
+  public AccumuloEdge(GlobalInstances globals, String id, String label, String inVertex, String outVertex) {
     super(globals, id, Edge.class);
     this.label = label;
     this.inId = inVertex;

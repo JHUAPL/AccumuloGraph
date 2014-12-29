@@ -11,11 +11,9 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
-
 import com.tinkerpop.blueprints.Vertex;
 
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.GlobalInstances;
 
 /**
  * Wrapper around {@link Vertex} index table.
@@ -27,9 +25,8 @@ public class VertexIndexTableWrapper extends IndexTableWrapper {
    * @param mtbw
    * @param tableName
    */
-  public VertexIndexTableWrapper(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter mtbw) {
-    super(config, mtbw, config.getVertexKeyIndexTableName());
+  public VertexIndexTableWrapper(GlobalInstances globals) {
+    super(globals, globals.getConfig().getVertexKeyIndexTableName());
   }
 
 }

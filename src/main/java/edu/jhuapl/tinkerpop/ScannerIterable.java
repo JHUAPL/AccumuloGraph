@@ -29,7 +29,7 @@ public abstract class ScannerIterable<T extends Element> implements Iterable<T>,
 
   ScannerBase scanner;
 
-  ScannerIterable(ScannerBase scanner) {
+  public ScannerIterable(ScannerBase scanner) {
     this.scanner = scanner;
   }
 

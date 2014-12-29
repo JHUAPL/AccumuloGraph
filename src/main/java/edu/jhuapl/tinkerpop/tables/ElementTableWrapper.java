@@ -18,13 +18,14 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.Element;
@@ -32,8 +33,8 @@ import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
+import edu.jhuapl.tinkerpop.GlobalInstances;
 
 /**
  * Wrapper around tables with operations
@@ -41,9 +42,8 @@ import edu.jhuapl.tinkerpop.AccumuloGraphException;
  */
 public abstract class ElementTableWrapper extends BaseTableWrapper {
 
-  public ElementTableWrapper(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter writer, String tableName) {
-    super(config, writer, tableName);
+  public ElementTableWrapper(GlobalInstances globals, String tableName) {
+    super(globals, tableName);
   }
 
   /**
@@ -195,6 +195,26 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
     } catch (MutationsRejectedException e) {
       throw new AccumuloGraphException(e);
     }
+  }
+
+  /**
+   * Add custom iterator to the given scanner so that
+   * it will only return keys with value corresponding to an edge.
+   * @param scan
+   * @param labels
+   */
+  protected void applyEdgeLabelValueFilter(Scanner scan, String... labels) {
+    StringBuilder regex = new StringBuilder();
+    for (String lab : labels) {
+      if (regex.length() != 0)
+        regex.append("|");
+      regex.append(".*"+AccumuloGraph.IDDELIM+"\\Q").append(lab).append("\\E$");
+    }
+
+    IteratorSetting is = new IteratorSetting(10, "edgeValueFilter", RegExFilter.class);
+    RegExFilter.setRegexs(is, null, null, null,
+        regex.toString(), false);
+    scan.addScanIterator(is);
   }
 
   public void close() {
