@@ -52,7 +52,7 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
     Configuration jobconf = job.getConfiguration();
 
     jobconf.set(USER, acc.getUser());
-    jobconf.set(PASSWORD, new String(acc.getPassword().array()));
+    jobconf.set(PASSWORD, acc.getPassword());
     jobconf.set(GRAPH_NAME, acc.getGraphName());
     jobconf.set(INSTANCE, acc.getInstanceName());
     jobconf.set(INSTANCE_TYPE, acc.getInstanceType().toString());

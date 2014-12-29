@@ -26,11 +26,8 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
 
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
-
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloGraphConfigurationTest {
 
@@ -235,37 +232,29 @@ public class AccumuloGraphConfigurationTest {
     assertFalse(cfg.getEdgeCacheEnabled());
   }
 
+  /**
+   * Test different kinds of graph names (hyphens, punctuation, etc).
+   * @throws Exception
+   */
   @Test
-  public void testBasicMockGraph() throws Exception {
-    AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration()
-      .setInstanceType(InstanceType.Mock)
-      .setGraphName("mockGraph");
+  public void testGraphNames() throws Exception {
+    AccumuloGraphConfiguration conf = new AccumuloGraphConfiguration();
 
-    Graph graph = GraphFactory.open(cfg.getConfiguration());
+    String[] valid = new String[] {
+        "alpha", "12345", "alnum12345",
+        "12345alnum", "under_score1", "_under_score_2"};
+    String[] invalid = new String[] {"hyph-en",
+        "dot..s", "quo\"tes"};
 
-    for (int i = 0; i < 10; i++) {
-      graph.addVertex(i);
+    for (String name : valid) {
+      conf.setGraphName(name);
     }
-    assertEquals(10, count(graph.getVertices()));
 
-    for (int i = 0; i < 9; i++) {
-      System.out.println(graph.getVertex(i));
-      for (int k = 1; k < 10; k++) {
-        graph.addEdge(null, graph.getVertex(i),
-            graph.getVertex(k), "edge");
-      }
+    for (String name : invalid) {
+      try {
+        conf.setGraphName(name);
+        fail();
+      } catch (Exception e) { }
     }
-    assertEquals(81, count(graph.getEdges()));
-
-    graph.shutdown();
-  }
-  
-  @SuppressWarnings("unused")
-  private static int count(Iterable<?> iter) {
-    int i = 0;
-    for (Object obj : iter) {
-      i++;
-    }
-    return i;
   }
 }
