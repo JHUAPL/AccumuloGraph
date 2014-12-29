@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
 
@@ -29,6 +30,21 @@ import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
 public class AccumuloGraphConfigurationTest {
+
+  @Test
+  public void testConfigurationInterface() throws Exception {
+    Configuration conf = AccumuloGraphTestUtils.generateGraphConfig("setPropsValid");
+    for (String key : AccumuloGraphConfiguration.getValidInternalKeys()) {
+      // This is bad... but we should allow them if they are valid keys.
+      conf.setProperty(key, "value");
+    }
+
+    conf = AccumuloGraphTestUtils.generateGraphConfig("setPropsInvalid");
+    try {
+      conf.setProperty("invalidKey", "value");
+      fail();
+    } catch (Exception e) { }
+  }
 
   @Test
   public void testSplits() throws Exception {
@@ -214,5 +230,31 @@ public class AccumuloGraphConfigurationTest {
     cfg.setEdgeCacheParams(-1, -1);
     cfg.validate();
     assertFalse(cfg.getEdgeCacheEnabled());
+  }
+
+  /**
+   * Test different kinds of graph names (hyphens, punctuation, etc).
+   * @throws Exception
+   */
+  @Test
+  public void testGraphNames() throws Exception {
+    AccumuloGraphConfiguration conf = new AccumuloGraphConfiguration();
+
+    String[] valid = new String[] {
+        "alpha", "12345", "alnum12345",
+        "12345alnum", "under_score1", "_under_score_2"};
+    String[] invalid = new String[] {"hyph-en",
+        "dot..s", "quo\"tes"};
+
+    for (String name : valid) {
+      conf.setGraphName(name);
+    }
+
+    for (String name : invalid) {
+      try {
+        conf.setGraphName(name);
+        fail();
+      } catch (Exception e) { }
+    }
   }
 }

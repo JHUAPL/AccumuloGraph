@@ -14,6 +14,9 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.GraphFactory;
+
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloGraphTestUtils {
@@ -21,8 +24,12 @@ public class AccumuloGraphTestUtils {
   public static AccumuloGraphConfiguration generateGraphConfig(String graphDirectoryName) {
     AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration();
     cfg.setInstanceName("instanceName").setZooKeeperHosts("ZookeeperHostsString");
-    cfg.setUser("root").setPassword("".getBytes());
+    cfg.setUser("root").setPassword("");
     cfg.setGraphName(graphDirectoryName).setCreate(true).setAutoFlush(true).setInstanceType(InstanceType.Mock);
     return cfg;
+  }
+
+  public static Graph makeGraph(String name) {
+    return GraphFactory.open(generateGraphConfig(name).getConfiguration());
   }
 }

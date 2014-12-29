@@ -294,46 +294,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   // End Aliases
 
-  // For simplicity, I accept all property types. They are handled in not the
-  // best way. To be fixed later
-  Features f;
-
   @Override
   public Features getFeatures() {
-    if (f == null) {
-      f = new Features();
-      f.ignoresSuppliedIds = true;
-      f.isPersistent = true;
-      f.isWrapper = false;
-      f.supportsBooleanProperty = true;
-      f.supportsDoubleProperty = true;
-      f.supportsDuplicateEdges = true;
-      f.supportsEdgeIndex = true;
-      f.supportsEdgeIteration = true;
-      f.supportsEdgeRetrieval = true;
-      f.supportsEdgeKeyIndex = true;
-      f.supportsEdgeProperties = true;
-      f.supportsFloatProperty = true;
-      f.supportsIndices = true;
-      f.supportsIntegerProperty = true;
-      f.supportsKeyIndices = true;
-      f.supportsLongProperty = true;
-      f.supportsMapProperty = true;
-      f.supportsMixedListProperty = true;
-      f.supportsPrimitiveArrayProperty = true;
-      f.supportsSelfLoops = true;
-      f.supportsSerializableObjectProperty = true;
-      f.supportsStringProperty = true;
-      f.supportsThreadedTransactions = false;
-      f.supportsTransactions = false;
-      f.supportsUniformListProperty = true;
-      f.supportsVertexIndex = true;
-      f.supportsVertexIteration = true;
-      f.supportsVertexKeyIndex = true;
-      f.supportsVertexProperties = true;
-      f.supportsThreadIsolatedTransactions = false;
-    }
-    return f;
+    return AccumuloFeatures.get();
   }
 
   @Override
@@ -368,12 +331,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (id == null) {
       throw ExceptionFactory.vertexIdCanNotBeNull();
     }
-    String myID;
-    try {
-      myID = (String) id;
-    } catch (ClassCastException e) {
-      return null;
-    }
+    String myID = id.toString();
 
     if (vertexCache != null) {
       Vertex vertex = vertexCache.retrieve(myID);
@@ -645,16 +603,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Edge getEdge(Object id) {
-    String myID;
     if (id == null) {
       throw ExceptionFactory.edgeIdCanNotBeNull();
-    } else {
-      try {
-        myID = (String) id;
-      } catch (ClassCastException e) {
-        return null;
-      }
     }
+    String myID = id.toString();
 
     if (edgeCache != null) {
       Edge edge = edgeCache.retrieve(myID);

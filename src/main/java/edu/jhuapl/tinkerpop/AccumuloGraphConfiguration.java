@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +38,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
+import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
@@ -52,7 +52,8 @@ import com.tinkerpop.blueprints.KeyIndexableGraph;
  * Setters return the same configuration instance to
  * ease chained setting of parameters.
  */
-public class AccumuloGraphConfiguration implements Serializable {
+public class AccumuloGraphConfiguration extends AbstractConfiguration
+implements Serializable {
 
   private static final long serialVersionUID = 7024072260167873696L;
 
@@ -91,7 +92,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   /**
    * Utility class gathering valid configuration keys.
    */
-  private static class Keys {
+  static class Keys {
     public static final String GRAPH_CLASS = "blueprints.graph";
     public static final String ZK_HOSTS = "blueprints.accumulo.zkhosts";
     public static final String INSTANCE = "blueprints.accumulo.instance";
@@ -222,10 +223,14 @@ public class AccumuloGraphConfiguration implements Serializable {
    */
   public AccumuloGraphConfiguration setInstanceType(InstanceType type) {
     conf.setProperty(Keys.INSTANCE_TYPE, type.toString());
-    if (type.equals(InstanceType.Mock)) {
+
+    if (InstanceType.Mock.equals(type) ||
+        InstanceType.Mini.equals(type)) {
       setUser("root");
       setPassword("");
+      setCreate(true);
     }
+
     return this;
   }
 
@@ -272,8 +277,8 @@ public class AccumuloGraphConfiguration implements Serializable {
     return this;
   }
 
-  public ByteBuffer getPassword() {
-    return ByteBuffer.wrap(conf.getString(Keys.PASSWORD).getBytes());
+  public String getPassword() {
+    return conf.getString(Keys.PASSWORD);
   }
 
   /**
@@ -679,12 +684,28 @@ public class AccumuloGraphConfiguration implements Serializable {
 
   /**
    * Name of the graph to create. Storage tables will be prefixed with this value.
+   * <p/>Note: Accumulo only allows table names with alphanumeric and underscore
+   * characters.
    * @param name
    * @return
    */
   public AccumuloGraphConfiguration setGraphName(String name) {
+    if (!isValidGraphName(name)) {
+      throw new IllegalArgumentException("Invalid graph name."
+          + " Only alphanumerics and underscores are allowed");
+    }
+
     conf.setProperty(Keys.GRAPH_NAME, name);
     return this;
+  }
+
+  /**
+   * Make sure this is a valid graph name because of restrictions
+   * on table names.
+   * @param name
+   */
+  private static boolean isValidGraphName(String name) {
+    return name.matches("^[A-Za-z0-9_]+$");
   }
 
   public String[] getPreloadedProperties() {
@@ -882,14 +903,23 @@ public class AccumuloGraphConfiguration implements Serializable {
   }
 
   /**
+   * File-based version of {@link #setMiniClusterTempDir(String)}.
+   * @param miniClusterTempDir
+   */
+  public AccumuloGraphConfiguration setMiniClusterTempDir(File miniClusterTempDir) {
+    return setMiniClusterTempDir(miniClusterTempDir.getPath());
+  }
+
+  /**
    * Used by JUnit Tests to set the miniClusterTempDirectory.
    * If not set in advance of a test, getConnector will use a
    * Java Temporary Folder which will not be deleted afterwards.
    * 
    * @param miniClusterTempDir
    */
-  public void setMiniClusterTempDir(String miniClusterTempDir) {
+  public AccumuloGraphConfiguration setMiniClusterTempDir(String miniClusterTempDir) {
     this.miniClusterTempDir = miniClusterTempDir;
+    return this;
   }
 
   public String getVertexTable() {
@@ -932,10 +962,11 @@ public class AccumuloGraphConfiguration implements Serializable {
       case Distributed:
         checkPropertyValue(Keys.ZK_HOSTS, getZooKeeperHosts(), false);
         checkPropertyValue(Keys.USER, getUser(), false);
+        checkPropertyValue(Keys.PASSWORD, getPassword(), false);
         // no break intentional
       case Mini:
         checkPropertyValue(Keys.INSTANCE, getInstanceName(), false);
-        checkPropertyValue(Keys.PASSWORD, new String(getPassword().array()), true);
+        checkPropertyValue(Keys.PASSWORD, getPassword(), true);
         // no break intentional
       case Mock:
         checkPropertyValue(Keys.GRAPH_NAME, getGraphName(), false);
@@ -984,16 +1015,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   public void print() {
     System.out.println(AccumuloGraphConfiguration.class+":");
 
-    Set<String> keys = new TreeSet<String>();
-    for (Field field : Keys.class.getDeclaredFields()) {
-      try {
-        keys.add((String) field.get(null));
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    for (String key : keys) {
+    for (String key : getValidInternalKeys()) {
       String value = "(null)";
       if (conf.containsKey(key)) {
         value = conf.getProperty(key).toString();
@@ -1002,6 +1024,23 @@ public class AccumuloGraphConfiguration implements Serializable {
     }
   }
 
+  /**
+   * Get the AccumuloGraph-specific keys for this configuration.
+   * @return
+   */
+  static Set<String> getValidInternalKeys() {
+    Set<String> keys = new TreeSet<String>();
+
+    for (Field field : Keys.class.getDeclaredFields()) {
+      try {
+        keys.add((String) field.get(null));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    return keys;
+  }
 
   // Old deprecated method names.
 
@@ -1117,5 +1156,38 @@ public class AccumuloGraphConfiguration implements Serializable {
    */
   public String[] getPreloadedEdges() {
     return getPreloadedEdgeLabels();
+  }
+
+
+  // Abstract methods from the AbstractConfiguration implementation.
+
+  @Override
+  public boolean isEmpty() {
+    return conf.isEmpty();
+  }
+
+  @Override
+  public boolean containsKey(String key) {
+    return conf.containsKey(key);
+  }
+
+  @Override
+  public Object getProperty(String key) {
+    return conf.getProperty(key);
+  }
+
+  @Override
+  public Iterator<String> getKeys() {
+    return conf.getKeys();
+  }
+
+  @Override
+  protected void addPropertyDirect(String key, Object value) {
+    // Only allow AccumuloGraph-specific keys.
+    if (getValidInternalKeys().contains(key)) {
+      conf.setProperty(key, value);
+    } else {
+      throw new UnsupportedOperationException("Invalid key: "+key);
+    }
   }
 }
