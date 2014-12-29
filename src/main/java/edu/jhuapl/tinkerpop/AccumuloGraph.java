@@ -353,7 +353,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         preload = new String[]{};
       }
 
-      Map<String, Object> props = vertexWrapper.readProperties(myID, preload);
+      Map<String, Object> props = vertexWrapper.readProperties(vertex, preload);
       if (props == null) {
         return null;
       }
@@ -626,7 +626,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         preload = new String[]{};
       }
 
-      Map<String, Object> props = edgeWrapper.readProperties(myID, preload);
+      Map<String, Object> props = edgeWrapper.readProperties(edge, preload);
       if (props == null) {
         return null;
       }
@@ -898,8 +898,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   // methods used by AccumuloElement, AccumuloVertex, AccumuloEdge to interact
   // with the backing Accumulo data store...
 
-  <T> Pair<Integer, T> getProperty(Class<? extends Element> type, String id, String key) {
-    T value = getElementTableWrapper(type).readProperty(id, key);
+  <T> Pair<Integer, T> getProperty(Class<? extends Element> type,
+      Element element, String key) {
+    T value = getElementTableWrapper(type).readProperty(element, key);
     return new Pair<Integer, T>(config.getPropertyCacheTimeout(key), value);
   }
 
@@ -933,8 +934,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     s.close();
   }
 
-  Set<String> getPropertyKeys(Class<? extends Element> type, String id) {
-    return getElementTableWrapper(type).readPropertyKeys(id);
+  Set<String> getPropertyKeys(Class<? extends Element> type, Element element) {
+    return getElementTableWrapper(type).readPropertyKeys(element);
   }
 
   /**
@@ -947,7 +948,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @param key
    * @param val
    */
-  void setProperty(Class<? extends Element> type, String id, String key, Object val) {
+  void setProperty(Class<? extends Element> type, Element element, String key, Object val) {
     checkProperty(key, val);
     try {
       byte[] newByteVal = AccumuloByteSerializer.serialize(val);
@@ -955,20 +956,20 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       if (config.getAutoIndex() || getIndexedKeys(type).contains(key)) {
         BatchWriter bw = getIndexBatchWriter(type);
-        Object old = getProperty(type, id, key).getSecond();
+        Object old = getProperty(type, element, key).getSecond();
         if (old != null) {
           byte[] oldByteVal = AccumuloByteSerializer.serialize(old);
           m = new Mutation(oldByteVal);
-          m.putDelete(key, id);
+          m.putDelete(key, element.getId().toString());
           bw.addMutation(m);
         }
         m = new Mutation(newByteVal);
-        m.put(key.getBytes(), id.getBytes(), EMPTY);
+        m.put(key.getBytes(), element.getId().toString().getBytes(), EMPTY);
         bw.addMutation(m);
         checkedFlush();
       }
 
-      getElementTableWrapper(type).writeProperty(id, key, val);
+      getElementTableWrapper(type).writeProperty(element, key, val);
 
       checkedFlush();
     } catch (MutationsRejectedException e) {
@@ -986,19 +987,19 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return getVertexIndexWriter();
   }
 
-  <T> T removeProperty(Class<? extends Element> type, String id, String key) {
+  <T> T removeProperty(Class<? extends Element> type, Element element, String key) {
     if (StringFactory.LABEL.equals(key) || SLABEL.equals(key)) {
       throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
     }
 
-    T obj = (T) getProperty(type, id, key).getSecond();
+    T obj = (T) getProperty(type, element, key).getSecond();
     try {
       if (obj != null) {
-        getElementTableWrapper(type).clearProperty(id, key);
+        getElementTableWrapper(type).clearProperty(element, key);
 
         byte[] val = AccumuloByteSerializer.serialize(obj);
         Mutation m = new Mutation(val);
-        m.putDelete(key, id);
+        m.putDelete(key, element.getId().toString());
         getIndexBatchWriter(type).addMutation(m);
         checkedFlush();
       }

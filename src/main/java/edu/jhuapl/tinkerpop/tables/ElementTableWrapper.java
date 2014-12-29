@@ -53,10 +53,10 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @param key
    * @return
    */
-  public <V> V readProperty(String id, String key) {
+  public <V> V readProperty(Element element, String key) {
     Scanner s = getScanner();
 
-    s.setRange(new Range(id));
+    s.setRange(new Range(element.getId().toString()));
 
     Text colf = null;
     if (StringFactory.LABEL.equals(key)) {
@@ -85,9 +85,9 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @param propertyKeys
    * @return
    */
-  public Map<String, Object> readProperties(String id, String... propertyKeys) {
+  public Map<String, Object> readProperties(Element element, String... propertyKeys) {
     Scanner s = getScanner();
-    s.setRange(new Range(id));
+    s.setRange(new Range(element.getId().toString()));
     s.fetchColumnFamily(AccumuloGraph.TLABEL);
 
     for (String key : propertyKeys) {
@@ -142,10 +142,10 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @param id
    * @return
    */
-  public Set<String> readPropertyKeys(String id) {
+  public Set<String> readPropertyKeys(Element element) {
     Scanner s = getScanner();
 
-    s.setRange(new Range(id));
+    s.setRange(new Range(element.getId().toString()));
 
     Set<String> keys = new HashSet<String>();
 
@@ -169,9 +169,9 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @param id
    * @param key
    */
-  public void clearProperty(String id, String key) {
+  public void clearProperty(Element element, String key) {
     try {
-      Mutation m = new Mutation(id);
+      Mutation m = new Mutation(element.getId().toString());
       m.putDelete(key.getBytes(), AccumuloGraph.EMPTY);
       getWriter().addMutation(m);
 
@@ -186,9 +186,9 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @param key
    * @param value
    */
-  public void writeProperty(String id, String key, Object value) {
+  public void writeProperty(Element element, String key, Object value) {
     byte[] bytes = AccumuloByteSerializer.serialize(value);
-    Mutation m = new Mutation(id);
+    Mutation m = new Mutation(element.getId().toString());
     m.put(key.getBytes(), AccumuloGraph.EMPTY, bytes);
     try {
       getWriter().addMutation(m);

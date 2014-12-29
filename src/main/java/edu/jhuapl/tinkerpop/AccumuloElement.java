@@ -53,7 +53,7 @@ public abstract class AccumuloElement implements Element {
     if (val != null) {
       return val;
     } else {
-      Pair<Integer, T> pair = globals.getGraph().getProperty(type, id, key);
+      Pair<Integer, T> pair = globals.getGraph().getProperty(type, this, key);
       if (pair.getFirst() != null) {
         cacheProperty(key, pair.getSecond());
       }
@@ -62,12 +62,12 @@ public abstract class AccumuloElement implements Element {
   }
 
   public Set<String> getPropertyKeys() {
-    return globals.getGraph().getPropertyKeys(type, id);
+    return globals.getGraph().getPropertyKeys(type, this);
   }
 
   @Override
   public void setProperty(String key, Object value) {
-    globals.getGraph().setProperty(type, id, key, value);
+    globals.getGraph().setProperty(type, this, key, value);
     cacheProperty(key, value);
   }
 
@@ -81,7 +81,7 @@ public abstract class AccumuloElement implements Element {
       // Of course we still need to clear out the cached value...
       propertyCache.remove(key);
     }
-    return globals.getGraph().removeProperty(type, id, key);
+    return globals.getGraph().removeProperty(type, this, key);
   }
 
   @Override
