@@ -33,7 +33,7 @@ public abstract class BaseTableWrapper {
     this.mtbw = mtbw;
     this.tableName = tableName;
   }
-  
+
   protected Scanner getScanner() {
     try {
       return config.getConnector().createScanner(tableName,

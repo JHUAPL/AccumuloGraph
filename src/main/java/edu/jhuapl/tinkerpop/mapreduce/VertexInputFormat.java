@@ -116,7 +116,7 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
   public static void setAccumuloGraphConfiguration(Job job, AccumuloGraphConfiguration cfg) throws AccumuloSecurityException {
 
     VertexInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
-    VertexInputFormat.setInputTableName(job, cfg.getVertexTable());
+    VertexInputFormat.setInputTableName(job, cfg.getVertexTableName());
     if (cfg.getInstanceType().equals(InstanceType.Mock)) {
       VertexInputFormat.setMockInstance(job, cfg.getInstanceName());
     } else {

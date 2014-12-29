@@ -91,8 +91,8 @@ public final class AccumuloBulkIngester {
     AccumuloGraphUtils.handleCreateAndClear(config);
 
     mtbw = connector.createMultiTableBatchWriter(config.getBatchWriterConfig());
-    vertexWriter = mtbw.getBatchWriter(config.getVertexTable());
-    edgeWriter = mtbw.getBatchWriter(config.getEdgeTable());
+    vertexWriter = mtbw.getBatchWriter(config.getVertexTableName());
+    edgeWriter = mtbw.getBatchWriter(config.getEdgeTableName());
   }
 
   /**

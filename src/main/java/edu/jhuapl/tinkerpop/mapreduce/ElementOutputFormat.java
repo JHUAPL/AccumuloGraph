@@ -92,9 +92,9 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
       try {
         if (bw == null) {
           if (ele instanceof MapReduceVertex) {
-            bw = config.getConnector().createBatchWriter(config.getVertexTable(), config.getBatchWriterConfig());
+            bw = config.getConnector().createBatchWriter(config.getVertexTableName(), config.getBatchWriterConfig());
           } else {
-            bw = config.getConnector().createBatchWriter(config.getEdgeTable(), config.getBatchWriterConfig());
+            bw = config.getConnector().createBatchWriter(config.getEdgeTableName(), config.getBatchWriterConfig());
           }
         }
 

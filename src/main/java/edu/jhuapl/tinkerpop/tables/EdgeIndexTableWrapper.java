@@ -29,7 +29,7 @@ public class EdgeIndexTableWrapper extends IndexTableWrapper {
    */
   public EdgeIndexTableWrapper(AccumuloGraphConfiguration config,
       MultiTableBatchWriter mtbw) {
-    super(config, mtbw, config.getEdgeIndexTable());
+    super(config, mtbw, config.getEdgeKeyIndexTableName());
   }
 
 }

@@ -922,34 +922,38 @@ implements Serializable {
     return this;
   }
 
-  public String getVertexTable() {
+  public String getVertexTableName() {
     return getGraphName() + "_vertex";
   }
 
-  public String getEdgeTable() {
+  public String getEdgeTableName() {
     return getGraphName() + "_edge";
   }
 
-  public String getKeyMetadataTable() {
-    return getMetadataTable() + "KEY";
+  public String getVertexKeyIndexTableName() {
+    return getGraphName() + "_vertex_key_index";
   }
 
-  public String getVertexIndexTable() {
-    return getGraphName() + "_vertex_index";
+  public String getEdgeKeyIndexTableName() {
+    return getGraphName() + "_edge_key_index";
   }
 
-  public String getEdgeIndexTable() {
-    return getGraphName() + "_edge_index";
+  String getMetadataTableName() {
+    return getGraphName() + "_metadata";
   }
 
-  String getMetadataTable() {
-    return getGraphName() + "_meta";
+  public String getKeyMetadataTableName() {
+    return getGraphName() + "_key_metadata";
+  }
+
+  public String getIndexTableName(String indexName) {
+    return getGraphName() + "_index_" + indexName;
   }
 
   List<String> getTableNames() {
-    return Arrays.asList(getVertexTable(),
-        getEdgeTable(), getVertexIndexTable(), getEdgeIndexTable(),
-        getMetadataTable(), getKeyMetadataTable());
+    return Arrays.asList(getVertexTableName(),
+        getEdgeTableName(), getVertexKeyIndexTableName(), getEdgeKeyIndexTableName(),
+        getMetadataTableName(), getKeyMetadataTableName());
   }
 
   /**

@@ -109,7 +109,7 @@ public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
   public static void setAccumuloGraphConfiguration(Job job, AccumuloGraphConfiguration cfg) throws AccumuloSecurityException {
 
     EdgeInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
-    EdgeInputFormat.setInputTableName(job, cfg.getEdgeTable());
+    EdgeInputFormat.setInputTableName(job, cfg.getEdgeTableName());
     if (cfg.getInstanceType().equals(InstanceType.Mock)) {
       EdgeInputFormat.setMockInstance(job, cfg.getInstanceName());
     } else {
