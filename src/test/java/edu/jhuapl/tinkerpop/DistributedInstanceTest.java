@@ -27,12 +27,13 @@ public class DistributedInstanceTest extends AccumuloGraphTest {
   @Override
   public Graph generateGraph(String graphDirectoryName) {
     Configuration cfg = new AccumuloGraphConfiguration()
-    .setInstanceType(InstanceType.Distributed)
-    .setZooKeeperHosts(ZOOKEEPERS)
-    .setInstanceName(INSTANCE)
-    .setUser(USER).setPassword(PASSWORD)
-    .setGraphName(graphDirectoryName);
-  testGraphName.set(graphDirectoryName);
-  return GraphFactory.open(cfg);
+      .setInstanceType(InstanceType.Distributed)
+      .setZooKeeperHosts(ZOOKEEPERS)
+      .setInstanceName(INSTANCE)
+      .setUser(USER).setPassword(PASSWORD)
+      .setGraphName(graphDirectoryName)
+      .setCreate(true);
+    testGraphName.set(graphDirectoryName);
+    return GraphFactory.open(cfg);
   }
 }
