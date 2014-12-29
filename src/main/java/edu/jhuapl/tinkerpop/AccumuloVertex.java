@@ -22,18 +22,18 @@ import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 
 public class AccumuloVertex extends AccumuloElement implements Vertex {
 
-  AccumuloVertex(AccumuloGraph parent, String id) {
-    super(parent, id, Vertex.class);
+  AccumuloVertex(GlobalInstances globals, String id) {
+    super(globals, id, Vertex.class);
   }
 
   @Override
   public Iterable<Edge> getEdges(Direction direction, String... labels) {
-    return parent.getEdges(id, direction, labels);
+    return globals.getGraph().getEdges(id, direction, labels);
   }
 
   @Override
   public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-    return parent.getVertices(id, direction, labels);
+    return globals.getGraph().getVertices(id, direction, labels);
   }
 
   @Override
@@ -43,12 +43,12 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   @Override
   public Edge addEdge(String label, Vertex inVertex) {
-    return parent.addEdge(null, this, inVertex, label);
+    return globals.getGraph().addEdge(null, this, inVertex, label);
   }
 
   @Override
   public void remove() {
-    parent.removeVertex(this);
+    globals.getGraph().removeVertex(this);
   }
 
   @Override

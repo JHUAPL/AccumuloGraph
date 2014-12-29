@@ -11,7 +11,6 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.data.Mutation;
 
@@ -19,8 +18,8 @@ import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
+import edu.jhuapl.tinkerpop.GlobalInstances;
 
 
 /**
@@ -28,9 +27,9 @@ import edu.jhuapl.tinkerpop.AccumuloGraphException;
  */
 public class EdgeTableWrapper extends ElementTableWrapper {
 
-  public EdgeTableWrapper(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter writer) {
-    super(config, writer, config.getEdgeTableName());
+  public EdgeTableWrapper(GlobalInstances globals) {
+    super(globals.getConfig(), globals.getMtbw(),
+        globals.getConfig().getEdgeTableName());
   }
 
   /**

@@ -127,6 +127,8 @@ import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
  */
 public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
+  protected GlobalInstances globals;
+
   protected AccumuloGraphConfiguration config;
 
   public static final byte[] EMPTY = new byte[0];
@@ -186,8 +188,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw new AccumuloGraphException(e);
     }
 
-    vertexWrapper = new VertexTableWrapper(config, writer);
-    edgeWrapper = new EdgeTableWrapper(config, writer);
+    globals = new GlobalInstances(this, config, writer);
+
+    vertexWrapper = new VertexTableWrapper(globals);
+    edgeWrapper = new EdgeTableWrapper(globals);
   }
 
   private void setupWriters() throws Exception {
@@ -314,7 +318,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
 
-    vert = new AccumuloVertex(this, myID);
+    vert = new AccumuloVertex(globals, myID);
 
     vertexWrapper.writeVertex(myID);
     checkedFlush();
@@ -339,7 +343,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
 
-    AccumuloVertex vertex = new AccumuloVertex(this, myID);
+    AccumuloVertex vertex = new AccumuloVertex(globals, myID);
     if (!config.getSkipExistenceChecks()) {
       // In addition to just an "existence" check, we will also load
       // any "preloaded" properties now, which saves us a round-trip
@@ -485,7 +489,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       @Override
       public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
         // TODO could also check local cache before creating a new instance?
-        AccumuloVertex vert = new AccumuloVertex(AccumuloGraph.this, iterator.peek().getKey().getRow().toString());
+        AccumuloVertex vert = new AccumuloVertex(globals, iterator.peek().getKey().getRow().toString());
 
         String rowid = iterator.next().getKey().getRow().toString();
         List<Entry<Key,Value>> vals = new ArrayList<Entry<Key,Value>>();
@@ -520,7 +524,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
             v = (AccumuloVertex) vertexCache.retrieve(key.getColumnQualifier().toString());
           }
 
-          v = (v == null ? new AccumuloVertex(AccumuloGraph.this, key.getColumnQualifier().toString()) : v);
+          v = (v == null ? new AccumuloVertex(globals, key.getColumnQualifier().toString()) : v);
           v.cacheProperty(key.getColumnFamily().toString(),
               AccumuloByteSerializer.deserialize(key.getRow().getBytes()));
 
@@ -552,7 +556,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
               v = (AccumuloVertex) vertexCache.retrieve(kv.getKey().getRow().toString());
             }
 
-            v = (v == null ? new AccumuloVertex(AccumuloGraph.this, kv.getKey().getRow().toString()) : v);
+            v = (v == null ? new AccumuloVertex(globals, kv.getKey().getRow().toString()) : v);
             v.cacheProperty(kv.getKey().getColumnFamily().toString(),
                 AccumuloByteSerializer.deserialize(kv.getValue().get()));
 
@@ -580,7 +584,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     String myID = id.toString();
 
-    AccumuloEdge edge = new AccumuloEdge(this, myID,
+    AccumuloEdge edge = new AccumuloEdge(globals, myID,
         label, inVertex, outVertex);
 
     // TODO we arent suppose to make sure the given edge ID doesn't already
@@ -614,7 +618,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
 
-    AccumuloEdge edge = new AccumuloEdge(this, myID);
+    AccumuloEdge edge = new AccumuloEdge(globals, myID);
 
     if (!config.getSkipExistenceChecks()) {
       // In addition to just an "existence" check, we will also load
@@ -736,7 +740,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
         // TODO I dont know if this should work with a batch scanner....
         Entry<Key,Value> entry = iterator.next();
-        AccumuloEdge edge = new AccumuloEdge(AccumuloGraph.this, entry.getKey().getRow().toString(), AccumuloByteSerializer
+        AccumuloEdge edge = new AccumuloEdge(globals, entry.getKey().getRow().toString(), AccumuloByteSerializer
             .deserialize(entry.getValue().get()).toString());
 
         String rowid = entry.getKey().getRow().toString();
@@ -776,7 +780,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           if (edgeCache != null) {
             e = (AccumuloEdge) edgeCache.retrieve(kv.getKey().getColumnQualifier().toString());
           }
-          e = (e == null ? new AccumuloEdge(AccumuloGraph.this, kv.getKey().getColumnQualifier().toString()) : e);
+          e = (e == null ? new AccumuloEdge(globals, kv.getKey().getColumnQualifier().toString()) : e);
 
           e.cacheProperty(kv.getKey().getColumnFamily().toString(),
               AccumuloByteSerializer.deserialize(kv.getKey().getRow().getBytes()));
@@ -807,9 +811,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
             if (k.getColumnFamily().compareTo(AccumuloGraph.TLABEL) == 0) {
               String[] vals = k.getColumnQualifier().toString().split(AccumuloGraph.IDDELIM);
-              return new AccumuloEdge(AccumuloGraph.this, k.getRow().toString(), null, vals[0], vals[1]);
+              return new AccumuloEdge(globals, k.getRow().toString(), null, vals[0], vals[1]);
             }
-            return new AccumuloEdge(AccumuloGraph.this, k.getRow().toString());
+            return new AccumuloEdge(globals, k.getRow().toString());
           }
         };
       } else {
@@ -1035,10 +1039,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         String[] parts = kv.getKey().getColumnQualifier().toString().split(IDDELIM);
         String label = (new String(kv.getValue().get())).split("_")[1];
         if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
-          return new AccumuloEdge(AccumuloGraph.this, parts[1], label, kv.getKey().getRow().toString(), parts[0]);
+          return new AccumuloEdge(globals, parts[1], label, kv.getKey().getRow().toString(), parts[0]);
 
         } else {
-          return new AccumuloEdge(AccumuloGraph.this, parts[1], label, parts[0], kv.getKey().getRow().toString());
+          return new AccumuloEdge(globals, parts[1], label, parts[0], kv.getKey().getRow().toString());
 
         }
       }
@@ -1082,7 +1086,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         // TODO could also check local cache before creating a new
         // instance?
         String[] parts = iterator.next().getKey().getColumnQualifier().toString().split(IDDELIM);
-        AccumuloVertex v = new AccumuloVertex(AccumuloGraph.this, parts[0]);
+        AccumuloVertex v = new AccumuloVertex(globals, parts[0]);
         if (vertexCache != null)
           vertexCache.cache(v);
         return v;
@@ -1106,7 +1110,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       } else {
         id = val.split(IDDELIM)[1];
       }
-      Vertex v = new AccumuloVertex(this, id);
+      Vertex v = new AccumuloVertex(globals, id);
       if (vertexCache != null)
         vertexCache.cache(v);
       return v;
@@ -1167,7 +1171,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       } catch (MutationsRejectedException e) {
         e.printStackTrace();
       }
-      return new AccumuloIndex<T>(indexClass, this, indexName);
+      return new AccumuloIndex<T>(indexClass, globals, indexName);
     } finally {
       s.close();
     }
@@ -1189,7 +1193,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
         if (k.getColumnFamily().toString().equals(indexClass.getSimpleName())) {
-          return new AccumuloIndex<T>(indexClass, this, indexName);
+          return new AccumuloIndex<T>(indexClass, globals, indexName);
         } else {
           throw ExceptionFactory.indexDoesNotSupportClass(indexName, indexClass);
         }
@@ -1212,7 +1216,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
         toRet.add(new AccumuloIndex(getClass(k.getColumnFamily().toString()),
-            this, k.getRow().toString()));
+            globals, k.getRow().toString()));
       }
       return toRet;
     } catch (Exception e) {

@@ -28,23 +28,23 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
   Vertex inVertex;
   Vertex outVertex;
 
-  AccumuloEdge(AccumuloGraph parent, String id) {
-    this(parent, id, null);
+  AccumuloEdge(GlobalInstances globals, String id) {
+    this(globals, id, null);
   }
 
-  AccumuloEdge(AccumuloGraph parent, String id, String label) {
-    this(parent, id, label, (Vertex) null, (Vertex) null);
+  AccumuloEdge(GlobalInstances globals, String id, String label) {
+    this(globals, id, label, (Vertex) null, (Vertex) null);
   }
 
-  AccumuloEdge(AccumuloGraph parent, String id, String label, Vertex inVertex, Vertex outVertex) {
-    super(parent, id, Edge.class);
+  AccumuloEdge(GlobalInstances globals, String id, String label, Vertex inVertex, Vertex outVertex) {
+    super(globals, id, Edge.class);
     this.label = label;
     this.inVertex = inVertex;
     this.outVertex = outVertex;
   }
 
-  AccumuloEdge(AccumuloGraph parent, String id, String label, String inVertex, String outVertex) {
-    super(parent, id, Edge.class);
+  AccumuloEdge(GlobalInstances globals, String id, String label, String inVertex, String outVertex) {
+    super(globals, id, Edge.class);
     this.label = label;
     this.inId = inVertex;
     this.outId = outVertex;
@@ -56,20 +56,20 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
       case IN:
         if (inVertex == null) {
           if (inId == null) {
-            inVertex = parent.getEdgeVertex(id, direction);
+            inVertex = globals.getGraph().getEdgeVertex(id, direction);
             inId = inVertex.getId().toString();
           } else {
-            inVertex = parent.getVertex(inId);
+            inVertex = globals.getGraph().getVertex(inId);
           }
         }
         return inVertex;
       case OUT:
         if (outVertex == null) {
           if (outId == null) {
-            outVertex = parent.getEdgeVertex(id, direction);
+            outVertex = globals.getGraph().getEdgeVertex(id, direction);
             outId = outVertex.getId().toString();
           } else {
-            outVertex = parent.getVertex(outId);
+            outVertex = globals.getGraph().getVertex(outId);
           }
         }
         return outVertex;
@@ -91,7 +91,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
 
   @Override
   public void remove() {
-    parent.removeEdge(this);
+    globals.getGraph().removeEdge(this);
   }
 
   public String getInId() {

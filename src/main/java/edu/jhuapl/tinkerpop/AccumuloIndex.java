@@ -36,19 +36,19 @@ import com.tinkerpop.blueprints.Index;
 
 public class AccumuloIndex<T extends Element> implements Index<T> {
   Class<T> indexedType;
-  AccumuloGraph parent;
   String indexName;
   String tableName;
+  private GlobalInstances globals;
 
-  public AccumuloIndex(Class<T> t, AccumuloGraph parent, String indexName) {
+  public AccumuloIndex(Class<T> t, GlobalInstances globals, String indexName) {
     this.indexedType = t;
-    this.parent = parent;
+    this.globals = globals;
     this.indexName = indexName;
-    this.tableName = parent.config.getIndexTableName(indexName);
+    this.tableName = globals.getConfig().getIndexTableName(indexName);
 
     try {
-      if (!parent.config.getConnector().tableOperations().exists(tableName)) {
-        parent.config.getConnector().tableOperations().create(tableName);
+      if (!globals.getConfig().getConnector().tableOperations().exists(tableName)) {
+        globals.getConfig().getConnector().tableOperations().create(tableName);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -73,7 +73,6 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
-
   }
 
   @Override
@@ -83,13 +82,12 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     scan.setRange(new Range(new Text(id), new Text(id)));
     scan.fetchColumnFamily(new Text(key));
 
-    return new IndexIterable(parent, scan, indexedType);
+    return new IndexIterable(globals.getGraph(), scan, indexedType);
   }
 
   @Override
   public CloseableIterable<T> query(String key, Object query) {
     throw new UnsupportedOperationException();
-
   }
 
   @Override
@@ -120,11 +118,11 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
   }
 
   private BatchWriter getWriter() {
-    return parent.getWriter(tableName);
+    return globals.getGraph().getWriter(tableName);
   }
 
   private Scanner getScanner() {
-    return parent.getScanner(tableName);
+    return globals.getGraph().getScanner(tableName);
   }
 
   public class IndexIterable implements CloseableIterable<T> {
@@ -152,10 +150,10 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
             // TODO better use of information readily
             // available...
             if (indexedType.equals(Edge.class)) {
-              return (T) new AccumuloEdge(parent, id);
+              return (T) new AccumuloEdge(globals, id);
             }
             else {
-              return (T) new AccumuloVertex(parent, id);
+              return (T) new AccumuloVertex(globals, id);
             }
           }
         }.iterator();

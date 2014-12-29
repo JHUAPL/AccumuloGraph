@@ -11,15 +11,14 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
-import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.data.Mutation;
 
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloGraph;
-import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
+import edu.jhuapl.tinkerpop.GlobalInstances;
 
 
 /**
@@ -27,9 +26,9 @@ import edu.jhuapl.tinkerpop.AccumuloGraphException;
  */
 public class VertexTableWrapper extends ElementTableWrapper {
 
-  public VertexTableWrapper(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter writer) {
-    super(config, writer, config.getVertexTableName());
+  public VertexTableWrapper(GlobalInstances globals) {
+    super(globals.getConfig(), globals.getMtbw(),
+        globals.getConfig().getVertexTableName());
   }
 
   /**

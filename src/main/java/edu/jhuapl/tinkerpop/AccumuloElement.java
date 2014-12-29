@@ -23,15 +23,15 @@ import com.tinkerpop.blueprints.Element;
 
 public abstract class AccumuloElement implements Element {
 
-  protected AccumuloGraph parent;
+  protected GlobalInstances globals;
   protected String id;
 
   private Class<? extends Element> type;
 
   private PropertyCache propertyCache;
 
-  protected AccumuloElement(AccumuloGraph parent, String id, Class<? extends Element> type) {
-    this.parent = parent;
+  protected AccumuloElement(GlobalInstances globals, String id, Class<? extends Element> type) {
+    this.globals = globals;
     this.id = id;
     this.type = type;
   }
@@ -44,16 +44,16 @@ public abstract class AccumuloElement implements Element {
       // pre-load any data. Note it also may be created in the
       // cacheProperty method, as well, in the event a class pre-loads
       // data before a call is made to obtain it.
-      propertyCache = new PropertyCache(parent.config);
+      propertyCache = new PropertyCache(globals.getConfig());
 
-      parent.preloadProperties(this, type);
+      globals.getGraph().preloadProperties(this, type);
     }
 
     T val = propertyCache.get(key);
     if (val != null) {
       return val;
     } else {
-      Pair<Integer, T> pair = parent.getProperty(type, id, key);
+      Pair<Integer, T> pair = globals.getGraph().getProperty(type, id, key);
       if (pair.getFirst() != null) {
         cacheProperty(key, pair.getSecond());
       }
@@ -62,12 +62,12 @@ public abstract class AccumuloElement implements Element {
   }
 
   public Set<String> getPropertyKeys() {
-    return parent.getPropertyKeys(type, id);
+    return globals.getGraph().getPropertyKeys(type, id);
   }
 
   @Override
   public void setProperty(String key, Object value) {
-    parent.setProperty(type, id, key, value);
+    globals.getGraph().setProperty(type, id, key, value);
     cacheProperty(key, value);
   }
 
@@ -81,7 +81,7 @@ public abstract class AccumuloElement implements Element {
       // Of course we still need to clear out the cached value...
       propertyCache.remove(key);
     }
-    return parent.removeProperty(type, id, key);
+    return globals.getGraph().removeProperty(type, id, key);
   }
 
   @Override
@@ -108,7 +108,7 @@ public abstract class AccumuloElement implements Element {
 
   void cacheProperty(String key, Object value) {
     if (propertyCache == null) {
-      propertyCache = new PropertyCache(parent.config);
+      propertyCache = new PropertyCache(globals.getConfig());
     }
     propertyCache.put(key, value);
   }
