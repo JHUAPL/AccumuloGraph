@@ -14,6 +14,7 @@ package edu.jhuapl.tinkerpop.tables;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.data.Mutation;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
@@ -44,14 +45,16 @@ public class EdgeTableWrapper extends ElementTableWrapper {
    * @param inVertex
    * @param label
    */
-  public void writeEdge(String id, String outVertexId,
-      String inVertexId, String label) {
+  public void writeEdge(Edge edge) {
+    String inVertexId = edge.getVertex(Direction.IN).getId().toString();
+    String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
+
     try {
-      Mutation m = new Mutation(id);
+      Mutation m = new Mutation(edge.getId().toString());
 
       String cq = inVertexId + AccumuloGraph.IDDELIM + outVertexId;
       m.put(AccumuloGraph.LABEL, cq.getBytes(),
-          AccumuloByteSerializer.serialize(label));
+          AccumuloByteSerializer.serialize(edge.getLabel()));
       getWriter().addMutation(m);
     } catch (MutationsRejectedException e) {
       throw new AccumuloGraphException(e);

@@ -320,7 +320,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     vert = new AccumuloVertex(globals, myID);
 
-    vertexWrapper.writeVertex(myID);
+    vertexWrapper.writeVertex(vert);
     checkedFlush();
 
     if (vertexCache != null) {
@@ -590,11 +590,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     // TODO we arent suppose to make sure the given edge ID doesn't already
     // exist?
 
-    String outId = outVertex.getId().toString();
-    String inId = inVertex.getId().toString();
-
-    edgeWrapper.writeEdge(myID, outId, inId, label);
-    vertexWrapper.writeEdgeEndpoints(myID, outId, inId, label);
+    edgeWrapper.writeEdge(edge);
+    vertexWrapper.writeEdgeEndpoints(edge);
 
     checkedFlush();
 

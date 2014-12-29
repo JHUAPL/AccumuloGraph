@@ -14,6 +14,8 @@ package edu.jhuapl.tinkerpop.tables;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.data.Mutation;
 
+import com.tinkerpop.blueprints.Direction;
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloGraph;
@@ -36,8 +38,8 @@ public class VertexTableWrapper extends ElementTableWrapper {
    * Note: This does not currently write the vertex's properties.
    * @param id
    */
-  public void writeVertex(String id) {
-    Mutation m = new Mutation(id);
+  public void writeVertex(Vertex vertex) {
+    Mutation m = new Mutation((String) vertex.getId());
     m.put(AccumuloGraph.LABEL, AccumuloGraph.EXISTS, AccumuloGraph.EMPTY);
     try {
       getWriter().addMutation(m);
@@ -53,19 +55,20 @@ public class VertexTableWrapper extends ElementTableWrapper {
    * @param inVertexId
    * @param label
    */
-  public void writeEdgeEndpoints(String id, String outVertexId,
-      String inVertexId, String label) {
+  public void writeEdgeEndpoints(Edge edge) {
+    String inVertexId = edge.getVertex(Direction.IN).getId().toString();
+    String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
     try {
       Mutation m = new Mutation(inVertexId);
       m.put(AccumuloGraph.INEDGE,
-          (outVertexId + AccumuloGraph.IDDELIM + id).getBytes(),
-          (AccumuloGraph.IDDELIM + label).getBytes());
+          (outVertexId + AccumuloGraph.IDDELIM + edge.getId()).getBytes(),
+          (AccumuloGraph.IDDELIM + edge.getLabel()).getBytes());
       getWriter().addMutation(m);
 
       m = new Mutation(outVertexId);
       m.put(AccumuloGraph.OUTEDGE,
-          (inVertexId + AccumuloGraph.IDDELIM + id).getBytes(),
-          (AccumuloGraph.IDDELIM + label).getBytes());
+          (inVertexId + AccumuloGraph.IDDELIM + edge.getId()).getBytes(),
+          (AccumuloGraph.IDDELIM + edge.getLabel()).getBytes());
       getWriter().addMutation(m);
 
     } catch (MutationsRejectedException e) {
