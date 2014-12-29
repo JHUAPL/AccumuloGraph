@@ -4,20 +4,26 @@ AccumuloGraph
 
 This is an implementation of the [TinkerPop Blueprints](http://tinkerpop.com)
 2.6 API using [Apache Accumulo](http://apache.accumulo.com) as the backend.
-This implementation provides easy to use, easy to write, and easy to read 
-access to an arbitrarily large graph that is stored in Accumulo.
- 
-We implement the following Blueprints interfaces:
-	<br>1. Graph
-	<br>2. KeyIndexableGraph
-	<br>3. IndexableGraph
-	
-Please feel free to submit issues for any bugs you find or features you want.
-We are open to pull requests from your forks also.
+This combines the many benefits and flexibility of Blueprints
+with the scalability and performance of Accumulo.
 
-##Usage
+In addition to the basic Blueprints functionality, we provide a number
+of enhanced features, including:
+* Indexing implementations via `IndexableGraph` and `KeyIndexableGraph`
+* Support for mock, mini, and distributed instances of Accumulo
+* Numerous performance tweaks and configuration parameters
+* Support for high speed ingest
+* Hadoop integration
 
-The releases are currently stored in Maven Central.
+Feel free to contact us with bugs, suggestions, pull requests,
+or simply how you are leveraging AccumuloGraph in your own work.
+
+
+## Getting Started
+
+First, include AccumuloGraph as a Maven dependency. Releases are deployed
+to Maven Central.
+
 ```xml
 <dependency>
 	<groupId>edu.jhuapl.tinkerpop</groupId>
@@ -26,118 +32,182 @@ The releases are currently stored in Maven Central.
 </dependency>
 ```
 
-For non-Maven users, the binaries can be found in the releases section in this
+For non-Maven users, the binary jars can be found in the releases section in this
 GitHub repository, or you can get them from Maven Central.
-##Code Examples
-###Creating a new or connecting to an existing distributed graph
+
+Creating an `AccumuloGraph` involves setting a few parameters in an
+`AccumuloGraphConfiguration` object, and opening the graph.
+The defaults are sensible for using an Accumulo cluster.
+We provide some simple examples below. Javadocs for
+`AccumuloGraphConfiguration` explain all the other parameters
+in more detail.
+
+First, to instantiate an in-memory graph:
 ```java
 Configuration cfg = new AccumuloGraphConfiguration()
-	.setInstanceName("accumulo").setUser("user").setZookeeperHosts("zk1")
-    .setPassword("password".getBytes()).setGraphName("myGraph");
-Graph graph = GraphFactory.open(cfg.getConfiguration());
+  .setInstanceType(InstanceType.Mock)
+  .setGraphName("graph");
+return GraphFactory.open(cfg);
 ```
-###Creating a new Mock Graph
 
-Setting the instance type to mock allows for in-memory processing with a MockAccumulo instance.<br>
-There is also support for Mini Accumulo.
+This creates a "Mock" instance which holds the graph in memory.
+You can now use all the Blueprints and AccumuloGraph-specific functionality
+with this in-memory graph. This is useful for getting familiar
+with AccumuloGraph's functionality, or for testing or prototyping
+purposes.
+
+To use an actual Accumulo cluster, use the following:
 ```java
-Configuration cfg = new AccumuloGraphConfiguration().setInstanceType(InstanceType.Mock)
-	.setGraphName("myGraph");
-Graph graph = GraphFactory.open(cfg);
+Configuration cfg = new AccumuloGraphConfiguration()
+  .setInstanceType(InstanceType.Distributed)
+  .setZooKeeperHosts("zookeeper-host")
+  .setInstanceName("instance-name")
+  .setUser("user").setPassword("password")
+  .setGraphName("graph")
+  .setCreate(true);
+return GraphFactory.open(cfg);
 ```
-###Accessing a graph
+
+This directs AccumuloGraph to use a "Distributed" Accumulo
+instance, and sets the appropriate ZooKeeper parameters,
+instance name, and authentication information, which correspond
+to the usual Accumulo connection settings. The graph name is
+used to create several backing tables in Accumulo, and the
+`setCreate` option tells AccumuloGraph to create the backing
+tables if they don't already exist.
+
+AccumuloGraph also has limited support for a "Mini" instance
+of Accumulo.
+
+
+## Improving Performance
+
+This section describes various configuration parameters that
+greatly enhance AccumuloGraph's performance.  Brief descriptions
+of each option are provided here, but refer to the
+`AccumuloGraphConfiguration` Javadoc for fuller explanations.
+
+### Disable consistency checks
+
+The Blueprints API specifies a number of consistency checks for
+various operations, and requires errors if they fail. Some examples
+of invalid operations include adding a vertex with the same id as an
+existing vertex, adding edges between nonexistent vertices,
+and setting properties on nonexistent elements.
+Unfortunately, checking the above constraints for an
+Accumulo installation entails significant performance issues,
+since these require extra traffic to Accumulo using inefficient
+non-batched access patterns.
+
+To remedy these performance issues, AccumuloGraph exposes
+several options to disable various of the above checks.
+These include:
+* `setAutoFlush` - to disable automatically flushing
+  changes to the backing Accumulo tables
+* `setSkipExistenceChecks` - to disable element
+  existence checks, avoiding trips to the Accumulo cluster
+* `setIndexableGraphDisabled` - to disable
+  indexing functionality, which improves performance
+  of element removal
+
+### Tweak Accumulo performance parameters
+
+Accumulo itself features a number of performance-related parameters,
+and we allow configuration of these. Generally, these relate to
+write buffer sizes, multithreading, etc. The settings include:
+* `setMaxWriteLatency` - max time prior to flushing
+  element write buffer
+* `setMaxWriteMemory` - max size for element write buffer
+* `setMaxWriteThreads` - max threads used for element writing
+* `setMaxWriteTimeout` - max time to wait before failing
+  element buffer writes
+* `setQueryThreads` - number of query threads to use
+  for fetching elements, properties etc.
+
+### Enable edge and property preloading
+
+As a performance tweak, AccumuloGraph performs lazy loading of
+properties and edges. This means that an operation such as
+`getVertex` does not by default populate the returned
+vertex object with the associated vertex's properties
+and edges. Instead, they are initialized only when requested via
+`getProperty`, `getEdges`, etc.  These are useful
+for use cases where you won't be accessing many of these
+properties.  However, if certain properties or edges will
+be accessed frequently, you can set options for preloading
+these specific properties and edges, which will be more
+efficient than on-the-fly loading. These options include:
+* `setPreloadedProperties` - set property keys
+  to be preloaded
+* `setPreloadedEdgeLabels` - set edges to be
+  preloaded based on their labels
+
+### Enable caching
+
+AccumuloGraph contains a number of caching options
+that mitigate the need for Accumulo traffic for recently-accessed
+elements. The following options control caching:
+* `setVertexCacheParams` - size and expiry for vertex cache
+* `setEdgeCacheParams` - size and expiry for edge cache
+* `setPropertyCacheTimeout` - property expiry time,
+  which can be specified globally and/or for individual properties
+
+
+## High Speed Ingest
+
+One of Accumulo's key advantages is its ability for high-speed ingest
+of huge amounts of data.  To leverage this ability, we provide
+an additional `AccumuloBulkIngester` class that
+exchanges consistency guarantees for high speed ingest.
+
+The following is an example of how to use the bulk ingester to
+ingest a simple graph:
 ```java
-Vertex v1 = graph.addVertex("1");
-v1.setProperty("name", "Alice");
-Vertex v2 = graph.addVertex("2");
-v2.setProperty("name", "Bob");
-
-Edge e1 = graph.addEdge("E1", v1, v2, "knows");
-e1.setProperty("since", new Date());
- ```
-
-
-###Creating indexes
-
-```java
-((KeyIndexableGraph)graph)
-	.createKeyIndex("name", Vertex.class);
+AccumuloGraphConfiguration cfg = ...;
+AccumuloBulkIngester ingester = new AccumuloBulkIngester(cfg);
+// Add a vertex.
+ingester.addVertex("A").finish();
+// Add another vertex with properties.
+ingester.addVertex("B")
+  .add("P1", "V1").add("P2", "V2")
+  .finish();
+// Add an edge.
+ingester.addEdge("A", "B", "edge").finish();
+// Shutdown and compact tables.
+ingester.shutdown(true);
 ```
-###MapReduce Integration
 
-####In the tool
+See the Javadocs for more details.
+Note that you are responsible for ensuring that data is entered
+in a consistent way, or the resulting graph will
+have undefined behavior.
+
+
+## Hadoop Integration
+
+AccumuloGraph features Hadoop integration via custom input and output
+format implementations. `VertexInputFormat` and `EdgeInputFormat`
+allow vertex and edge inputs to mappers, respectively. Use as follows:
 ```java
-AccumuloConfiguration cfg = new AccumuloGraphConfiguration()
-	.setInstanceName("accumulo").setZookeeperHosts("zk1").setUser("root")
-	.setPassword("secret".getBytes()).setGraphName("myGraph");
+AccumuloGraphConfiguration cfg = ...;
 
+// For vertices:
 Job j = new Job();
 j.setInputFormatClass(VertexInputFormat.class);
-VertexInputFormat.setAccumuloGraphConfiguration(j,
-	cfg.getConfiguration());
+VertexInputFormat.setAccumuloGraphConfiguration(j, cfg);
+
+// For edges:
+Job j = new Job();
+j.setInputFormatClass(EdgeInputFormat.class);
+EdgeInputFormat.setAccumuloGraphConfiguration(j, cfg);
 ```
-####In the mapper
+
+`ElementOutputFormat` allows writing to an AccumuloGraph from
+reducers. Use as follows:
 ```java
-public void map(Text k, Vertex v, Context c) {
-    System.out.println(v.getId().toString());
-}
- ``` 
+AccumuloGraphConfiguration cfg = ...;
 
-##Table Design
-###Vertex Table
-Row ID | Column Family | Column Qualifier | Value
----|---|---|---
-VertexID | Label Flag | Exists Flag | [empty]
-VertexID | INVERTEX | OutVertexID_EdgeID | Edge Label
-VertexID | OUTVERTEX | InVertexID_EdgeID | Edge Label
-VertexID | Property Key | [empty] | Serialized Value
-###Edge Table
-Row ID | Column Family | Column Qualifier | Value
----|---|---|---
-EdgeID|Label Flag|InVertexID_OutVertexID|Edge Label
-EdgeID|Property Key|[empty]|Serialized Value
-###Edge/Vertex Index
-Row ID | Column Family | Column Qualifier | Value
----|---|---|---
-Serialized Value|Property Key|VertexID/EdgeID|[empty]
-
-###Metadata Table
-Row ID | Column Family | Column Qualifier | Value
----|---|---|---
-Index Name| Index Class |[empty]|[empty]
-##Advanced Configuration
-###Graph Configuration
-- setGraphName(String name)
-- setCreate(boolean create) - Sets if the backing graph tables should be created if they do not exist.
-- setClear(boolean clear) - Sets if the backing graph tables should be reset if they exist.
-- autoFlush(boolean autoFlush) - Sets if each graph element and property change will be flushed to the server.
-- skipExistenceChecks(boolean skip) - Sets if you want to skip existance checks when creating graph elemenets.
-- setAutoIndex(boolean ison) - Turns on/off automatic indexing.
-
-###Accumulo Control
-
-- setUser(String user) - Sets the user to use when connecting to Accumulo
-- setPassword(byte[] password | String password) - Sets the password to use when connecting to Accumulo
-- setZookeeperHosts(String zookeeperHosts) - Sets the Zookeepers to connect to.
-- setInstanceName(String instance) - Sets the Instance name to use when connecting to Zookeeper
-- setInstanceType(InstanceType type) - Sets the type of Instance to use : Distrubuted, Mini, or Mock. Defaults to Distrubuted
-- setQueryThreads(int threads) - Specifies the number of threads to use in scanners. Defaults to 3
-- setMaxWriteLatency(long latency) - Sets the latency to be used for all writes to Accumulo
-- setMaxWriteTimeout(long timeout) - Sets the timeout to be used for all writes to Accumulo
-- setMaxWriteMemory(long mem) - Sets the memory buffer to be used for all writes to Accumulo
-- setMaxWriteThreads(int threads) - Sets the number of threads to be used for all writes to Accumulo
-- setAuthorizations(Authorizations auths) - Sets the authorizations to use when accessing the graph
-- setColumnVisibility(ColumnVisibility colVis) - TODO
-- setSplits(String splits | String[] splits) - Sets the splits to use when creating tables. Can be a space sperated list or an array of splits 
-- setMiniClusterTempDir(String dir) - Sets directory to use as the temp directory for the Mini cluster
-
-###Caching
-- setLruMaxCapacity(int max) - TODO
-- setVertexCacheTimeout(int millis) - Sets the vertex cache timeout.  A value <=0 clears the value
-- setEdgeCacheTimeout(int millis)  - Sets the edge cache timeout.  A value <=0 clears the value
-
-###Preloading
-- setPropertyCacheTimeout(int millis) - Sets the element property cache timeout. A value <=0 clears the value
-- setPreloadedProperties(String[] propertyKeys) - Sets the property keys that should be preloaded. Requiers a positive timout.
-- setPreloadedEdgeLabels(String[] edgeLabels) - TODO
-
+Job j = new Job();
+j.setOutputFormatClass(ElementOutputFormat.class);
+ElementOutputFormat.setAccumuloGraphConfiguration(j, cfg);
+```
