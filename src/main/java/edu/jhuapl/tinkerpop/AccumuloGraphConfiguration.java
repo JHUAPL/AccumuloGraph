@@ -18,7 +18,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -224,11 +223,14 @@ implements Serializable {
    */
   public AccumuloGraphConfiguration setInstanceType(InstanceType type) {
     conf.setProperty(Keys.INSTANCE_TYPE, type.toString());
-    if (type.equals(InstanceType.Mock)) {
+
+    if (InstanceType.Mock.equals(type) ||
+        InstanceType.Mini.equals(type)) {
       setUser("root");
       setPassword("");
       setCreate(true);
     }
+
     return this;
   }
 
@@ -275,8 +277,8 @@ implements Serializable {
     return this;
   }
 
-  public ByteBuffer getPassword() {
-    return ByteBuffer.wrap(conf.getString(Keys.PASSWORD).getBytes());
+  public String getPassword() {
+    return conf.getString(Keys.PASSWORD);
   }
 
   /**
@@ -682,12 +684,28 @@ implements Serializable {
 
   /**
    * Name of the graph to create. Storage tables will be prefixed with this value.
+   * <p/>Note: Accumulo only allows table names with alphanumeric and underscore
+   * characters.
    * @param name
    * @return
    */
   public AccumuloGraphConfiguration setGraphName(String name) {
+    if (!isValidGraphName(name)) {
+      throw new IllegalArgumentException("Invalid graph name."
+          + " Only alphanumerics and underscores are allowed");
+    }
+
     conf.setProperty(Keys.GRAPH_NAME, name);
     return this;
+  }
+
+  /**
+   * Make sure this is a valid graph name because of restrictions
+   * on table names.
+   * @param name
+   */
+  private static boolean isValidGraphName(String name) {
+    return name.matches("^[A-Za-z0-9_]+$");
   }
 
   public String[] getPreloadedProperties() {
@@ -885,14 +903,23 @@ implements Serializable {
   }
 
   /**
+   * File-based version of {@link #setMiniClusterTempDir(String)}.
+   * @param miniClusterTempDir
+   */
+  public AccumuloGraphConfiguration setMiniClusterTempDir(File miniClusterTempDir) {
+    return setMiniClusterTempDir(miniClusterTempDir.getPath());
+  }
+
+  /**
    * Used by JUnit Tests to set the miniClusterTempDirectory.
    * If not set in advance of a test, getConnector will use a
    * Java Temporary Folder which will not be deleted afterwards.
    * 
    * @param miniClusterTempDir
    */
-  public void setMiniClusterTempDir(String miniClusterTempDir) {
+  public AccumuloGraphConfiguration setMiniClusterTempDir(String miniClusterTempDir) {
     this.miniClusterTempDir = miniClusterTempDir;
+    return this;
   }
 
   public String getVertexTable() {
@@ -943,10 +970,11 @@ implements Serializable {
       case Distributed:
         checkPropertyValue(Keys.ZK_HOSTS, getZooKeeperHosts(), false);
         checkPropertyValue(Keys.USER, getUser(), false);
+        checkPropertyValue(Keys.PASSWORD, getPassword(), false);
         // no break intentional
       case Mini:
         checkPropertyValue(Keys.INSTANCE, getInstanceName(), false);
-        checkPropertyValue(Keys.PASSWORD, new String(getPassword().array()), true);
+        checkPropertyValue(Keys.PASSWORD, getPassword(), true);
         // no break intentional
       case Mock:
         checkPropertyValue(Keys.GRAPH_NAME, getGraphName(), false);
@@ -1018,7 +1046,7 @@ implements Serializable {
         throw new RuntimeException(e);
       }
     }
-    
+
     return keys;
   }
 

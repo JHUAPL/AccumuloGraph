@@ -24,7 +24,7 @@ public class AccumuloGraphTestUtils {
   public static AccumuloGraphConfiguration generateGraphConfig(String graphDirectoryName) {
     AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration();
     cfg.setInstanceName("instanceName").setZooKeeperHosts("ZookeeperHostsString");
-    cfg.setUser("root").setPassword("".getBytes());
+    cfg.setUser("root").setPassword("");
     cfg.setGraphName(graphDirectoryName).setCreate(true).setAutoFlush(true).setInstanceType(InstanceType.Mock);
     return cfg;
   }
