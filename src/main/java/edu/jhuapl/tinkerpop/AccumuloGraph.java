@@ -370,12 +370,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (id == null) {
       throw ExceptionFactory.vertexIdCanNotBeNull();
     }
-    String myID;
-    try {
-      myID = (String) id;
-    } catch (ClassCastException e) {
-      return null;
-    }
+    String myID = id.toString();
 
     if (vertexCache != null) {
       Vertex vertex = vertexCache.retrieve(myID);
@@ -681,16 +676,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Edge getEdge(Object id) {
-    String myID;
     if (id == null) {
       throw ExceptionFactory.edgeIdCanNotBeNull();
-    } else {
-      try {
-        myID = (String) id;
-      } catch (ClassCastException e) {
-        return null;
-      }
     }
+    String myID = id.toString();
 
     Edge edge = null;
     if (edgeCache != null) {
