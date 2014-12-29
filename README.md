@@ -4,37 +4,19 @@ AccumuloGraph
 
 This is an implementation of the [TinkerPop Blueprints](http://tinkerpop.com)
 2.6 API using [Apache Accumulo](http://apache.accumulo.com) as the backend.
-This combines the benefits and flexibility of Blueprints
+This combines the many benefits and flexibility of Blueprints
 with the scalability and performance of Accumulo.
 
-In addition to the basic Blueprints functionality, we provide additional
-features that harness more of Accumulo's power.
+In addition to the basic Blueprints functionality, we provide a number
+of enhanced features, including:
+* Indexing implementations via `IndexableGraph` and `KeyIndexableGraph`
+* Support for mock, mini, and distributed instances of Accumulo
+* Numerous performance tweaks and configuration parameters
+* Support for high speed ingest
+* Hadoop integration
 
-Some features include...
-
-
-Benchmarks
-
-
-Indexing via the `IndexableGraph` and `KeyIndexableGraph` interfaces.
-
-Benchmarking
-
-Feel free to email with suggestions for improvements.
-Please submit issues for any bugs you find or features you want.
-We are also open to pull requests.
-
-
-This implementation provides easy to use, easy to write, and easy to read 
-access to an arbitrarily large graph that is stored in Accumulo.
- 
-We implement the following Blueprints interfaces:
-	<br>1. Graph
-	<br>2. KeyIndexableGraph
-	<br>3. IndexableGraph
-	
-Benchmarking.
-
+Feel free to contact us with bugs, suggestions, pull requests,
+or simply how you are leveraging AccumuloGraph in your own work.
 
 
 ## Getting Started
@@ -94,6 +76,9 @@ used to create several backing tables in Accumulo, and the
 `setCreate` option tells AccumuloGraph to create the backing
 tables if they don't already exist.
 
+AccumuloGraph also has limited support for a "Mini" instance
+of Accumulo.
+
 
 ## Improving Performance
 
@@ -125,7 +110,7 @@ These include:
   indexing functionality, which improves performance
   of element removal
 
-### Set Accumulo performance parameters
+### Tweak Accumulo performance parameters
 
 Accumulo itself features a number of performance-related parameters,
 and we allow configuration of these. Generally, these relate to
@@ -139,140 +124,90 @@ write buffer sizes, multithreading, etc. The settings include:
 * `setQueryThreads` - number of query threads to use
   for fetching elements, properties etc.
 
-### Caching and preloading
+### Enable edge and property preloading
 
-AccumuloGraph contains a number of 
+As a performance tweak, AccumuloGraph performs lazy loading of
+properties and edges. This means that an operation such as
+`getVertex` does not by default populate the returned
+vertex object with the associated vertex's properties
+and edges. Instead, they are initialized only when requested via
+`getProperty`, `getEdges`, etc.  These are useful
+for use cases where you won't be accessing many of these
+properties.  However, if certain properties or edges will
+be accessed frequently, you can set options for preloading
+these specific properties and edges, which will be more
+efficient than on-the-fly loading. These options include:
+* `setPreloadedProperties` - set property keys
+  to be preloaded
+* `setPreloadedEdgeLabels` - set edges to be
+  preloaded based on their labels
 
-* `setPropertyCacheTimeout`
+### Enable caching
 
-* `setEdgeCacheParams`
-* `setVertexCacheParams`
+AccumuloGraph contains a number of caching options
+that mitigate the need for Accumulo traffic for recently-accessed
+elements. The following options control caching:
+* `setVertexCacheParams` - size and expiry for vertex cache
+* `setEdgeCacheParams` - size and expiry for edge cache
+* `setPropertyCacheTimeout` - property expiry time,
+  which can be specified globally and/or for individual properties
 
-* `setPreloadedEdgeLabels`
-* `setPreloadedProperties`
 
+## High Speed Ingest
 
-## Bulk Ingest
+One of Accumulo's key advantages is its ability for high-speed ingest
+of huge amounts of data.  To leverage this ability, we provide
+an additional `AccumuloBulkIngester` class that
+exchanges consistency guarantees for high speed ingest.
 
+The following is an example of how to use the bulk ingester to
+ingest a simple graph:
+```java
+AccumuloGraphConfiguration cfg = ...;
+AccumuloBulkIngester ingester = new AccumuloBulkIngester(cfg);
+// Add a vertex.
+ingester.addVertex("A").finish();
+// Add another vertex with properties.
+ingester.addVertex("B")
+  .add("P1", "V1").add("P2", "V2")
+  .finish();
+// Add an edge.
+ingester.addEdge("A", "B", "edge").finish();
+// Shutdown and compact tables.
+ingester.shutdown(true);
+```
+
+See the Javadocs for more details.
+Note that you are responsible for ensuring that data is entered
+in a consistent way, or the resulting graph will
+have undefined behavior.
 
 
 ## Hadoop Integration
 
-
-## Table Structure
-
-
-
-##Code Examples
-###Creating a new or connecting to an existing distributed graph
+AccumuloGraph features Hadoop integration via custom input and output
+format implementations. `VertexInputFormat` and `EdgeInputFormat`
+allow vertex and edge inputs to mappers, respectively. Use as follows:
 ```java
-Configuration cfg = new AccumuloGraphConfiguration()
-	.setInstanceName("accumulo").setUser("user").setZookeeperHosts("zk1")
-    .setPassword("password".getBytes()).setGraphName("myGraph");
-Graph graph = GraphFactory.open(cfg.getConfiguration());
-```
-###Creating a new Mock Graph
+AccumuloGraphConfiguration cfg = ...;
 
-Setting the instance type to mock allows for in-memory processing with a MockAccumulo instance.<br>
-There is also support for Mini Accumulo.
-```java
-Configuration cfg = new AccumuloGraphConfiguration().setInstanceType(InstanceType.Mock)
-	.setGraphName("myGraph");
-Graph graph = GraphFactory.open(cfg);
-```
-###Accessing a graph
-```java
-Vertex v1 = graph.addVertex("1");
-v1.setProperty("name", "Alice");
-Vertex v2 = graph.addVertex("2");
-v2.setProperty("name", "Bob");
-
-Edge e1 = graph.addEdge("E1", v1, v2, "knows");
-e1.setProperty("since", new Date());
- ```
-
-
-###Creating indexes
-
-```java
-((KeyIndexableGraph)graph)
-	.createKeyIndex("name", Vertex.class);
-```
-###MapReduce Integration
-
-####In the tool
-```java
-AccumuloConfiguration cfg = new AccumuloGraphConfiguration()
-	.setInstanceName("accumulo").setZookeeperHosts("zk1").setUser("root")
-	.setPassword("secret".getBytes()).setGraphName("myGraph");
-
+// For vertices:
 Job j = new Job();
 j.setInputFormatClass(VertexInputFormat.class);
-VertexInputFormat.setAccumuloGraphConfiguration(j,
-	cfg.getConfiguration());
+VertexInputFormat.setAccumuloGraphConfiguration(j, cfg);
+
+// For edges:
+Job j = new Job();
+j.setInputFormatClass(EdgeInputFormat.class);
+EdgeInputFormat.setAccumuloGraphConfiguration(j, cfg);
 ```
-####In the mapper
+
+`ElementOutputFormat` allows writing to an AccumuloGraph from
+reducers. Use as follows:
 ```java
-public void map(Text k, Vertex v, Context c) {
-    System.out.println(v.getId().toString());
-}
- ``` 
+AccumuloGraphConfiguration cfg = ...;
 
-##Table Design
-###Vertex Table
-Row ID | Column Family | Column Qualifier | Value
----|---|---|---
-VertexID | Label Flag | Exists Flag | [empty]
-VertexID | INVERTEX | OutVertexID_EdgeID | Edge Label
-VertexID | OUTVERTEX | InVertexID_EdgeID | Edge Label
-VertexID | Property Key | [empty] | Serialized Value
-###Edge Table
-Row ID | Column Family | Column Qualifier | Value
----|---|---|---
-EdgeID|Label Flag|InVertexID_OutVertexID|Edge Label
-EdgeID|Property Key|[empty]|Serialized Value
-###Edge/Vertex Index
-Row ID | Column Family | Column Qualifier | Value
----|---|---|---
-Serialized Value|Property Key|VertexID/EdgeID|[empty]
-
-###Metadata Table
-Row ID | Column Family | Column Qualifier | Value
----|---|---|---
-Index Name| Index Class |[empty]|[empty]
-##Advanced Configuration
-###Graph Configuration
-- setGraphName(String name)
-- setCreate(boolean create) - Sets if the backing graph tables should be created if they do not exist.
-- setClear(boolean clear) - Sets if the backing graph tables should be reset if they exist.
-- autoFlush(boolean autoFlush) - Sets if each graph element and property change will be flushed to the server.
-- skipExistenceChecks(boolean skip) - Sets if you want to skip existance checks when creating graph elemenets.
-- setAutoIndex(boolean ison) - Turns on/off automatic indexing.
-
-###Accumulo Control
-
-- setUser(String user) - Sets the user to use when connecting to Accumulo
-- setPassword(byte[] password | String password) - Sets the password to use when connecting to Accumulo
-- setZookeeperHosts(String zookeeperHosts) - Sets the Zookeepers to connect to.
-- setInstanceName(String instance) - Sets the Instance name to use when connecting to Zookeeper
-- setInstanceType(InstanceType type) - Sets the type of Instance to use : Distrubuted, Mini, or Mock. Defaults to Distrubuted
-- setQueryThreads(int threads) - Specifies the number of threads to use in scanners. Defaults to 3
-- setMaxWriteLatency(long latency) - Sets the latency to be used for all writes to Accumulo
-- setMaxWriteTimeout(long timeout) - Sets the timeout to be used for all writes to Accumulo
-- setMaxWriteMemory(long mem) - Sets the memory buffer to be used for all writes to Accumulo
-- setMaxWriteThreads(int threads) - Sets the number of threads to be used for all writes to Accumulo
-- setAuthorizations(Authorizations auths) - Sets the authorizations to use when accessing the graph
-- setColumnVisibility(ColumnVisibility colVis) - TODO
-- setSplits(String splits | String[] splits) - Sets the splits to use when creating tables. Can be a space sperated list or an array of splits 
-- setMiniClusterTempDir(String dir) - Sets directory to use as the temp directory for the Mini cluster
-
-###Caching
-- setLruMaxCapacity(int max) - TODO
-- setVertexCacheTimeout(int millis) - Sets the vertex cache timeout.  A value <=0 clears the value
-- setEdgeCacheTimeout(int millis)  - Sets the edge cache timeout.  A value <=0 clears the value
-
-###Preloading
-- setPropertyCacheTimeout(int millis) - Sets the element property cache timeout. A value <=0 clears the value
-- setPreloadedProperties(String[] propertyKeys) - Sets the property keys that should be preloaded. Requiers a positive timout.
-- setPreloadedEdgeLabels(String[] edgeLabels) - TODO
-
+Job j = new Job();
+j.setOutputFormatClass(ElementOutputFormat.class);
+ElementOutputFormat.setAccumuloGraphConfiguration(j, cfg);
+```
