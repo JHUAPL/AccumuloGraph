@@ -39,6 +39,7 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.security.Authorizations;
 import org.apache.accumulo.core.security.ColumnVisibility;
 import org.apache.accumulo.minicluster.MiniAccumuloCluster;
+import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
@@ -52,7 +53,8 @@ import com.tinkerpop.blueprints.KeyIndexableGraph;
  * Setters return the same configuration instance to
  * ease chained setting of parameters.
  */
-public class AccumuloGraphConfiguration implements Serializable {
+public class AccumuloGraphConfiguration extends AbstractConfiguration
+implements Serializable {
 
   private static final long serialVersionUID = 7024072260167873696L;
 
@@ -91,7 +93,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   /**
    * Utility class gathering valid configuration keys.
    */
-  private static class Keys {
+  static class Keys {
     public static final String GRAPH_CLASS = "blueprints.graph";
     public static final String ZK_HOSTS = "blueprints.accumulo.zkhosts";
     public static final String INSTANCE = "blueprints.accumulo.instance";
@@ -993,16 +995,7 @@ public class AccumuloGraphConfiguration implements Serializable {
   public void print() {
     System.out.println(AccumuloGraphConfiguration.class+":");
 
-    Set<String> keys = new TreeSet<String>();
-    for (Field field : Keys.class.getDeclaredFields()) {
-      try {
-        keys.add((String) field.get(null));
-      } catch (Exception e) {
-        throw new RuntimeException(e);
-      }
-    }
-
-    for (String key : keys) {
+    for (String key : getValidInternalKeys()) {
       String value = "(null)";
       if (conf.containsKey(key)) {
         value = conf.getProperty(key).toString();
@@ -1011,6 +1004,23 @@ public class AccumuloGraphConfiguration implements Serializable {
     }
   }
 
+  /**
+   * Get the AccumuloGraph-specific keys for this configuration.
+   * @return
+   */
+  static Set<String> getValidInternalKeys() {
+    Set<String> keys = new TreeSet<String>();
+
+    for (Field field : Keys.class.getDeclaredFields()) {
+      try {
+        keys.add((String) field.get(null));
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+    
+    return keys;
+  }
 
   // Old deprecated method names.
 
@@ -1126,5 +1136,38 @@ public class AccumuloGraphConfiguration implements Serializable {
    */
   public String[] getPreloadedEdges() {
     return getPreloadedEdgeLabels();
+  }
+
+
+  // Abstract methods from the AbstractConfiguration implementation.
+
+  @Override
+  public boolean isEmpty() {
+    return conf.isEmpty();
+  }
+
+  @Override
+  public boolean containsKey(String key) {
+    return conf.containsKey(key);
+  }
+
+  @Override
+  public Object getProperty(String key) {
+    return conf.getProperty(key);
+  }
+
+  @Override
+  public Iterator<String> getKeys() {
+    return conf.getKeys();
+  }
+
+  @Override
+  protected void addPropertyDirect(String key, Object value) {
+    // Only allow AccumuloGraph-specific keys.
+    if (getValidInternalKeys().contains(key)) {
+      conf.setProperty(key, value);
+    } else {
+      throw new UnsupportedOperationException("Invalid key: "+key);
+    }
   }
 }

@@ -22,6 +22,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
 
@@ -32,6 +33,21 @@ import com.tinkerpop.blueprints.Vertex;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class AccumuloGraphConfigurationTest {
+
+  @Test
+  public void testConfigurationInterface() throws Exception {
+    Configuration conf = AccumuloGraphTestUtils.generateGraphConfig("setPropsValid");
+    for (String key : AccumuloGraphConfiguration.getValidInternalKeys()) {
+      // This is bad... but we should allow them if they are valid keys.
+      conf.setProperty(key, "value");
+    }
+
+    conf = AccumuloGraphTestUtils.generateGraphConfig("setPropsInvalid");
+    try {
+      conf.setProperty("invalidKey", "value");
+      fail();
+    } catch (Exception e) { }
+  }
 
   @Test
   public void testSplits() throws Exception {
