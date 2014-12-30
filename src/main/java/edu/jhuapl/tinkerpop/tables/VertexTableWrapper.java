@@ -91,13 +91,17 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
         String[] parts = kv.getKey().getColumnQualifier().toString().split(AccumuloGraph.IDDELIM);
         String label = (new String(kv.getValue().get())).split("_")[1];
+
+        AccumuloEdge edge;
         if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
-          return new AccumuloEdge(globals, parts[1], label, kv.getKey().getRow().toString(), parts[0]);
-
+          edge = new AccumuloEdge(globals, parts[1], label, kv.getKey().getRow().toString(), parts[0]);
         } else {
-          return new AccumuloEdge(globals, parts[1], label, parts[0], kv.getKey().getRow().toString());
-
+          edge = new AccumuloEdge(globals, parts[1], label, parts[0], kv.getKey().getRow().toString());
         }
+
+        globals.getCaches().cache(edge, Edge.class);
+
+        return edge;
       }
     };
   }

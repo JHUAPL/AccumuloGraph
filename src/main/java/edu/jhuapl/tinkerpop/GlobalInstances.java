@@ -27,12 +27,15 @@ public class GlobalInstances {
   private final MultiTableBatchWriter mtbw;
   private VertexTableWrapper vertexWrapper;
   private EdgeTableWrapper edgeWrapper;
+  private final ElementCaches caches;
 
   public GlobalInstances(AccumuloGraph graph,
-      AccumuloGraphConfiguration config, MultiTableBatchWriter mtbw) {
+      AccumuloGraphConfiguration config, MultiTableBatchWriter mtbw,
+      ElementCaches caches) {
     this.graph = graph;
     this.config = config;
     this.mtbw = mtbw;
+    this.caches = caches;
   }
 
   public AccumuloGraph getGraph() {
@@ -53,6 +56,10 @@ public class GlobalInstances {
 
   public EdgeTableWrapper getEdgeWrapper() {
     return edgeWrapper;
+  }
+
+  public ElementCaches getCaches() {
+    return caches;
   }
 
   /**
