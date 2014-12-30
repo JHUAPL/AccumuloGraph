@@ -15,7 +15,7 @@ import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
-import edu.jhuapl.tinkerpop.mutator.edge.AddEdgeMutator;
+import edu.jhuapl.tinkerpop.mutator.edge.EdgeMutator;
 
 
 /**
@@ -34,12 +34,13 @@ public class EdgeTableWrapper extends ElementTableWrapper {
    * <p/>Note: This only adds the edge information. Vertex
    * endpoint information needs to be written to the vertex
    * table via {@link VertexTableWrapper}.
-   * @param id
-   * @param outVertex
-   * @param inVertex
-   * @param label
+   * @param edge
    */
   public void writeEdge(Edge edge) {
-    Mutators.apply(getWriter(), new AddEdgeMutator(edge));
+    Mutators.apply(getWriter(), new EdgeMutator.Add(edge));
+  }
+
+  public void deleteEdge(Edge edge) {
+    Mutators.apply(getWriter(), new EdgeMutator.Delete(edge));
   }
 }

@@ -20,22 +20,44 @@ import com.tinkerpop.blueprints.Edge;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 
-public class AddEdgeMutator extends BaseEdgeMutator {
+public final class EdgeMutator {
 
-  public AddEdgeMutator(Edge edge) {
-    super(edge);
+  public static class Add extends BaseEdgeMutator {
+
+    public Add(Edge edge) {
+      super(edge);
+    }
+
+    @Override
+    public Iterable<Mutation> create() {
+      Object inVertexId = edge.getVertex(Direction.IN).getId();
+      Object outVertexId = edge.getVertex(Direction.OUT).getId();
+
+      Mutation m = new Mutation(edge.getId().toString());
+      m.put(AccumuloGraph.LABEL,
+          (inVertexId + AccumuloGraph.IDDELIM + outVertexId).getBytes(),
+          AccumuloByteSerializer.serialize(edge.getLabel()));
+
+      return Lists.newArrayList(m);
+    }
   }
 
-  @Override
-  public Iterable<Mutation> create() {
-    String inVertexId = edge.getVertex(Direction.IN).getId().toString();
-    String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
+  public static class Delete extends BaseEdgeMutator {
 
-    Mutation m = new Mutation(edge.getId().toString());
+    public Delete(Edge edge) {
+      super(edge);
+    }
 
-    String cq = inVertexId + AccumuloGraph.IDDELIM + outVertexId;
-    m.put(AccumuloGraph.LABEL, cq.getBytes(),
-        AccumuloByteSerializer.serialize(edge.getLabel()));
-    return Lists.newArrayList(m);
+    @Override
+    public Iterable<Mutation> create() {
+      Object inVertexId = edge.getVertex(Direction.IN).getId();
+      Object outVertexId = edge.getVertex(Direction.OUT).getId();
+
+      Mutation m = new Mutation(edge.getId().toString());
+      m.putDelete(AccumuloGraph.LABEL,
+          (inVertexId + AccumuloGraph.IDDELIM + outVertexId).getBytes());
+
+      return Lists.newArrayList(m);
+    }
   }
 }

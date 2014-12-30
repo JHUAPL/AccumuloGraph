@@ -62,6 +62,7 @@ import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 import com.tinkerpop.blueprints.util.StringFactory;
 
+import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
@@ -700,21 +701,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     BatchDeleter edgedeleter = null;
     try {
       getEdgeIndexWriter().addMutations(indexMutations);
-      Mutation m = new Mutation(inVert);
-      m.putDelete(INEDGE, (outVert.toString() + IDDELIM + edge.getId().toString()).getBytes());
-      vertexBW.addMutation(m);
-      m = new Mutation(outVert);
-      m.putDelete(OUTEDGE, (inVert.toString() + IDDELIM + edge.getId().toString()).getBytes());
-      vertexBW.addMutation(m);
-      m = new Mutation(edge.getId().toString());
-      m.putDelete(LABEL, (inVert.toString() + IDDELIM + outVert.toString()).getBytes());
-      edgeBW.addMutation(m);
+      globals.getVertexWrapper().deleteEdgeEndpoints(edge);
+      globals.getEdgeWrapper().deleteEdge(edge);
 
       checkedFlush();
       edgedeleter = config.getConnector().createBatchDeleter(config.getVertexTableName(), config.getAuthorizations(), config.getQueryThreads(),
           config.getBatchWriterConfig());
-      edgedeleter.setRanges(Collections.singleton(new Range(edge.getId().toString())));
-      edgedeleter.delete();
+      Mutators.deleteElementRanges(edgedeleter, edge);
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     } finally {

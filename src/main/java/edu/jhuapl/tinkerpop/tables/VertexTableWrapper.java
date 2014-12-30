@@ -29,7 +29,7 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
-import edu.jhuapl.tinkerpop.mutator.edge.AddEdgeEndpointsMutator;
+import edu.jhuapl.tinkerpop.mutator.edge.EdgeEndpointsMutator;
 
 
 /**
@@ -44,7 +44,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
   /**
    * Write a vertex with the given id.
    * Note: This does not currently write the vertex's properties.
-   * @param id
+   * @param vertex
    */
   public void writeVertex(Vertex vertex) {
     Mutators.apply(getWriter(), new AddVertexMutator(vertex));
@@ -52,13 +52,14 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
   /**
    * Write edge endpoint information to the vertex table.
-   * @param id
-   * @param outVertexId
-   * @param inVertexId
-   * @param label
+   * @param edge
    */
   public void writeEdgeEndpoints(Edge edge) {
-    Mutators.apply(getWriter(), new AddEdgeEndpointsMutator(edge));
+    Mutators.apply(getWriter(), new EdgeEndpointsMutator.Add(edge));
+  }
+
+  public void deleteEdgeEndpoints(Edge edge) {
+    Mutators.apply(getWriter(), new EdgeEndpointsMutator.Delete(edge));
   }
 
   public Iterable<Edge> getEdges(String vertexId, Direction direction,
