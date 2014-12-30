@@ -22,7 +22,7 @@ import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 
 public class AccumuloVertex extends AccumuloElement implements Vertex {
 
-  AccumuloVertex(GlobalInstances globals, String id) {
+  public AccumuloVertex(GlobalInstances globals, String id) {
     super(globals, id, Vertex.class);
   }
 
@@ -33,7 +33,7 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   @Override
   public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-    return globals.getGraph().getVertices(id, direction, labels);
+    return globals.getVertexWrapper().getVertices(this, direction, labels);
   }
 
   @Override

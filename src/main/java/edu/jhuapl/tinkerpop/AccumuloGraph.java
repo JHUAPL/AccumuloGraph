@@ -972,37 +972,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     scan.addScanIterator(is);
   }
 
-  Iterable<Vertex> getVertices(String vertexId, Direction direction, String... labels) {
-    Scanner scan = getElementScanner(Vertex.class);
-    scan.setRange(new Range(vertexId));
-    if (direction.equals(Direction.IN)) {
-      scan.fetchColumnFamily(TINEDGE);
-    } else if (direction.equals(Direction.OUT)) {
-      scan.fetchColumnFamily(TOUTEDGE);
-    } else {
-      scan.fetchColumnFamily(TINEDGE);
-      scan.fetchColumnFamily(TOUTEDGE);
-    }
-
-    if (labels != null && labels.length > 0) {
-      applyRegexValueFilter(scan, labels);
-    }
-
-    return new ScannerIterable<Vertex>(scan) {
-
-      @Override
-      public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
-        // TODO better use of information readily available...
-        // TODO could also check local cache before creating a new
-        // instance?
-        String[] parts = iterator.next().getKey().getColumnQualifier().toString().split(IDDELIM);
-        AccumuloVertex v = new AccumuloVertex(globals, parts[0]);
-        caches.cache(v, Vertex.class);
-        return v;
-      }
-    };
-  }
-
   Vertex getEdgeVertex(String edgeId, Direction direction) {
     Scanner s = getElementScanner(Edge.class);
     try {

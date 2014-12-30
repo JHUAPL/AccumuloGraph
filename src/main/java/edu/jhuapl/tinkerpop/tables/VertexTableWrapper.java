@@ -25,6 +25,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
@@ -94,14 +95,49 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
         AccumuloEdge edge;
         if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
-          edge = new AccumuloEdge(globals, parts[1], label, kv.getKey().getRow().toString(), parts[0]);
+          edge = new AccumuloEdge(globals, parts[1], label,
+              kv.getKey().getRow().toString(), parts[0]);
         } else {
-          edge = new AccumuloEdge(globals, parts[1], label, parts[0], kv.getKey().getRow().toString());
+          edge = new AccumuloEdge(globals, parts[1], label,
+              parts[0], kv.getKey().getRow().toString());
         }
-
         globals.getCaches().cache(edge, Edge.class);
 
         return edge;
+      }
+    };
+  }
+  
+  public Iterable<Vertex> getVertices(Vertex vertex, Direction direction, String... labels) {
+    Scanner scan = getScanner();
+    scan.setRange(new Range(vertex.getId().toString()));
+    if (direction.equals(Direction.IN)) {
+      scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
+    } else if (direction.equals(Direction.OUT)) {
+      scan.fetchColumnFamily(AccumuloGraph.TOUTEDGE);
+    } else {
+      scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
+      scan.fetchColumnFamily(AccumuloGraph.TOUTEDGE);
+    }
+
+    if (labels != null && labels.length > 0) {
+      applyEdgeLabelValueFilter(scan, labels);
+    }
+
+    return new ScannerIterable<Vertex>(scan) {
+
+      @Override
+      public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
+        // TODO better use of information readily available...
+        // TODO could also check local cache before creating a new
+        // instance?
+        String[] parts = iterator.next().getKey().getColumnQualifier()
+            .toString().split(AccumuloGraph.IDDELIM);
+
+        AccumuloVertex vertex = new AccumuloVertex(globals, parts[0]);
+        globals.getCaches().cache(vertex, Vertex.class);
+
+        return vertex;
       }
     };
   }
