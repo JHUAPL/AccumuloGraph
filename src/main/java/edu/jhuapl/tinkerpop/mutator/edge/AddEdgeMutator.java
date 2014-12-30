@@ -9,37 +9,33 @@
  *                                                                            *
  * For any other permissions, please contact the Legal Office at JHU/APL.     *
  ******************************************************************************/
-package edu.jhuapl.tinkerpop.tables;
+package edu.jhuapl.tinkerpop.mutator.edge;
 
+import org.apache.accumulo.core.data.Mutation;
+
+import com.google.common.collect.Lists;
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 
-import edu.jhuapl.tinkerpop.GlobalInstances;
-import edu.jhuapl.tinkerpop.mutator.Mutators;
-import edu.jhuapl.tinkerpop.mutator.edge.AddEdgeMutator;
+import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
+import edu.jhuapl.tinkerpop.AccumuloGraph;
 
+public class AddEdgeMutator extends BaseEdgeMutator {
 
-/**
- * Wrapper around {@link Edge} tables.
- */
-public class EdgeTableWrapper extends ElementTableWrapper {
-
-  public EdgeTableWrapper(GlobalInstances globals) {
-    super(globals, globals.getConfig().getEdgeTableName());
+  public AddEdgeMutator(Edge edge) {
+    super(edge);
   }
 
-  /**
-   * Write the given edge to the edge table. Does not
-   * currently write the edge's properties.
-   * 
-   * <p/>Note: This only adds the edge information. Vertex
-   * endpoint information needs to be written to the vertex
-   * table via {@link VertexTableWrapper}.
-   * @param id
-   * @param outVertex
-   * @param inVertex
-   * @param label
-   */
-  public void writeEdge(Edge edge) {
-    Mutators.apply(getWriter(), new AddEdgeMutator(edge));
+  @Override
+  public Iterable<Mutation> create() {
+    String inVertexId = edge.getVertex(Direction.IN).getId().toString();
+    String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
+
+    Mutation m = new Mutation(edge.getId().toString());
+
+    String cq = inVertexId + AccumuloGraph.IDDELIM + outVertexId;
+    m.put(AccumuloGraph.LABEL, cq.getBytes(),
+        AccumuloByteSerializer.serialize(edge.getLabel()));
+    return Lists.newArrayList(m);
   }
 }

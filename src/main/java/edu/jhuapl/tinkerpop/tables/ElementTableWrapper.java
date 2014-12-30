@@ -19,10 +19,8 @@ import java.util.Set;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.IteratorSetting;
-import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
@@ -33,8 +31,10 @@ import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
-import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.mutator.property.ClearPropertyMutator;
+import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
+import edu.jhuapl.tinkerpop.mutator.Mutators;
 
 /**
  * Wrapper around tables with operations
@@ -170,14 +170,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @param key
    */
   public void clearProperty(Element element, String key) {
-    try {
-      Mutation m = new Mutation(element.getId().toString());
-      m.putDelete(key.getBytes(), AccumuloGraph.EMPTY);
-      getWriter().addMutation(m);
-
-    } catch (MutationsRejectedException e) {
-      throw new AccumuloGraphException(e);
-    }
+    Mutators.apply(getWriter(), new ClearPropertyMutator(element, key));
   }
 
   /**
@@ -187,14 +180,8 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @param value
    */
   public void writeProperty(Element element, String key, Object value) {
-    byte[] bytes = AccumuloByteSerializer.serialize(value);
-    Mutation m = new Mutation(element.getId().toString());
-    m.put(key.getBytes(), AccumuloGraph.EMPTY, bytes);
-    try {
-      getWriter().addMutation(m);
-    } catch (MutationsRejectedException e) {
-      throw new AccumuloGraphException(e);
-    }
+    Mutators.apply(getWriter(),
+        new WritePropertyMutator(element, key, value));
   }
 
   /**
@@ -212,8 +199,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
     }
 
     IteratorSetting is = new IteratorSetting(10, "edgeValueFilter", RegExFilter.class);
-    RegExFilter.setRegexs(is, null, null, null,
-        regex.toString(), false);
+    RegExFilter.setRegexs(is, null, null, null, regex.toString(), false);
     scan.addScanIterator(is);
   }
 

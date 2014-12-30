@@ -9,37 +9,25 @@
  *                                                                            *
  * For any other permissions, please contact the Legal Office at JHU/APL.     *
  ******************************************************************************/
-package edu.jhuapl.tinkerpop.tables;
+package edu.jhuapl.tinkerpop.mutator.vertex;
 
-import com.tinkerpop.blueprints.Edge;
+import org.apache.accumulo.core.data.Mutation;
 
-import edu.jhuapl.tinkerpop.GlobalInstances;
-import edu.jhuapl.tinkerpop.mutator.Mutators;
-import edu.jhuapl.tinkerpop.mutator.edge.AddEdgeMutator;
+import com.google.common.collect.Lists;
+import com.tinkerpop.blueprints.Vertex;
 
+import edu.jhuapl.tinkerpop.AccumuloGraph;
 
-/**
- * Wrapper around {@link Edge} tables.
- */
-public class EdgeTableWrapper extends ElementTableWrapper {
+public class AddVertexMutator extends BaseVertexMutator {
 
-  public EdgeTableWrapper(GlobalInstances globals) {
-    super(globals, globals.getConfig().getEdgeTableName());
+  public AddVertexMutator(Vertex vertex) {
+    super(vertex);
   }
 
-  /**
-   * Write the given edge to the edge table. Does not
-   * currently write the edge's properties.
-   * 
-   * <p/>Note: This only adds the edge information. Vertex
-   * endpoint information needs to be written to the vertex
-   * table via {@link VertexTableWrapper}.
-   * @param id
-   * @param outVertex
-   * @param inVertex
-   * @param label
-   */
-  public void writeEdge(Edge edge) {
-    Mutators.apply(getWriter(), new AddEdgeMutator(edge));
+  @Override
+  public Iterable<Mutation> create() {
+    Mutation m = new Mutation((String) vertex.getId());
+    m.put(AccumuloGraph.LABEL, AccumuloGraph.EXISTS, AccumuloGraph.EMPTY);
+    return Lists.newArrayList(m);
   }
 }

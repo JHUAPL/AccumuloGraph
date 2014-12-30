@@ -13,10 +13,8 @@ package edu.jhuapl.tinkerpop.tables;
 
 import java.util.Map.Entry;
 
-import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.util.PeekingIterator;
@@ -27,9 +25,11 @@ import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
-import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
+import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
+import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.mutator.edge.AddEdgeEndpointsMutator;
 
 
 /**
@@ -47,13 +47,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
    * @param id
    */
   public void writeVertex(Vertex vertex) {
-    Mutation m = new Mutation((String) vertex.getId());
-    m.put(AccumuloGraph.LABEL, AccumuloGraph.EXISTS, AccumuloGraph.EMPTY);
-    try {
-      getWriter().addMutation(m);
-    } catch (MutationsRejectedException e) {
-      throw new AccumuloGraphException(e);
-    }
+    Mutators.apply(getWriter(), new AddVertexMutator(vertex));
   }
 
   /**
@@ -64,24 +58,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
    * @param label
    */
   public void writeEdgeEndpoints(Edge edge) {
-    String inVertexId = edge.getVertex(Direction.IN).getId().toString();
-    String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
-    try {
-      Mutation m = new Mutation(inVertexId);
-      m.put(AccumuloGraph.INEDGE,
-          (outVertexId + AccumuloGraph.IDDELIM + edge.getId()).getBytes(),
-          (AccumuloGraph.IDDELIM + edge.getLabel()).getBytes());
-      getWriter().addMutation(m);
-
-      m = new Mutation(outVertexId);
-      m.put(AccumuloGraph.OUTEDGE,
-          (inVertexId + AccumuloGraph.IDDELIM + edge.getId()).getBytes(),
-          (AccumuloGraph.IDDELIM + edge.getLabel()).getBytes());
-      getWriter().addMutation(m);
-
-    } catch (MutationsRejectedException e) {
-      throw new AccumuloGraphException(e);
-    }
+    Mutators.apply(getWriter(), new AddEdgeEndpointsMutator(edge));
   }
 
   public Iterable<Edge> getEdges(String vertexId, Direction direction,
