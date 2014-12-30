@@ -28,7 +28,7 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   @Override
   public Iterable<Edge> getEdges(Direction direction, String... labels) {
-    return globals.getVertexWrapper().getEdges(id, direction, labels);
+    return globals.getVertexWrapper().getEdges(this, direction, labels);
   }
 
   @Override

@@ -62,10 +62,10 @@ public class VertexTableWrapper extends ElementTableWrapper {
     Mutators.apply(getWriter(), new EdgeEndpointsMutator.Delete(edge));
   }
 
-  public Iterable<Edge> getEdges(String vertexId, Direction direction,
+  public Iterable<Edge> getEdges(Vertex vertex, Direction direction,
       String... labels) {
     Scanner scan = getScanner();
-    scan.setRange(new Range(vertexId));
+    scan.setRange(new Range(vertex.getId().toString()));
     if (direction.equals(Direction.IN)) {
       scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
     } else if (direction.equals(Direction.OUT)) {
