@@ -42,7 +42,6 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
-import org.apache.accumulo.core.util.Pair;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
@@ -848,12 +847,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   // methods used by AccumuloElement, AccumuloVertex, AccumuloEdge to interact
   // with the backing Accumulo data store...
 
-  <T> Pair<Integer, T> getProperty(Class<? extends Element> type,
-      Element element, String key) {
-    T value = getElementTableWrapper(type).readProperty(element, key);
-    return new Pair<Integer, T>(config.getPropertyCacheTimeout(key), value);
-  }
-
   void preloadProperties(AccumuloElement element, Class<? extends Element> type) {
     String[] toPreload = config.getPreloadedProperties();
     if (toPreload == null) {
@@ -884,10 +877,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     s.close();
   }
 
-  Set<String> getPropertyKeys(Class<? extends Element> type, Element element) {
-    return getElementTableWrapper(type).readPropertyKeys(element);
-  }
-
   /**
    * Sets the property. Requires a round-trip to Accumulo to see if the property exists
    * iff the provided key has an index. Therefore, for best performance, if at
@@ -906,7 +895,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       if (config.getAutoIndex() || getIndexedKeys(type).contains(key)) {
         BatchWriter bw = getIndexBatchWriter(type);
-        Object old = getProperty(type, element, key).getSecond();
+        Object old = element.getProperty(key);
         if (old != null) {
           byte[] oldByteVal = AccumuloByteSerializer.serialize(old);
           m = new Mutation(oldByteVal);
@@ -942,7 +931,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
     }
 
-    T obj = (T) getProperty(type, element, key).getSecond();
+    T obj = element.getProperty(key);
     try {
       if (obj != null) {
         getElementTableWrapper(type).clearProperty(element, key);
@@ -957,19 +946,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       e.printStackTrace();
     }
     return obj;
-  }
-
-  private void applyRegexValueFilter(Scanner scan, String... labels) {
-    StringBuilder regex = new StringBuilder();
-    for (String lab : labels) {
-      if (regex.length() != 0)
-        regex.append("|");
-      regex.append(".*_\\Q").append(lab).append("\\E$");
-    }
-
-    IteratorSetting is = new IteratorSetting(10, "getEdgeFilter", RegExFilter.class);
-    RegExFilter.setRegexs(is, null, null, null, regex.toString(), false);
-    scan.addScanIterator(is);
   }
 
   Vertex getEdgeVertex(String edgeId, Direction direction) {

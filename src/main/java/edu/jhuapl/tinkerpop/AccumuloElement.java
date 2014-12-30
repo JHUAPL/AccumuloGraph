@@ -16,9 +16,6 @@ package edu.jhuapl.tinkerpop;
 
 import java.util.Map;
 import java.util.Set;
-
-import org.apache.accumulo.core.util.Pair;
-
 import com.tinkerpop.blueprints.Element;
 
 public abstract class AccumuloElement implements Element {
@@ -30,57 +27,66 @@ public abstract class AccumuloElement implements Element {
 
   private PropertyCache propertyCache;
 
-  protected AccumuloElement(GlobalInstances globals, String id, Class<? extends Element> type) {
+  protected AccumuloElement(GlobalInstances globals,
+      String id, Class<? extends Element> type) {
     this.globals = globals;
     this.id = id;
     this.type = type;
   }
 
-  @Override
-  public <T> T getProperty(String key) {
+  /**
+   * Create properties cache if it doesn't exist,
+   * and preload any properties.
+   */
+  private void makeCache() {
     if (propertyCache == null) {
-      // Lazily create the properties cache.
-      // We will create it here just in case the parent does not actually
-      // pre-load any data. Note it also may be created in the
-      // cacheProperty method, as well, in the event a class pre-loads
-      // data before a call is made to obtain it.
       propertyCache = new PropertyCache(globals.getConfig());
 
-      globals.getGraph().preloadProperties(this, type);
-    }
-
-    T val = propertyCache.get(key);
-    if (val != null) {
-      return val;
-    } else {
-      Pair<Integer, T> pair = globals.getGraph().getProperty(type, this, key);
-      if (pair.getFirst() != null) {
-        cacheProperty(key, pair.getSecond());
+      // Preload any keys, if needed.
+      String[] preloadKeys = globals.getConfig().getPreloadedProperties();
+      if (preloadKeys != null) {
+        propertyCache.putAll(globals.getElementWrapper(type)
+            .readProperties(this, preloadKeys));
       }
-      return pair.getSecond();
     }
   }
 
+  @Override
+  public <T> T getProperty(String key) {
+    makeCache();
+
+    // Get from property cache.
+    T value = propertyCache.get(key);
+
+    // If not cached, get it from the backing table.
+    if (value == null) {
+      value = globals.getElementWrapper(type).readProperty(this, key);
+    }
+
+    // Cache the new value.
+    if (value != null) {
+      propertyCache.put(key, value);
+    }
+
+    return value;
+  }
+
+  @Override
   public Set<String> getPropertyKeys() {
-    return globals.getGraph().getPropertyKeys(type, this);
+    return globals.getElementWrapper(type).readPropertyKeys(this);
   }
 
   @Override
   public void setProperty(String key, Object value) {
+    makeCache();
     globals.getGraph().setProperty(type, this, key, value);
-    cacheProperty(key, value);
+    propertyCache.put(key, value);
   }
 
   @Override
   public <T> T removeProperty(String key) {
-    if (propertyCache != null) {
-      // we have the cached value but we still need to pass this on to the
-      // parent so it can actually remove the data from the backing store.
-      // Since we have to do that anyway, we will use the parent's value
-      // instead of the cache value to to be as up-to-date as possible.
-      // Of course we still need to clear out the cached value...
-      propertyCache.remove(key);
-    }
+    makeCache();
+    propertyCache.remove(key);
     return globals.getGraph().removeProperty(type, this, key);
   }
 
@@ -98,21 +104,29 @@ public abstract class AccumuloElement implements Element {
     } else if (!obj.getClass().equals(getClass())) {
       return false;
     } else {
-      return this.id.equals(((AccumuloElement) obj).id);
+      return id.equals(((AccumuloElement) obj).id);
     }
   }
 
+  @Override
   public int hashCode() {
     return getClass().hashCode() ^ id.hashCode();
   }
 
+  /**
+   * @deprecated This is used in {@link AccumuloGraph} but needs to go away.
+   * @param key
+   * @param value
+   */
   void cacheProperty(String key, Object value) {
-    if (propertyCache == null) {
-      propertyCache = new PropertyCache(globals.getConfig());
-    }
+    makeCache();
     propertyCache.put(key, value);
   }
 
+  /**
+   * @deprecated This is used in {@link AccumuloGraph} but needs to go away.
+   * @param props
+   */
   void cacheAllProperties(Map<String, Object> props) {
     for (String key : props.keySet()) {
       cacheProperty(key, props.get(key));

@@ -42,6 +42,12 @@ public class PropertyCache {
         timeout != null ? System.currentTimeMillis() + timeout : null));
   }
 
+  public void putAll(Map<String, Object> entries) {
+    for (String key : entries.keySet()) {
+      put(key, entries.get(key));
+    }
+  }
+
   public <T> T get(String key) {
     long now = System.currentTimeMillis();
 

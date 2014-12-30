@@ -13,7 +13,12 @@ package edu.jhuapl.tinkerpop;
 
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 
+import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.Vertex;
+
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
+import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
 /**
@@ -56,6 +61,16 @@ public class GlobalInstances {
 
   public EdgeTableWrapper getEdgeWrapper() {
     return edgeWrapper;
+  }
+
+  public <T extends Element> ElementTableWrapper getElementWrapper(Class<T> clazz) {
+    if (Vertex.class.equals(clazz)) {
+      return vertexWrapper;
+    } else if (Edge.class.equals(clazz)) {
+      return edgeWrapper;
+    } else {
+      throw new AccumuloGraphException("Unrecognized class: "+clazz);
+    }
   }
 
   public ElementCaches getCaches() {
