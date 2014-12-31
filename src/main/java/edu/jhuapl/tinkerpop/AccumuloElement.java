@@ -79,7 +79,11 @@ public abstract class AccumuloElement implements Element {
   @Override
   public void setProperty(String key, Object value) {
     makeCache();
-    globals.getGraph().setProperty(type, this, key, value);
+    globals.getGraph().setPropertyForIndexes(type, this, key, value);
+    // MDL 31 Dec 2014:  The above calls getProperty, so this
+    //   order is important (for now).
+    globals.getElementWrapper(type).writeProperty(this, key, value);
+    globals.getGraph().checkedFlush();
     propertyCache.put(key, value);
   }
 

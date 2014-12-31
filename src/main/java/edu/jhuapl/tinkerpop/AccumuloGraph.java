@@ -838,7 +838,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
-  private void checkedFlush() {
+  void checkedFlush() {
     if (config.getAutoFlush()) {
       flush();
     }
@@ -858,30 +858,25 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @param key
    * @param val
    */
-  void setProperty(Class<? extends Element> type, Element element, String key, Object val) {
+  void setPropertyForIndexes(Class<? extends Element> type, Element element, String key, Object val) {
     checkProperty(key, val);
     try {
-      byte[] newByteVal = AccumuloByteSerializer.serialize(val);
-      Mutation m = null;
-
       if (config.getAutoIndex() || getIndexedKeys(type).contains(key)) {
+        byte[] newByteVal = AccumuloByteSerializer.serialize(val);
+
         BatchWriter bw = getIndexBatchWriter(type);
         Object old = element.getProperty(key);
         if (old != null) {
           byte[] oldByteVal = AccumuloByteSerializer.serialize(old);
-          m = new Mutation(oldByteVal);
+          Mutation m = new Mutation(oldByteVal);
           m.putDelete(key, element.getId().toString());
           bw.addMutation(m);
         }
-        m = new Mutation(newByteVal);
+        Mutation m = new Mutation(newByteVal);
         m.put(key.getBytes(), element.getId().toString().getBytes(), EMPTY);
         bw.addMutation(m);
         checkedFlush();
       }
-
-      getElementTableWrapper(type).writeProperty(element, key, val);
-
-      checkedFlush();
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
