@@ -838,6 +838,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  /**
+   * @deprecated Move this somewhere appropriate
+   */
   void checkedFlush() {
     if (config.getAutoFlush()) {
       flush();
@@ -899,16 +902,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @param key
    * @return
    */
-  <T> T removeProperty(Class<? extends Element> type, Element element, String key) {
-    if (StringFactory.LABEL.equals(key) || SLABEL.equals(key)) {
-      throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
-    }
-
-    T obj = element.getProperty(key);
+  void removePropertyFromIndex(Class<? extends Element> type, Element element,
+      String key, Object obj) {
     try {
       if (obj != null) {
-        getElementTableWrapper(type).clearProperty(element, key);
-
         byte[] val = AccumuloByteSerializer.serialize(obj);
         Mutation m = new Mutation(val);
         m.putDelete(key, element.getId().toString());
@@ -918,7 +915,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
-    return obj;
   }
 
   /**

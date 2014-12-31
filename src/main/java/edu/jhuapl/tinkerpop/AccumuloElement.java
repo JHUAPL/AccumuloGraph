@@ -16,7 +16,9 @@ package edu.jhuapl.tinkerpop;
 
 import java.util.Map;
 import java.util.Set;
+
 import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.util.StringFactory;
 
 public abstract class AccumuloElement implements Element {
 
@@ -89,13 +91,23 @@ public abstract class AccumuloElement implements Element {
 
   @Override
   public <T> T removeProperty(String key) {
+    if (StringFactory.LABEL.equals(key) ||
+        AccumuloGraph.SLABEL.equals(key)) {
+      throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
+    }
+
     makeCache();
-    T old = globals.getGraph().removeProperty(type, this, key);
+    T value = getProperty(key);
+    if (value != null) {
+      globals.getElementWrapper(type).clearProperty(this, key);
+      globals.getGraph().checkedFlush();
+    }
+    globals.getGraph().removePropertyFromIndex(type, this, key, value);
     // MDL 31 Dec 2014:  AccumuloGraph.removeProperty
     //   calls getProperty which populates the cache.
     //   So the order here is important (for now).
     propertyCache.remove(key);
-    return old;
+    return value;
   }
 
   @Override
