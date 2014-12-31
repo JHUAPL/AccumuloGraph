@@ -885,10 +885,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
-  private ElementTableWrapper getElementTableWrapper(Class<? extends Element> type) {
-    return type.equals(Vertex.class) ? vertexWrapper : edgeWrapper;
-  }
-
   private BatchWriter getIndexBatchWriter(Class<? extends Element> type) {
     if (type.equals(Edge.class))
       return getEdgeIndexWriter();
