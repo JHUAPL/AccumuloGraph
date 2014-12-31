@@ -16,6 +16,7 @@ package edu.jhuapl.tinkerpop;
 
 import java.util.Map;
 import java.util.Set;
+
 import com.tinkerpop.blueprints.Element;
 
 public abstract class AccumuloElement implements Element {
@@ -78,16 +79,27 @@ public abstract class AccumuloElement implements Element {
 
   @Override
   public void setProperty(String key, Object value) {
+    globals.getGraph().checkProperty(key, value);
+
     makeCache();
-    globals.getGraph().setProperty(type, this, key, value);
     propertyCache.put(key, value);
+    globals.getElementWrapper(type).writeProperty(this, key, value);
+
+    globals.getGraph().setPropertyForIndexes(type, this, key, value);
   }
 
   @Override
   public <T> T removeProperty(String key) {
+    T old = getProperty(key);
+
     makeCache();
     propertyCache.remove(key);
-    return globals.getGraph().removeProperty(type, this, key);
+
+    globals.getElementWrapper(type).clearProperty(this, key);
+
+    globals.getGraph().removePropertyFromIndex(type, this, key, old);
+
+    return old;
   }
 
   @Override
@@ -111,6 +123,14 @@ public abstract class AccumuloElement implements Element {
   @Override
   public int hashCode() {
     return getClass().hashCode() ^ id.hashCode();
+  }
+
+  /**
+   * Internal method for unit tests.
+   * @return
+   */
+  PropertyCache getPropertyCache() {
+    return propertyCache;
   }
 
   /**

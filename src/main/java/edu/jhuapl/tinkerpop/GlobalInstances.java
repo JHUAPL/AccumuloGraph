@@ -12,6 +12,7 @@
 package edu.jhuapl.tinkerpop;
 
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
+import org.apache.accumulo.core.client.MutationsRejectedException;
 
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
@@ -75,6 +76,19 @@ public class GlobalInstances {
 
   public ElementCaches getCaches() {
     return caches;
+  }
+
+  /**
+   * Flush the writer, if autoflush is enabled.
+   */
+  public void checkedFlush() {
+    if (config.getAutoFlush()) {
+      try {
+        mtbw.flush();
+      } catch (MutationsRejectedException e) {
+        throw new AccumuloGraphException(e);
+      }
+    }
   }
 
   /**

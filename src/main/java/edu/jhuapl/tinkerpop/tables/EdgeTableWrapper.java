@@ -38,9 +38,11 @@ public class EdgeTableWrapper extends ElementTableWrapper {
    */
   public void writeEdge(Edge edge) {
     Mutators.apply(getWriter(), new EdgeMutator.Add(edge));
+    globals.checkedFlush();
   }
 
   public void deleteEdge(Edge edge) {
     Mutators.apply(getWriter(), new EdgeMutator.Delete(edge));
+    globals.checkedFlush();
   }
 }

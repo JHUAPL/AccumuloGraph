@@ -49,6 +49,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
    */
   public void writeVertex(Vertex vertex) {
     Mutators.apply(getWriter(), new AddVertexMutator(vertex));
+    globals.checkedFlush();
   }
 
   /**
@@ -57,10 +58,12 @@ public class VertexTableWrapper extends ElementTableWrapper {
    */
   public void writeEdgeEndpoints(Edge edge) {
     Mutators.apply(getWriter(), new EdgeEndpointsMutator.Add(edge));
+    globals.checkedFlush();
   }
 
   public void deleteEdgeEndpoints(Edge edge) {
     Mutators.apply(getWriter(), new EdgeEndpointsMutator.Delete(edge));
+    globals.checkedFlush();
   }
 
   public Iterable<Edge> getEdges(Vertex vertex, Direction direction,
