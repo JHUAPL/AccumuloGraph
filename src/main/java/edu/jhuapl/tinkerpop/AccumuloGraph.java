@@ -834,7 +834,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     try {
       writer.flush();
     } catch (MutationsRejectedException e) {
-      e.printStackTrace();
+      throw new AccumuloGraphException(e);
     }
   }
 
@@ -847,41 +847,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   // methods used by AccumuloElement, AccumuloVertex, AccumuloEdge to interact
   // with the backing Accumulo data store...
 
-  void preloadProperties(AccumuloElement element, Class<? extends Element> type) {
-    String[] toPreload = config.getPreloadedProperties();
-    if (toPreload == null) {
-      return;
-    }
-
-    Scanner s = getElementScanner(type);
-    s.setRange(new Range(element.getId().toString()));
-
-    // user has requested specific properties...
-    Text colf = new Text("");
-    for (String key : toPreload) {
-      if (StringFactory.LABEL.equals(key)) {
-        colf.set(AccumuloGraph.LABEL);
-      } else {
-        colf.set(key);
-      }
-      s.fetchColumnFamily(colf);
-    }
-
-    Iterator<Entry<Key, Value>> iter = s.iterator();
-    // Integer timeout = config.getPropertyCacheTimeoutMillis(); // Change this
-    while (iter.hasNext()) {
-      Entry<Key,Value> entry = iter.next();
-      Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
-      element.cacheProperty(entry.getKey().getColumnFamily().toString(), val);
-    }
-    s.close();
-  }
-
   /**
    * Sets the property. Requires a round-trip to Accumulo to see if the property exists
    * iff the provided key has an index. Therefore, for best performance, if at
    * all possible, create indices after bulk ingest.
    * 
+   * @deprecated Move to appropriate place
    * @param type
    * @param id
    * @param key
@@ -926,6 +897,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return getVertexIndexWriter();
   }
 
+  /**
+   * @deprecated Move to appropriate place
+   * @param type
+   * @param element
+   * @param key
+   * @return
+   */
   <T> T removeProperty(Class<? extends Element> type, Element element, String key) {
     if (StringFactory.LABEL.equals(key) || SLABEL.equals(key)) {
       throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
@@ -948,6 +926,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return obj;
   }
 
+  /**
+   * @deprecated Move to appropriate place
+   * @param edgeId
+   * @param direction
+   * @return
+   */
   Vertex getEdgeVertex(String edgeId, Direction direction) {
     Scanner s = getElementScanner(Edge.class);
     try {
@@ -998,7 +982,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public String toString() {
-    return "accumulograph";
+    return AccumuloGraphConfiguration.ACCUMULO_GRAPH_CLASS.getSimpleName().toLowerCase();
   }
 
   @Override

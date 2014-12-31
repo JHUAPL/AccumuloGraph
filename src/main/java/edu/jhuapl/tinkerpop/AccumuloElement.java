@@ -86,8 +86,12 @@ public abstract class AccumuloElement implements Element {
   @Override
   public <T> T removeProperty(String key) {
     makeCache();
+    T old = globals.getGraph().removeProperty(type, this, key);
+    // MDL 31 Dec 2014:  AccumuloGraph.removeProperty
+    //   calls getProperty which populates the cache.
+    //   So the order here is important (for now).
     propertyCache.remove(key);
-    return globals.getGraph().removeProperty(type, this, key);
+    return old;
   }
 
   @Override
@@ -111,6 +115,14 @@ public abstract class AccumuloElement implements Element {
   @Override
   public int hashCode() {
     return getClass().hashCode() ^ id.hashCode();
+  }
+
+  /*
+   * Internal method for unit tests.
+   * @return
+   */
+  PropertyCache getPropertyCache() {
+    return propertyCache;
   }
 
   /**

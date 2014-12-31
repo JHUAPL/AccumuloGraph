@@ -13,6 +13,7 @@ package edu.jhuapl.tinkerpop;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Cache for storing element properties.
@@ -29,6 +30,14 @@ public class PropertyCache {
   public PropertyCache(AccumuloGraphConfiguration cfg) {
     this.cfg = cfg;
     this.values = new HashMap<String, TimedValue>();
+  }
+
+  public boolean containsKey(String key) {
+    return values.containsKey(key);
+  }
+
+  public Set<String> keySet() {
+    return values.keySet();
   }
 
   public void put(String key, Object value) {
@@ -74,6 +83,11 @@ public class PropertyCache {
     values.clear();
   }
 
+  @Override
+  public String toString() {
+    return values.toString();
+  }
+
   /**
    * Return the timeout for the given key.
    * Checks for a key-specific timeout
@@ -108,6 +122,11 @@ public class PropertyCache {
 
     public Long getExpiry() {
       return expiry;
+    }
+
+    @Override
+    public String toString() {
+      return "[" + value + ", " + expiry + "]";
     }
   }
 }
