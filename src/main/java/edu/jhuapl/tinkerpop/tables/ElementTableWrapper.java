@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
@@ -42,8 +43,19 @@ import edu.jhuapl.tinkerpop.mutator.Mutators;
  */
 public abstract class ElementTableWrapper extends BaseTableWrapper {
 
+  private BatchWriter writer;
+
   public ElementTableWrapper(GlobalInstances globals, String tableName) {
     super(globals, tableName);
+    writer = super.getWriter();
+  }
+
+  /**
+   * Give a single instance of the writer for this table.
+   */
+  @Override
+  protected BatchWriter getWriter() {
+    return writer;
   }
 
   /**
