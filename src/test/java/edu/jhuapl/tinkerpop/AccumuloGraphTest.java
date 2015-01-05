@@ -14,7 +14,12 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
+
+import org.apache.accumulo.core.client.AccumuloException;
+import org.apache.accumulo.core.client.AccumuloSecurityException;
+import org.apache.accumulo.core.client.TableNotFoundException;
 
 import com.tinkerpop.blueprints.EdgeTestSuite;
 import com.tinkerpop.blueprints.Graph;
@@ -114,7 +119,14 @@ public class AccumuloGraphTest extends GraphTest {
 
   public void dropGraph(final String graphDirectoryName) {
     if (graphDirectoryName != null) {
-      ((AccumuloGraph) generateGraph(graphDirectoryName)).clear();
+      AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig(graphDirectoryName);
+      try {
+        for (String table : cfg.getConnector().tableOperations().list()) {
+          cfg.getConnector().tableOperations().delete(table);
+        }
+      } catch (Exception e) {
+        throw new AccumuloGraphException(e);
+      }
     }
   }
 

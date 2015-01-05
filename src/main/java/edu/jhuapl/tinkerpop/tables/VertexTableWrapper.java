@@ -102,11 +102,13 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
         AccumuloEdge edge;
         if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
-          edge = new AccumuloEdge(globals, parts[1], label,
-              kv.getKey().getRow().toString(), parts[0]);
+          edge = new AccumuloEdge(globals, parts[1],
+              new AccumuloVertex(globals, kv.getKey().getRow().toString()),
+              new AccumuloVertex(globals, parts[0]), label);
         } else {
-          edge = new AccumuloEdge(globals, parts[1], label,
-              parts[0], kv.getKey().getRow().toString());
+          edge = new AccumuloEdge(globals, parts[1],
+              new AccumuloVertex(globals, parts[0]),
+              new AccumuloVertex(globals, kv.getKey().getRow().toString()), label);
         }
         globals.getCaches().cache(edge, Edge.class);
 
@@ -176,7 +178,10 @@ public class VertexTableWrapper extends ElementTableWrapper {
           entries.add(iterator.next());
         }
 
-        return parser.parse(rowId, entries);
+        AccumuloVertex vertex = parser.parse(rowId, entries);
+        globals.getCaches().cache(vertex, Vertex.class);
+
+        return vertex;
       }
     };
   }

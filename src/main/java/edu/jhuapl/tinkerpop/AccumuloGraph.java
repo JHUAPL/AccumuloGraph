@@ -46,7 +46,6 @@ import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 
-import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Features;
@@ -541,8 +540,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     String myID = id.toString();
 
-    AccumuloEdge edge = new AccumuloEdge(globals, myID,
-        label, inVertex, outVertex);
+    AccumuloEdge edge = new AccumuloEdge(globals, myID, inVertex, outVertex, label);
 
     // TODO we arent suppose to make sure the given edge ID doesn't already
     // exist?
@@ -590,26 +588,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     caches.cache(edge, Edge.class);
 
     return edge;
-  }
-
-  private void preloadProperties(Iterator<Entry<Key, Value>> iter, AccumuloElement e) {
-    while (iter.hasNext()) {
-      Entry<Key,Value> entry = iter.next();
-      Key key = entry.getKey();
-      String attr = key.getColumnFamily().toString();
-      if (SLABEL.equals(attr)) {
-        if (!key.getColumnQualifier().toString().equals(SEXISTS)) {
-          AccumuloEdge edge = (AccumuloEdge) e;
-          String[] ids = key.getColumnQualifier().toString().split("_");
-          edge.setInId(ids[0]);
-          edge.setOutId(ids[1]);
-          edge.setLabel(entry.getValue().toString());
-        }
-        continue;
-      }
-      Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
-      e.cacheProperty(attr, val);
-    }
   }
 
   @Override
@@ -664,34 +642,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Edge> getEdges() {
-    BatchScanner scan = getElementBatchScanner(Edge.class);
-    scan.fetchColumnFamily(TLABEL);
-
-    if (config.getPreloadedProperties() != null) {
-      for (String x : config.getPreloadedProperties()) {
-        scan.fetchColumnFamily(new Text(x));
-      }
-    }
-
-    return new ScannerIterable<Edge>(scan) {
-
-      @Override
-      public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
-        // TODO I dont know if this should work with a batch scanner....
-        Entry<Key,Value> entry = iterator.next();
-        AccumuloEdge edge = new AccumuloEdge(globals, entry.getKey().getRow().toString(), AccumuloByteSerializer
-            .deserialize(entry.getValue().get()).toString());
-
-        String rowid = entry.getKey().getRow().toString();
-        List<Entry<Key,Value>> vals = new ArrayList<Entry<Key,Value>>();
-        while (iterator.peek() != null && rowid.compareToIgnoreCase(iterator.peek().getKey().getRow().toString()) == 0) {
-          vals.add(iterator.next());
-        }
-        preloadProperties(vals.iterator(), edge);
-        caches.cache(edge, Edge.class);
-        return edge;
-      }
-    };
+    return globals.getEdgeWrapper().getEdges();
   }
 
   @Override
@@ -743,7 +694,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
             if (k.getColumnFamily().compareTo(AccumuloGraph.TLABEL) == 0) {
               String[] vals = k.getColumnQualifier().toString().split(AccumuloGraph.IDDELIM);
-              return new AccumuloEdge(globals, k.getRow().toString(), null, vals[0], vals[1]);
+              return new AccumuloEdge(globals, k.getRow().toString(),
+                  new AccumuloVertex(globals, vals[0]),
+                  new AccumuloVertex(globals, vals[1]), null);
             }
             return new AccumuloEdge(globals, k.getRow().toString());
           }
@@ -886,37 +839,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
-    }
-  }
-
-  /**
-   * @deprecated Move to appropriate place
-   * @param edgeId
-   * @param direction
-   * @return
-   */
-  Vertex getEdgeVertex(String edgeId, Direction direction) {
-    Scanner s = getElementScanner(Edge.class);
-    try {
-      s.setRange(new Range(edgeId));
-      s.fetchColumnFamily(TLABEL);
-      Iterator<Entry<Key,Value>> iter = s.iterator();
-      if (!iter.hasNext()) {
-        return null;
-      }
-      String id;
-      String val = iter.next().getKey().getColumnQualifier().toString();
-      if (direction == Direction.IN) {
-        id = val.split(IDDELIM)[0];
-      } else {
-        id = val.split(IDDELIM)[1];
-      }
-      Vertex v = new AccumuloVertex(globals, id);
-      caches.cache(v, Vertex.class);
-      return v;
-
-    } finally {
-      s.close();
     }
   }
 

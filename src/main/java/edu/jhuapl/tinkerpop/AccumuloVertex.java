@@ -20,6 +20,9 @@ import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
 import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 
+/**
+ * TODO
+ */
 public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   public AccumuloVertex(GlobalInstances globals, String id) {

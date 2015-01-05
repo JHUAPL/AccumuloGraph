@@ -17,68 +17,42 @@ package edu.jhuapl.tinkerpop;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.ExceptionFactory;
 import com.tinkerpop.blueprints.util.StringFactory;
 
+/**
+ * TODO
+ */
 public class AccumuloEdge extends AccumuloElement implements Edge {
 
-  String label;
-  String inId;
-  String outId;
-  Vertex inVertex;
-  Vertex outVertex;
+  private String label;
+  private Vertex inVertex;
+  private Vertex outVertex;
 
   public AccumuloEdge(GlobalInstances globals, String id) {
-    this(globals, id, null);
-  }
-
-  public AccumuloEdge(GlobalInstances globals, String id, String label) {
-    this(globals, id, label, (Vertex) null, (Vertex) null);
+    this(globals, id, null, null, null);
   }
 
   public AccumuloEdge(GlobalInstances globals, String id,
-      String label, Vertex inVertex, Vertex outVertex) {
+      Vertex inVertex, Vertex outVertex, String label) {
     super(globals, id, Edge.class);
     this.label = label;
     this.inVertex = inVertex;
     this.outVertex = outVertex;
   }
 
-  public AccumuloEdge(GlobalInstances globals, String id, String label, String inVertex, String outVertex) {
-    super(globals, id, Edge.class);
-    this.label = label;
-    this.inId = inVertex;
-    this.outId = outVertex;
-  }
-
   @Override
   public Vertex getVertex(Direction direction) throws IllegalArgumentException {
-    switch (direction) {
-      case IN:
-        if (inVertex == null) {
-          if (inId == null) {
-            inVertex = globals.getGraph().getEdgeVertex(id, direction);
-            inId = inVertex.getId().toString();
-          } else {
-            inVertex = globals.getGraph().getVertex(inId);
-          }
-        }
-        return inVertex;
-      case OUT:
-        if (outVertex == null) {
-          if (outId == null) {
-            outVertex = globals.getGraph().getEdgeVertex(id, direction);
-            outId = outVertex.getId().toString();
-          } else {
-            outVertex = globals.getGraph().getVertex(outId);
-          }
-        }
-        return outVertex;
-      case BOTH:
-        throw ExceptionFactory.bothIsNotSupported();
-      default:
-        throw new RuntimeException("Unexpected direction: " + direction);
+    if (!Direction.IN.equals(direction) && !Direction.OUT.equals(direction)) {
+      throw new IllegalArgumentException("Invalid direction: "+direction);
     }
+
+    // The vertex information needs to be loaded.
+    if (inVertex == null || outVertex == null || label == null) {
+      System.out.println("Loading information for edge: "+this);
+      globals.getEdgeWrapper().loadEndpointsAndLabel(this);
+    }
+
+    return Direction.IN.equals(direction) ? inVertex : outVertex;
   }
 
   @Override
@@ -95,28 +69,17 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     globals.getGraph().removeEdge(this);
   }
 
-  public String getInId() {
-    return inId;
+  public void setVertices(AccumuloVertex inVertex, AccumuloVertex outVertex) {
+    this.inVertex = inVertex;
+    this.outVertex = outVertex;
   }
 
-  public String getOutId() {
-    return outId;
-  }
-  
-  protected void setInId(String id){
-    inId = id;
-  }
-  
-  protected void setOutId(String id){
-    outId = id;
-  }
-  
-  protected void setLabel(String label){
+  public void setLabel(String label) {
     this.label = label;
   }
 
   @Override
   public String toString() {
-    return "[" + getId() + ":" + getVertex(Direction.OUT) + " -> " + getLabel() + " -> " + getVertex(Direction.IN) + "]";
+    return "[" + getId() + ":" + inVertex + " -> " + label + " -> " + outVertex + "]";
   }
 }
