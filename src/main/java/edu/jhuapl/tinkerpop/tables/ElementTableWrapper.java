@@ -11,7 +11,6 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -34,6 +33,7 @@ import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.mutator.property.ClearPropertyMutator;
+import edu.jhuapl.tinkerpop.mutator.property.PropertyUtils;
 import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 
@@ -106,47 +106,10 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
       s.fetchColumnFamily(new Text(key));
     }
 
-    Map<String, Object> props = parseProperties(s);
+    Map<String, Object> props = PropertyUtils.parseProperties(s);
     s.close();
 
     return props;
-  }
-
-  /**
-   * Parse raw Accumulo entries into a property map.
-   * If there are no entries, return null.
-   * @param entries
-   * @return
-   */
-  private Map<String, Object> parseProperties(Iterable<Entry<Key, Value>> entries) {
-    Map<String, Object> props = null;
-
-    for (Entry<Key, Value> entry : entries) {
-      if (props == null) {
-        props = new HashMap<String, Object>();
-      }
-
-      Key key = entry.getKey();
-
-      if (!isExistenceKey(key)) {
-        String attr = key.getColumnFamily().toString();
-        Object value = AccumuloByteSerializer.deserialize(entry.getValue().get());
-        props.put(attr, value);
-      }
-    }
-
-    return props;
-  }
-
-  /**
-   * Test whether the given Accumulo key represents an
-   * element's existence (i.e. not a property).
-   * @param key
-   * @return
-   */
-  private static boolean isExistenceKey(Key key) {
-    return AccumuloGraph.TLABEL.equals(key.getColumnFamily()) &&
-        AccumuloGraph.TEXISTS.equals(key.getColumnQualifier());
   }
 
   /**

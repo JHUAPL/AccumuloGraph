@@ -63,7 +63,6 @@ import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
-import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
 /**
@@ -464,30 +463,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Vertex> getVertices() {
-    Scanner scan = getElementScanner(Vertex.class);
-    scan.fetchColumnFamily(TLABEL);
-
-    if (config.getPreloadedProperties() != null) {
-      for (String x : config.getPreloadedProperties()) {
-        scan.fetchColumnFamily(new Text(x));
-      }
-    }
-    return new ScannerIterable<Vertex>(scan) {
-
-      @Override
-      public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
-        // TODO could also check local cache before creating a new instance?
-        AccumuloVertex vert = new AccumuloVertex(globals, iterator.peek().getKey().getRow().toString());
-
-        String rowid = iterator.next().getKey().getRow().toString();
-        List<Entry<Key,Value>> vals = new ArrayList<Entry<Key,Value>>();
-        while (iterator.peek() != null && rowid.compareToIgnoreCase(iterator.peek().getKey().getRow().toString()) == 0) {
-          vals.add(iterator.next());
-        }
-        preloadProperties(vals.iterator(), vert);
-        return vert;
-      }
-    };
+    return globals.getVertexWrapper().getVertices();
   }
 
   @Override

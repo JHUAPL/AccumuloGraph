@@ -20,6 +20,9 @@ import java.util.Set;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.util.StringFactory;
 
+/**
+ * TODO
+ */
 public abstract class AccumuloElement implements Element {
 
   protected GlobalInstances globals;
@@ -86,6 +89,17 @@ public abstract class AccumuloElement implements Element {
     //   order is important (for now).
     globals.getElementWrapper(type).writeProperty(this, key, value);
     globals.getGraph().checkedFlush();
+    setPropertyInMemory(key, value);
+  }
+
+  /**
+   * Set a property but only in the instantiated object,
+   * not in the backing store.
+   * @param key
+   * @param value
+   */
+  public void setPropertyInMemory(String key, Object value) {
+    makeCache();
     propertyCache.put(key, value);
   }
 
@@ -106,8 +120,18 @@ public abstract class AccumuloElement implements Element {
     // MDL 31 Dec 2014:  AccumuloGraph.removeProperty
     //   calls getProperty which populates the cache.
     //   So the order here is important (for now).
-    propertyCache.remove(key);
+    removePropertyInMemory(key);
     return value;
+  }
+
+  /**
+   * Remove a property but only in the instantiated
+   * object, not the backing store.
+   * @param key
+   */
+  public void removePropertyInMemory(String key) {
+    makeCache();
+    propertyCache.remove(key);
   }
 
   @Override

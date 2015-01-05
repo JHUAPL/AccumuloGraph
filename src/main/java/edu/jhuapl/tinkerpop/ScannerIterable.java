@@ -25,9 +25,12 @@ import org.apache.accumulo.core.util.PeekingIterator;
 
 import com.tinkerpop.blueprints.Element;
 
+/**
+ * TODO
+ */
 public abstract class ScannerIterable<T extends Element> implements Iterable<T>, Closeable {
 
-  ScannerBase scanner;
+  private ScannerBase scanner;
 
   public ScannerIterable(ScannerBase scanner) {
     this.scanner = scanner;

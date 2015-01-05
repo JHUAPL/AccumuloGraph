@@ -11,6 +11,9 @@
  ******************************************************************************/
 package edu.jhuapl.tinkerpop.tables;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.Scanner;
@@ -18,6 +21,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.util.PeekingIterator;
+import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
@@ -28,6 +32,7 @@ import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
+import edu.jhuapl.tinkerpop.mutator.property.PropertyUtils;
 import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.mutator.edge.EdgeEndpointsMutator;
@@ -110,7 +115,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
       }
     };
   }
-  
+
   public Iterable<Vertex> getVertices(Vertex vertex, Direction direction, String... labels) {
     Scanner scan = getScanner();
     scan.setRange(new Range(vertex.getId().toString()));
@@ -140,6 +145,43 @@ public class VertexTableWrapper extends ElementTableWrapper {
         AccumuloVertex vertex = new AccumuloVertex(globals, parts[0]);
         globals.getCaches().cache(vertex, Vertex.class);
 
+        return vertex;
+      }
+    };
+  }
+
+  public Iterable<Vertex> getVertices() {
+    Scanner scan = getScanner();
+    scan.fetchColumnFamily(AccumuloGraph.TLABEL);
+
+    if (globals.getConfig().getPreloadedProperties() != null) {
+      for (String key : globals.getConfig().getPreloadedProperties()) {
+        scan.fetchColumnFamily(new Text(key));
+      }
+    }
+
+    return new ScannerIterable<Vertex>(scan) {
+      @Override
+      public Vertex next(PeekingIterator<Entry<Key, Value>> iterator) {
+        // TODO could also check local cache before creating a new instance?
+        AccumuloVertex vertex = new AccumuloVertex(globals,
+            iterator.peek().getKey().getRow().toString());
+
+        String rowId = vertex.getId().toString();
+
+        List<Entry<Key, Value>> entries =
+            new ArrayList<Entry<Key, Value>>();
+
+        while (iterator.peek() != null && rowId.equals(iterator
+            .peek().getKey().getRow().toString())) {
+          entries.add(iterator.next());
+        }
+        
+        Map<String, Object> props = PropertyUtils.parseProperties(entries);
+        for (String key : props.keySet()) {
+          vertex.setPropertyInMemory(key, props.get(key));
+        }
+        
         return vertex;
       }
     };
