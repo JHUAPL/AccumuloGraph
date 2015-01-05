@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.util.StringFactory;
 
 public abstract class AccumuloElement implements Element {
 
@@ -79,27 +80,34 @@ public abstract class AccumuloElement implements Element {
 
   @Override
   public void setProperty(String key, Object value) {
-    globals.getGraph().checkProperty(key, value);
-
     makeCache();
-    propertyCache.put(key, value);
-    globals.getElementWrapper(type).writeProperty(this, key, value);
-
     globals.getGraph().setPropertyForIndexes(type, this, key, value);
+    // MDL 31 Dec 2014:  The above calls getProperty, so this
+    //   order is important (for now).
+    globals.getElementWrapper(type).writeProperty(this, key, value);
+    globals.getGraph().checkedFlush();
+    propertyCache.put(key, value);
   }
 
   @Override
   public <T> T removeProperty(String key) {
-    T old = getProperty(key);
+    if (StringFactory.LABEL.equals(key) ||
+        AccumuloGraph.SLABEL.equals(key)) {
+      throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
+    }
 
     makeCache();
+    T value = getProperty(key);
+    if (value != null) {
+      globals.getElementWrapper(type).clearProperty(this, key);
+      globals.getGraph().checkedFlush();
+    }
+    globals.getGraph().removePropertyFromIndex(type, this, key, value);
+    // MDL 31 Dec 2014:  AccumuloGraph.removeProperty
+    //   calls getProperty which populates the cache.
+    //   So the order here is important (for now).
     propertyCache.remove(key);
-
-    globals.getElementWrapper(type).clearProperty(this, key);
-
-    globals.getGraph().removePropertyFromIndex(type, this, key, old);
-
-    return old;
+    return value;
   }
 
   @Override
@@ -125,7 +133,7 @@ public abstract class AccumuloElement implements Element {
     return getClass().hashCode() ^ id.hashCode();
   }
 
-  /**
+  /*
    * Internal method for unit tests.
    * @return
    */

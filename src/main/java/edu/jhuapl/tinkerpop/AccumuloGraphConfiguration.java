@@ -43,6 +43,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
 
+import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.IndexableGraph;
 import com.tinkerpop.blueprints.KeyIndexableGraph;
 
@@ -70,13 +71,18 @@ implements Serializable {
 
 
   /**
+   * The {@link AccumuloGraph} class.
+   */
+  public static final Class<? extends Graph> ACCUMULO_GRAPH_CLASS = AccumuloGraph.class;
+
+  /**
    * The fully-qualified class name of the class that implements
    * the TinkerPop Graph interface.
    * This is used in a configuration object to tell the GraphFactory
    * which type to instantiate.
    */
   public static final String ACCUMULO_GRAPH_CLASSNAME =
-      AccumuloGraph.class.getCanonicalName();
+      ACCUMULO_GRAPH_CLASS.getCanonicalName();
 
   /**
    * An enumeration used by {@link AccumuloGraphConfiguration#setInstanceType(InstanceType)}
