@@ -28,15 +28,16 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
   Vertex inVertex;
   Vertex outVertex;
 
-  AccumuloEdge(GlobalInstances globals, String id) {
+  public AccumuloEdge(GlobalInstances globals, String id) {
     this(globals, id, null);
   }
 
-  AccumuloEdge(GlobalInstances globals, String id, String label) {
+  public AccumuloEdge(GlobalInstances globals, String id, String label) {
     this(globals, id, label, (Vertex) null, (Vertex) null);
   }
 
-  AccumuloEdge(GlobalInstances globals, String id, String label, Vertex inVertex, Vertex outVertex) {
+  public AccumuloEdge(GlobalInstances globals, String id,
+      String label, Vertex inVertex, Vertex outVertex) {
     super(globals, id, Edge.class);
     this.label = label;
     this.inVertex = inVertex;

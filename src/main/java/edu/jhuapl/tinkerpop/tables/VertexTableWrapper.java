@@ -13,7 +13,6 @@ package edu.jhuapl.tinkerpop.tables;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.Scanner;
@@ -32,10 +31,10 @@ import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
-import edu.jhuapl.tinkerpop.mutator.property.PropertyUtils;
 import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.mutator.edge.EdgeEndpointsMutator;
+import edu.jhuapl.tinkerpop.parser.VertexParser;
 
 
 /**
@@ -160,14 +159,14 @@ public class VertexTableWrapper extends ElementTableWrapper {
       }
     }
 
+    final VertexParser parser = new VertexParser(globals);
+
     return new ScannerIterable<Vertex>(scan) {
       @Override
       public Vertex next(PeekingIterator<Entry<Key, Value>> iterator) {
         // TODO could also check local cache before creating a new instance?
-        AccumuloVertex vertex = new AccumuloVertex(globals,
-            iterator.peek().getKey().getRow().toString());
 
-        String rowId = vertex.getId().toString();
+        String rowId = iterator.peek().getKey().getRow().toString();
 
         List<Entry<Key, Value>> entries =
             new ArrayList<Entry<Key, Value>>();
@@ -176,13 +175,8 @@ public class VertexTableWrapper extends ElementTableWrapper {
             .peek().getKey().getRow().toString())) {
           entries.add(iterator.next());
         }
-        
-        Map<String, Object> props = PropertyUtils.parseProperties(entries);
-        for (String key : props.keySet()) {
-          vertex.setPropertyInMemory(key, props.get(key));
-        }
-        
-        return vertex;
+
+        return parser.parse(rowId, entries);
       }
     };
   }
