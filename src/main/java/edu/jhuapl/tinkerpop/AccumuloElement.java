@@ -20,6 +20,8 @@ import java.util.Set;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.util.StringFactory;
 
+import edu.jhuapl.tinkerpop.cache.PropertyCache;
+
 /**
  * TODO
  */

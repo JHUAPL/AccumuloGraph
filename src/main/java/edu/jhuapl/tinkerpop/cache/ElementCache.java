@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop;
+package edu.jhuapl.tinkerpop.cache;
 
 import java.util.concurrent.TimeUnit;
 

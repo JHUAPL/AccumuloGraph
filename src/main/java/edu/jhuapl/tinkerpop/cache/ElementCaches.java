@@ -12,11 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop;
+package edu.jhuapl.tinkerpop.cache;
 
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
+
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
 
 /**
  * Utility class wrapping element caches.

@@ -12,11 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop;
+package edu.jhuapl.tinkerpop.cache;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 
 /**
  * Cache for storing element properties.

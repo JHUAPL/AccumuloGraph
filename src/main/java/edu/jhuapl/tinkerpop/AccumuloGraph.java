@@ -60,6 +60,7 @@ import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 import com.tinkerpop.blueprints.util.StringFactory;
 
+import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
