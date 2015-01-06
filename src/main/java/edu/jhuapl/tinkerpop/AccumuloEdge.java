@@ -14,6 +14,8 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import org.apache.log4j.Logger;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -23,6 +25,8 @@ import com.tinkerpop.blueprints.util.StringFactory;
  * TODO
  */
 public class AccumuloEdge extends AccumuloElement implements Edge {
+
+  private static final Logger log = Logger.getLogger(AccumuloEdge.class);
 
   private String label;
   private Vertex inVertex;
@@ -48,7 +52,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
 
     // The vertex information needs to be loaded.
     if (inVertex == null || outVertex == null || label == null) {
-      System.out.println("Loading information for edge: "+this);
+      log.debug("Loading information for edge: "+this);
       globals.getEdgeWrapper().loadEndpointsAndLabel(this);
     }
 
