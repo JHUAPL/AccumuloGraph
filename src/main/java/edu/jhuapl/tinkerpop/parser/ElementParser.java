@@ -22,17 +22,22 @@ import org.apache.accumulo.core.data.Value;
 
 import edu.jhuapl.tinkerpop.AccumuloElement;
 import edu.jhuapl.tinkerpop.GlobalInstances;
-import edu.jhuapl.tinkerpop.mutator.property.PropertyUtils;
 
 /**
  * TODO
  */
-public abstract class ElementParser<T extends AccumuloElement> {
+public abstract class ElementParser<T extends AccumuloElement> implements EntryParser<T> {
 
   protected GlobalInstances globals;
 
   public ElementParser(GlobalInstances globals) {
     this.globals = globals;
+  }
+
+  @Override
+  public T parse(Iterable<Entry<Key, Value>> entries) {
+    String id = entries.iterator().next().getKey().getRow().toString();
+    return parse(id, entries);
   }
 
   /**
@@ -51,7 +56,7 @@ public abstract class ElementParser<T extends AccumuloElement> {
    * @param entries
    */
   protected void setInMemoryProperties(T element, Iterable<Entry<Key, Value>> entries) {
-    Map<String, Object> props = PropertyUtils.parseProperties(entries);
+    Map<String, Object> props = new PropertyParser().parse(entries);
     for (String key : props.keySet()) {
       element.setPropertyInMemory(key, props.get(key));
     }

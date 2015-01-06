@@ -36,9 +36,9 @@ import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.mutator.property.ClearPropertyMutator;
-import edu.jhuapl.tinkerpop.mutator.property.PropertyUtils;
 import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.parser.PropertyParser;
 
 /**
  * Wrapper around tables with operations
@@ -109,7 +109,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
       s.fetchColumnFamily(new Text(key));
     }
 
-    Map<String, Object> props = PropertyUtils.parseProperties(s);
+    Map<String, Object> props = new PropertyParser().parse(s);
     s.close();
 
     return props;
