@@ -64,123 +64,61 @@ import com.tinkerpop.blueprints.util.StringFactory;
 
 /**
  * 
- * This is an implementation of Tinkerpop's Graph API backed by Apache Accumulo.
- * The implementation currently supports the {@link IndexableGraph}
- * and {@link KeyIndexableGraph} interfaces.
+ * This is an implementation of TinkerPop's graph API
+ * backed by Apache Accumulo. In addition to the basic
+ * Graph interface, the implementation
+ * supports {@link IndexableGraph} and {@link KeyIndexableGraph}.
  * 
- * It currently relies on 6 to N tables with the format.
- * Every index created by the indexable interface gets its own table.
+ * <p/>Tables have the following formats.
  * 
- * VertexTable
- * <table border=1>
- * <thead>
- * <tr>
- * <th>ROWID</th>
- * <th>COLFAM</th>
- * <th>COLQAL</th>
- * <th>VALUE</th>
- * </tr>
- * </thead> <tbody>
- * <tr>
- * <td>VertexID</td>
- * <td>LABEL</td>
- * <td>EXISTS</td>
- * <td>[empty]</td>
- * </tr>
- * <tr>
- * <td>VertexID</td>
- * <td>INEDGE</td>
- * <td>InVertedID_EdgeID</td>
- * <td>EdgeLabel</td>
- * </tr>
- * <tr>
- * <td>VertexID</td>
- * <td>OUTEDGE</td>
- * <td>OutVertedID_EdgeID</td>
- * <td>EdgeLabel</td>
- * </tr>
- * <tr>
- * <td>VertexID</td>
- * <td>PropertyKey</td>
- * <td>[empty]</td>
- * <td>PropertyValue</td>
- * </tr>
- * </tbody>
+ * <p/>
+ * <table border="1">
+ *  <caption>Vertex table</caption>
+ *  <thead>
+ *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
+ *  </thead>
+ *  <tbody>
+ *    <tr><td>VertexID</td><td>LABEL</td><td>EXISTS</td><td>[empty]</td></tr>
+ *    <tr><td>VertexID</td><td>INEDGE</td><td>InVertexID_EdgeID</td><td>EdgeLabel</td></tr>
+ *    <tr><td>VertexID</td><td>OUTEDGE</td><td>OutVertexID_EdgeID</td><td>EdgeLabel</td></tr>
+ *    <tr><td>VertexID</td><td>PropertyKey</td><td>[empty]</td><td>Encoded Value</td></tr>
+ *  </tbody>
  * </table>
  * 
- * EdgeTable
- * <table border=1>
- * <thead>
- * <tr>
- * <th>ROWID</th>
- * <th>COLFAM</th>
- * <th>COLQAL</th>
- * <th>VALUE</th>
- * </tr>
- * </thead> <tbody>
- * <tr>
- * <td>EdgeID</td>
- * <td>LABEL</td>
- * <td>[empty]</td>
- * <td>Encoded LabelValue</td>
- * </tr>
- * <tr>
- * <td>EdgeID</td>
- * <td>INEDGE</td>
- * <td>InVertedID</td>
- * <td>[empty]</td>
- * </tr>
- * <tr>
- * <td>EdgeID</td>
- * <td>OUTEDGE</td>
- * <td>OutVertedID</td>
- * <td>[empty]</td>
- * </tr>
- * <tr>
- * <td>EdgeID</td>
- * <td>PropertyKey</td>
- * <td>[empty]</td>
- * <td>Encoded Value</td>
- * </tr>
- * </tbody>
+ * <p/>
+ * <table border="1">
+ *  <caption>Edge table</caption>
+ *  <thead>
+ *    <tr> <th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
+ *  </thead>
+ *  <tbody>
+ *    <tr><td>EdgeID</td><td>LABEL</td><td>[empty]</td><td>Encoded LabelValue</td></tr>
+ *    <tr><td>EdgeID</td><td>INEDGE</td><td>InVertexID</td><td>[empty]</td></tr>
+ *    <tr><td>EdgeID</td><td>OUTEDGE</td><td>OutVertexID</td><td>[empty]</td></tr>
+ *    <tr><td>EdgeID</td><td>PropertyKey</td><td>[empty]</td><td>Encoded Value</td></tr>
+ *  </tbody>
  * </table>
  * 
- * VertexIndexTable/EdgeIndexTable
- * <table border=1>
- * <thead>
- * <tr>
- * <th>ROWID</th>
- * <th>COLFAM</th>
- * <th>COLQAL</th>
- * <th>VALUE</th>
- * </tr>
- * </thead> <tbody>
- * <tr>
- * <td>Encoded PropertyValue</td>
- * <td>PropertyKey</td>
- * <td>ElementID</td>
- * <td>[empty]</td>
- * </tr>
- * </tbody>
+ * <p/>
+ * <table border="1">
+ *  <caption>Vertex / edge index tables (each index gets its own table)</caption>
+ *  <thead>
+ *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
+ *  </thead>
+ *  <tbody>
+ *    <tr><td>Encoded Value</td><td>PropertyKey</td><td>ElementID</td><td>[empty]</td></tr>
+ *  </tbody>
  * </table>
  * 
- * MetadataTable/KeyMetadataTable
- * <table border=1>
- * <thead>
- * <tr>
- * <th>ROWID</th>
- * <th>COLFAM</th>
- * <th>COLQAL</th>
- * <th>VALUE</th>
- * </tr>
- * </thead> <tbody>
- * <tr>
- * <td>IndexName</td>
- * <td>IndexClassType</td>
- * <td>[empty]</td>
- * <td>[empty]</td>
- * </tr>
- * </tbody>
+ * <p/>
+ * <table border="1">
+ *  <caption>Metadata/key metadata tables</caption>
+ *  <thead>
+ *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
+ *  </thead>
+ *  <tbody>
+ *    <tr><td>IndexName</td><td>IndexClassType</td><td>[empty]</td><td>[empty]</td></tr>
+ *  </tbody>
  * </table>
  */
 public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
@@ -207,8 +145,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   BatchWriter vertexBW;
   BatchWriter edgeBW;
 
-  LruElementCache<Vertex> vertexCache;
-  LruElementCache<Edge> edgeCache;
+  ElementCache<Vertex> vertexCache;
+  ElementCache<Edge> edgeCache;
 
   public AccumuloGraph(Configuration cfg) {
     this(new AccumuloGraphConfiguration(cfg));
@@ -223,17 +161,21 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     config.validate();
     this.config = config;
 
-    if (config.useLruCache()) {
-      vertexCache = new LruElementCache<Vertex>(config.getLruMaxCapacity(), config.getVertexCacheTimeoutMillis());
+    if (config.getVertexCacheEnabled()) {
+      vertexCache = new ElementCache<Vertex>(config.getVertexCacheSize(),
+          config.getVertexCacheTimeout());
+    }
 
-      edgeCache = new LruElementCache<Edge>(config.getLruMaxCapacity(), config.getEdgeCacheTimeoutMillis());
+    if (config.getEdgeCacheEnabled()) {
+      edgeCache = new ElementCache<Edge>(config.getEdgeCacheSize(),
+          config.getEdgeCacheTimeout());
     }
   
     AccumuloGraphUtils.handleCreateAndClear(config);
     try {
       setupWriters();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
   }
 
@@ -258,7 +200,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         tableName = config.getVertexTable();
       return config.getConnector().createScanner(tableName, config.getAuthorizations());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
   }
 
@@ -335,53 +277,18 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       x.setRanges(Collections.singletonList(new Range()));
       return x;
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
   }
 
   // End Aliases
 
-  // For simplicity, I accept all property types. They are handled in not the
-  // best way. To be fixed later
-  Features f;
-
+  @Override
   public Features getFeatures() {
-    if (f == null) {
-      f = new Features();
-      f.ignoresSuppliedIds = true;
-      f.isPersistent = true;
-      f.isWrapper = false;
-      f.supportsBooleanProperty = true;
-      f.supportsDoubleProperty = true;
-      f.supportsDuplicateEdges = true;
-      f.supportsEdgeIndex = true;
-      f.supportsEdgeIteration = true;
-      f.supportsEdgeRetrieval = true;
-      f.supportsEdgeKeyIndex = true;
-      f.supportsEdgeProperties = true;
-      f.supportsFloatProperty = true;
-      f.supportsIndices = true;
-      f.supportsIntegerProperty = true;
-      f.supportsKeyIndices = true;
-      f.supportsLongProperty = true;
-      f.supportsMapProperty = true;
-      f.supportsMixedListProperty = true;
-      f.supportsPrimitiveArrayProperty = true;
-      f.supportsSelfLoops = true;
-      f.supportsSerializableObjectProperty = true;
-      f.supportsStringProperty = true;
-      f.supportsThreadedTransactions = false;
-      f.supportsTransactions = false;
-      f.supportsUniformListProperty = true;
-      f.supportsVertexIndex = true;
-      f.supportsVertexIteration = true;
-      f.supportsVertexKeyIndex = true;
-      f.supportsVertexProperties = true;
-      f.supportsThreadIsolatedTransactions = false;
-    }
-    return f;
+    return AccumuloFeatures.get();
   }
 
+  @Override
   public Vertex addVertex(Object id) {
     String myID;
     if (id == null) {
@@ -395,10 +302,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     Vertex vert = null;
-    if (!config.skipExistenceChecks()) {
+    if (!config.getSkipExistenceChecks()) {
       vert = getVertex(myID);
       if (vert != null) {
-        ExceptionFactory.vertexWithIdAlreadyExists(myID);
+        throw ExceptionFactory.vertexWithIdAlreadyExists(myID);
       }
     }
 
@@ -421,40 +328,35 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return vert;
   }
 
+  @Override
   public Vertex getVertex(Object id) {
     if (id == null) {
       throw ExceptionFactory.vertexIdCanNotBeNull();
     }
-    String myID;
-    try {
-      myID = (String) id;
-    } catch (ClassCastException e) {
-      return null;
-    }
+    String myID = id.toString();
 
-    Vertex vertex = null;
     if (vertexCache != null) {
-      vertex = vertexCache.retrieve(myID);
+      Vertex vertex = vertexCache.retrieve(myID);
       if (vertex != null) {
         return vertex;
       }
     }
 
-    vertex = new AccumuloVertex(this, myID);
+    Vertex vertex = new AccumuloVertex(this, myID);
 
     Scanner scan = null;
     try {
-      if (!config.skipExistenceChecks()) {
+      if (!config.getSkipExistenceChecks()) {
         // in addition to just an "existence" check, we will also load
         // any "preloaded" properties now, which saves us a round-trip
-        // to Accumulo later...
+        // to Accumulo later.
         scan = getElementScanner(Vertex.class);
         scan.setRange(new Range(myID));
         scan.fetchColumn(TLABEL, TEXISTS);
 
         String[] preload = config.getPreloadedProperties();
         if (preload != null) {
-          // user has requested specific properties...
+          // user has requested specific properties.
           Text colf = new Text("");
           for (String key : preload) {
             if (StringFactory.LABEL.equals(key)) {
@@ -486,11 +388,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return vertex;
   }
 
+  @Override
   public void removeVertex(Vertex vertex) {
     if (vertexCache != null) {
       vertexCache.remove(vertex.getId());
     }
-    if (!config.isIndexableGraphDisabled())
+    if (!config.getIndexableGraphDisabled())
       clearIndex(vertex.getId());
 
     Scanner scan = getElementScanner(Vertex.class);
@@ -506,7 +409,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       vertexdeleter = config.getConnector().createBatchDeleter(config.getVertexTable(), config.getAuthorizations(), config.getQueryThreads(),
           config.getBatchWriterConfig());
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
     Iterator<Entry<Key,Value>> iter = scan.iterator();
     List<Range> ranges = new ArrayList<Range>();
@@ -548,7 +451,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       vertexdeleter.setRanges(ranges);
       vertexdeleter.delete();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       if (edgedeleter != null)
         edgedeleter.close();
@@ -577,7 +480,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         del.addScanIterator(is);
         del.delete();
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw new AccumuloGraphException(e);
       } finally {
         if (del != null)
           del.close();
@@ -592,6 +495,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return TINEDGE;
   }
 
+  @Override
   public Iterable<Vertex> getVertices() {
     Scanner scan = getElementScanner(Vertex.class);
     scan.fetchColumnFamily(TLABEL);
@@ -619,9 +523,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     };
   }
 
+  @Override
   public Iterable<Vertex> getVertices(String key, Object value) {
     checkProperty(key, value);
-    if (config.isAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
+    if (config.getAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
       // Use the index
       Scanner s = getVertexIndexScanner();
       byte[] val = AccumuloByteSerializer.serialize(value);
@@ -641,10 +546,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           }
 
           v = (v == null ? new AccumuloVertex(AccumuloGraph.this, key.getColumnQualifier().toString()) : v);
-          int timeout = config.getPropertyCacheTimeoutMillis(key.getColumnFamily().toString());
-          if (timeout != -1) {
-            v.cacheProperty(key.getColumnFamily().toString(), AccumuloByteSerializer.desserialize(key.getRow().getBytes()), timeout);
-          }
+          v.cacheProperty(key.getColumnFamily().toString(),
+              AccumuloByteSerializer.deserialize(key.getRow().getBytes()));
 
           if (vertexCache != null) {
             vertexCache.cache(v);
@@ -675,10 +578,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
             }
 
             v = (v == null ? new AccumuloVertex(AccumuloGraph.this, kv.getKey().getRow().toString()) : v);
-            int timeout = config.getPropertyCacheTimeoutMillis(kv.getKey().getColumnFamily().toString());
-            if (timeout != -1) {
-              v.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.desserialize(kv.getValue().get()), timeout);
-            }
+            v.cacheProperty(kv.getKey().getColumnFamily().toString(),
+                AccumuloByteSerializer.deserialize(kv.getValue().get()));
 
             if (vertexCache != null) {
               vertexCache.cache(v);
@@ -693,6 +594,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public Edge addEdge(Object id, Vertex outVertex, Vertex inVertex, String label) {
     if (label == null) {
       throw ExceptionFactory.edgeLabelCanNotBeNull();
@@ -735,17 +637,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return edge;
   }
 
+  @Override
   public Edge getEdge(Object id) {
-    String myID;
     if (id == null) {
       throw ExceptionFactory.edgeIdCanNotBeNull();
-    } else {
-      try {
-        myID = (String) id;
-      } catch (ClassCastException e) {
-        return null;
-      }
     }
+    String myID = id.toString();
 
     Edge edge = null;
     if (edgeCache != null) {
@@ -755,7 +652,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
     }
     Scanner s;
-    if (!config.skipExistenceChecks()) {
+    if (!config.getSkipExistenceChecks()) {
       s = getElementScanner(Edge.class);
       s.setRange(new Range(myID, myID));
       s.fetchColumnFamily(TLABEL);
@@ -791,7 +688,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       Entry<Key,Value> entry = iter.next();
       Key key = entry.getKey();
       String attr = key.getColumnFamily().toString();
-      Integer timeout = config.getPropertyCacheTimeoutMillis(attr);
       if (SLABEL.equals(attr)) {
         if (!key.getColumnQualifier().toString().equals(SEXISTS)) {
           AccumuloEdge edge = (AccumuloEdge) e;
@@ -802,14 +698,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         }
         continue;
       }
-      Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
-      e.cacheProperty(attr, val, timeout);
-
+      Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
+      e.cacheProperty(attr, val);
     }
   }
 
+  @Override
   public void removeEdge(Edge edge) {
-    if (!config.isIndexableGraphDisabled())
+    if (!config.getIndexableGraphDisabled())
       clearIndex(edge.getId());
 
     if (edgeCache != null) {
@@ -860,13 +756,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       edgedeleter.setRanges(Collections.singleton(new Range(edge.getId().toString())));
       edgedeleter.delete();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       if (edgedeleter != null)
         edgedeleter.close();
     }
   }
 
+  @Override
   public Iterable<Edge> getEdges() {
     BatchScanner scan = getElementBatchScanner(Edge.class);
     scan.fetchColumnFamily(TLABEL);
@@ -884,7 +781,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         // TODO I dont know if this should work with a batch scanner....
         Entry<Key,Value> entry = iterator.next();
         AccumuloEdge edge = new AccumuloEdge(AccumuloGraph.this, entry.getKey().getRow().toString(), AccumuloByteSerializer
-            .desserialize(entry.getValue().get()).toString());
+            .deserialize(entry.getValue().get()).toString());
 
         String rowid = entry.getKey().getRow().toString();
         List<Entry<Key,Value>> vals = new ArrayList<Entry<Key,Value>>();
@@ -900,13 +797,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     };
   }
 
+  @Override
   public Iterable<Edge> getEdges(String key, Object value) {
     nullCheckProperty(key, value);
     if (key.equalsIgnoreCase("label")) {
       key = SLABEL;
     }
 
-    if (config.isAutoIndex() || getIndexedKeys(Edge.class).contains(key)) {
+    if (config.getAutoIndex() || getIndexedKeys(Edge.class).contains(key)) {
       // Use the index
       Scanner s = getEdgeIndexScanner();
       byte[] val = AccumuloByteSerializer.serialize(value);
@@ -924,10 +822,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           }
           e = (e == null ? new AccumuloEdge(AccumuloGraph.this, kv.getKey().getColumnQualifier().toString()) : e);
 
-          int timeout = config.getPropertyCacheTimeoutMillis(kv.getKey().getColumnFamily().toString());
-          if (timeout != -1) {
-            e.cacheProperty(kv.getKey().getColumnFamily().toString(), AccumuloByteSerializer.desserialize(kv.getKey().getRow().getBytes()), timeout);
-          }
+          e.cacheProperty(kv.getKey().getColumnFamily().toString(),
+                AccumuloByteSerializer.deserialize(kv.getKey().getRow().getBytes()));
 
           if (edgeCache != null) {
             edgeCache.cache(e);
@@ -968,10 +864,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   // TODO Eventually
+  @Override
   public GraphQuery query() {
     return new DefaultGraphQuery(this);
   }
 
+  @Override
   public void shutdown() {
     try {
       writer.close();
@@ -1014,7 +912,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       }
       setupWriters();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
 
   }
@@ -1033,7 +931,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   private void checkedFlush() {
-    if (config.isAutoFlush()) {
+    if (config.getAutoFlush()) {
       flush();
     }
   }
@@ -1055,10 +953,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     T toRet = null;
     Iterator<Entry<Key,Value>> iter = s.iterator();
     if (iter.hasNext()) {
-      toRet = AccumuloByteSerializer.desserialize(iter.next().getValue().get());
+      toRet = AccumuloByteSerializer.deserialize(iter.next().getValue().get());
     }
     s.close();
-    return new Pair<Integer,T>(config.getPropertyCacheTimeoutMillis(key), toRet);
+    return new Pair<Integer,T>(config.getPropertyCacheTimeout(key), toRet);
   }
 
   void preloadProperties(AccumuloElement element, Class<? extends Element> type) {
@@ -1085,9 +983,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     // Integer timeout = config.getPropertyCacheTimeoutMillis(); // Change this
     while (iter.hasNext()) {
       Entry<Key,Value> entry = iter.next();
-      Object val = AccumuloByteSerializer.desserialize(entry.getValue().get());
-      element
-          .cacheProperty(entry.getKey().getColumnFamily().toString(), val, config.getPropertyCacheTimeoutMillis(entry.getKey().getColumnFamily().toString()));
+      Object val = AccumuloByteSerializer.deserialize(entry.getValue().get());
+      element.cacheProperty(entry.getKey().getColumnFamily().toString(), val);
     }
     s.close();
   }
@@ -1111,21 +1008,22 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   /**
-   * Sets the property. Requires a round-trip to Accumulo to see if the property exists iff the provided key has an index. Therefore, for best performance if at
-   * all possible create indices after bulk ingest.
+   * Sets the property. Requires a round-trip to Accumulo to see if the property exists
+   * iff the provided key has an index. Therefore, for best performance, if at
+   * all possible, create indices after bulk ingest.
    * 
    * @param type
    * @param id
    * @param key
    * @param val
    */
-  Integer setProperty(Class<? extends Element> type, String id, String key, Object val) {
+  void setProperty(Class<? extends Element> type, String id, String key, Object val) {
     checkProperty(key, val);
     try {
       byte[] newByteVal = AccumuloByteSerializer.serialize(val);
       Mutation m = null;
 
-      if (config.isAutoIndex() || getIndexedKeys(type).contains(key)) {
+      if (config.getAutoIndex() || getIndexedKeys(type).contains(key)) {
         BatchWriter bw = getIndexBatchWriter(type);
         Object old = getProperty(type, id, key).getSecond();
         if (old != null) {
@@ -1148,7 +1046,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
     }
-    return config.getPropertyCacheTimeoutMillis(key);
   }
 
   private BatchWriter getBatchWriter(Class<? extends Element> type) {
@@ -1165,7 +1062,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   <T> T removeProperty(Class<? extends Element> type, String id, String key) {
     if (StringFactory.LABEL.equals(key) || SLABEL.equals(key)) {
-      throw new RuntimeException("Cannot remove the " + StringFactory.LABEL + " property.");
+      throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
     }
 
     T obj = (T) getProperty(type, id, key).getSecond();
@@ -1319,15 +1216,18 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public String toString() {
     return "accumulograph";
   }
 
-  public <T extends Element> Index<T> createIndex(String indexName, Class<T> indexClass, Parameter... indexParameters) {
+  @Override
+  public <T extends Element> Index<T> createIndex(String indexName,
+      Class<T> indexClass, Parameter... indexParameters) {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if (config.isIndexableGraphDisabled())
+    if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner s = this.getMetadataScanner();
@@ -1350,11 +1250,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  @Override
   public <T extends Element> Index<T> getIndex(String indexName, Class<T> indexClass) {
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if (config.isIndexableGraphDisabled())
+    if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
     Scanner scan = getScanner(config.getMetadataTable());
@@ -1378,7 +1279,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Index<? extends Element>> getIndices() {
-    if (config.isIndexableGraphDisabled())
+    if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();
     Scanner scan = getScanner(config.getMetadataTable());
@@ -1387,11 +1288,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
-        toRet.add(new AccumuloIndex(getClass(k.getColumnFamily().toString()), this, k.getRow().toString()));
+        toRet.add(new AccumuloIndex(getClass(k.getColumnFamily().toString()),
+            this, k.getRow().toString()));
       }
       return toRet;
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       scan.close();
     }
@@ -1406,7 +1308,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public void dropIndex(String indexName) {
-    if (config.isIndexableGraphDisabled())
+    if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     BatchDeleter deleter = null;
     try {
@@ -1415,15 +1317,16 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           config.getBatchWriterConfig());
       deleter.setRanges(Collections.singleton(new Range(indexName)));
       deleter.delete();
-      config.getConnector().tableOperations().delete(config.getName() + "_index_" + indexName);
+      config.getConnector().tableOperations().delete(config.getGraphName() + "_index_" + indexName);
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       if (deleter != null)
         deleter.close();
     }
   }
 
+  @Override
   public <T extends Element> void dropKeyIndex(String key, Class<T> elementClass) {
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
@@ -1446,7 +1349,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       bd.fetchColumnFamily(new Text(key));
       bd.delete();
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     } finally {
       if (bd != null)
         bd.close();
@@ -1454,7 +1357,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     checkedFlush();
   }
 
-  public <T extends Element> void createKeyIndex(String key, Class<T> elementClass, Parameter... indexParameters) {
+  @Override
+  public <T extends Element> void createKeyIndex(String key,
+      Class<T> elementClass, Parameter... indexParameters) {
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
@@ -1486,7 +1391,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           bw.addMutation(mu);
         } catch (MutationsRejectedException e) {
           // TODO handle this better.
-          throw new RuntimeException(e);
+          throw new AccumuloGraphException(e);
         }
       }
     } finally {
@@ -1496,6 +1401,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   }
 
+  @Override
   public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();

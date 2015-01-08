@@ -18,20 +18,33 @@ import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
 
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
 public class AccumuloGraphConfigurationTest {
+
+  @Test
+  public void testConfigurationInterface() throws Exception {
+    Configuration conf = AccumuloGraphTestUtils.generateGraphConfig("setPropsValid");
+    for (String key : AccumuloGraphConfiguration.getValidInternalKeys()) {
+      // This is bad... but we should allow them if they are valid keys.
+      conf.setProperty(key, "value");
+    }
+
+    conf = AccumuloGraphTestUtils.generateGraphConfig("setPropsInvalid");
+    try {
+      conf.setProperty("invalidKey", "value");
+      fail();
+    } catch (Exception e) { }
+  }
 
   @Test
   public void testSplits() throws Exception {
@@ -149,36 +162,99 @@ public class AccumuloGraphConfigurationTest {
   }
 
   @Test
-  public void testBulkIngester() throws Exception {
-    AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig("propertyBuilder").setClear(true);
+  public void testPrint() throws Exception {
+    AccumuloGraphConfiguration cfg =
+        AccumuloGraphTestUtils.generateGraphConfig("printTest");
+    cfg.print();
+  }
 
-    AccumuloBulkIngester ingester = new AccumuloBulkIngester(cfg);
+  @Test
+  public void testInvalidCacheParams() throws Exception {
+    int size = 100;
+    int timeout = 30000;
 
-    for (String t : cfg.getTableNames()) {
-      assertTrue(cfg.getConnector().tableOperations().exists(t));
+    AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils
+        .generateGraphConfig("cacheParams");
+    cfg.validate();
+
+
+    // Vertex cache.
+
+    assertFalse(cfg.getVertexCacheEnabled());
+
+    try {
+      cfg.setVertexCacheParams(-1, timeout);
+      fail();
+    } catch (Exception e) { }
+
+    try {
+      cfg.setVertexCacheParams(size, -1);
+      fail();
+    } catch (Exception e) { }
+
+    assertFalse(cfg.getVertexCacheEnabled());
+
+    cfg.setVertexCacheParams(size, timeout);
+    cfg.validate();
+    assertTrue(cfg.getVertexCacheEnabled());
+    assertEquals(size, cfg.getVertexCacheSize());
+    assertEquals(timeout, cfg.getVertexCacheTimeout());
+
+    cfg.setVertexCacheParams(-1, -1);
+    cfg.validate();
+    assertFalse(cfg.getVertexCacheEnabled());
+
+
+    // Edge cache.
+
+    assertFalse(cfg.getEdgeCacheEnabled());
+
+    try {
+      cfg.setEdgeCacheParams(-1, timeout);
+      fail();
+    } catch (Exception e) { }
+
+    try {
+      cfg.setEdgeCacheParams(size, -1);
+      fail();
+    } catch (Exception e) { }
+
+    assertFalse(cfg.getEdgeCacheEnabled());
+
+    cfg.setEdgeCacheParams(size, timeout);
+    cfg.validate();
+    assertTrue(cfg.getEdgeCacheEnabled());
+    assertEquals(size, cfg.getEdgeCacheSize());
+    assertEquals(timeout, cfg.getEdgeCacheTimeout());
+
+    cfg.setEdgeCacheParams(-1, -1);
+    cfg.validate();
+    assertFalse(cfg.getEdgeCacheEnabled());
+  }
+
+  /**
+   * Test different kinds of graph names (hyphens, punctuation, etc).
+   * @throws Exception
+   */
+  @Test
+  public void testGraphNames() throws Exception {
+    AccumuloGraphConfiguration conf = new AccumuloGraphConfiguration();
+
+    String[] valid = new String[] {
+        "alpha", "12345", "alnum12345",
+        "12345alnum", "under_score1", "_under_score_2"};
+    String[] invalid = new String[] {"hyph-en",
+        "dot..s", "quo\"tes"};
+
+    for (String name : valid) {
+      conf.setGraphName(name);
     }
 
-    ingester.addVertex("A").finish();
-    ingester.addVertex("B").add("P1", "V1").add("P2", "2").finish();
-    ingester.addEdge("A", "B", "edge").add("P3", "V3").finish();
-    ingester.shutdown(true);
-
-    cfg.setClear(false);
-    AccumuloGraph graph = new AccumuloGraph(cfg);
-    Vertex v1 = graph.getVertex("A");
-    assertNotNull(v1);
-
-    Iterator<Edge> it = v1.getEdges(Direction.OUT).iterator();
-    assertTrue(it.hasNext());
-
-    Edge e = it.next();
-    assertEquals("edge", e.getLabel());
-
-    Vertex v2 = e.getVertex(Direction.IN);
-    assertEquals("B", v2.getId());
-    assertEquals("V1", v2.getProperty("P1"));
-    assertEquals("2", v2.getProperty("P2"));
-
-    graph.shutdown();
+    for (String name : invalid) {
+      try {
+        conf.setGraphName(name);
+        fail();
+      } catch (Exception e) { }
+    }
   }
 }

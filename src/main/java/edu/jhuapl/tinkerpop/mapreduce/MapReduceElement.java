@@ -17,7 +17,6 @@ package edu.jhuapl.tinkerpop.mapreduce;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -108,7 +107,7 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
       String key = in.readUTF();
       byte[] data = new byte[in.readInt()];
       in.readFully(data);
-      Object val = AccumuloByteSerializer.desserialize(data);
+      Object val = AccumuloByteSerializer.deserialize(data);
       properties.put(key, val);
     }
 
@@ -117,7 +116,7 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
       String key = in.readUTF();
       byte[] data = new byte[in.readInt()];
       in.readFully(data);
-      Object val = AccumuloByteSerializer.desserialize(data);
+      Object val = AccumuloByteSerializer.deserialize(data);
       newProperties.put(key, val);
     }
 

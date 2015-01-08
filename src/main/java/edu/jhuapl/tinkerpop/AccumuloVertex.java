@@ -26,26 +26,32 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
     super(parent, id, Vertex.class);
   }
 
+  @Override
   public Iterable<Edge> getEdges(Direction direction, String... labels) {
     return parent.getEdges(id, direction, labels);
   }
 
+  @Override
   public Iterable<Vertex> getVertices(Direction direction, String... labels) {
     return parent.getVertices(id, direction, labels);
   }
 
+  @Override
   public VertexQuery query() {
     return new DefaultVertexQuery(this);
   }
 
+  @Override
   public Edge addEdge(String label, Vertex inVertex) {
     return parent.addEdge(null, this, inVertex, label);
   }
 
+  @Override
   public void remove() {
     parent.removeVertex(this);
   }
 
+  @Override
   public String toString() {
     return "[" + getId() + "]";
   }

@@ -14,8 +14,6 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Set;
 
 import org.apache.accumulo.core.util.Pair;
@@ -29,7 +27,7 @@ public abstract class AccumuloElement implements Element {
 
   private Class<? extends Element> type;
 
-  private Map<String,Pair<Long,Object>> propertiesCache;
+  private PropertyCache propertyCache;
 
   protected AccumuloElement(AccumuloGraph parent, String id, Class<? extends Element> type) {
     this.parent = parent;
@@ -37,61 +35,60 @@ public abstract class AccumuloElement implements Element {
     this.type = type;
   }
 
+  @Override
   public <T> T getProperty(String key) {
-    if (propertiesCache == null) {
-      // lazily create the properties cache...
-
-      // we will create it here just in case the parent does not actually
+    if (propertyCache == null) {
+      // Lazily create the properties cache.
+      // We will create it here just in case the parent does not actually
       // pre-load any data. Note it also may be created in the
       // cacheProperty method, as well, in the event a class pre-loads
       // data before a call is made to obtain it.
-      propertiesCache = new HashMap<String,Pair<Long,Object>>();
+      propertyCache = new PropertyCache(parent.config);
 
       parent.preloadProperties(this, type);
     }
 
-    Pair<Long,Object> val = propertiesCache.get(key);
+    T val = propertyCache.get(key);
     if (val != null) {
-      if (val.getFirst() < System.currentTimeMillis()) {
-        // this cached value has timed out..
-        propertiesCache.remove(key);
-      } else {
-        // the cached value is still good...
-        return (T) val.getSecond();
+      return val;
+    } else {
+      Pair<Integer, T> pair = parent.getProperty(type, id, key);
+      if (pair.getFirst() != null) {
+        cacheProperty(key, pair.getSecond());
       }
+      return pair.getSecond();
     }
-    Pair<Integer,T> pair = parent.getProperty(type, id, key);
-    if (pair.getFirst() != null) {
-      cacheProperty(key, pair.getSecond(), pair.getFirst());
-    }
-    return pair.getSecond();
   }
 
   public Set<String> getPropertyKeys() {
     return parent.getPropertyKeys(type, id);
   }
 
+  @Override
   public void setProperty(String key, Object value) {
-    Integer timeout = parent.setProperty(type, id, key, value);
-    cacheProperty(key, value, timeout);
+    parent.setProperty(type, id, key, value);
+    cacheProperty(key, value);
   }
 
+  @Override
   public <T> T removeProperty(String key) {
-    if (propertiesCache != null) {
+    if (propertyCache != null) {
       // we have the cached value but we still need to pass this on to the
       // parent so it can actually remove the data from the backing store.
       // Since we have to do that anyway, we will use the parent's value
       // instead of the cache value to to be as up-to-date as possible.
       // Of course we still need to clear out the cached value...
-      propertiesCache.remove(key);
+      propertyCache.remove(key);
     }
     return parent.removeProperty(type, id, key);
   }
 
+  @Override
   public Object getId() {
     return id;
   }
 
+  @Override
   public boolean equals(Object obj) {
     if (obj == null) {
       return false;
@@ -108,17 +105,11 @@ public abstract class AccumuloElement implements Element {
     return getClass().hashCode() ^ id.hashCode();
   }
 
-  void cacheProperty(String key, Object value, Integer timeoutMillis) {
-    if (timeoutMillis == null) {
-      // user does not want to cache data...
-      return;
+  void cacheProperty(String key, Object value) {
+    if (propertyCache == null) {
+      propertyCache = new PropertyCache(parent.config);
     }
-
-    if (propertiesCache == null) {
-      propertiesCache = new HashMap<String,Pair<Long,Object>>();
-    }
-    Pair<Long,Object> tsVal = new Pair<Long,Object>(System.currentTimeMillis() + timeoutMillis, value);
-    propertiesCache.put(key, tsVal);
+    propertyCache.put(key, value);
   }
 
 }

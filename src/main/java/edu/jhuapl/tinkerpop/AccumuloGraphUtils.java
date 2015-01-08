@@ -14,36 +14,12 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.io.IOException;
 import java.util.SortedSet;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.io.Text;
 
-import com.tinkerpop.blueprints.util.StringFactory;
-
 final class AccumuloGraphUtils {
-
-  public static final Value EMPTY_VALUE = new Value(new byte[0]);
-  public static final Text EMPTY_TEXT = new Text("");
-
-  public static final Text ID = new Text(StringFactory.ID);
-
-  public static final Text IN = new Text("I");
-  public static final Text OUT = new Text("O");
-
-  public static final String toId(Object obj) {
-    return obj.toString();
-  }
-
-  public static Value toValue(String val) {
-    return new Value(val.getBytes());
-  }
 
   /**
    * Create and/or clear existing graph tables for the given configuration.
@@ -65,17 +41,17 @@ final class AccumuloGraphUtils {
 
       // Check edge cases.
       // No tables exist, and we are not allowed to create.
-      if (!existedBeforeClear && !cfg.isCreate()) {
+      if (!existedBeforeClear && !cfg.getCreate()) {
         throw new IllegalArgumentException("Graph does not exist, and create option is disabled");
       }
       // Tables exist, and we are not clearing them.
-      else if (existedBeforeClear && !cfg.isClear()) {
+      else if (existedBeforeClear && !cfg.getClear()) {
         // Do nothing.
         return;
       }
 
       // We want to clear tables, so do it.
-      if (cfg.isClear()) {
+      if (cfg.getClear()) {
         for (String table : cfg.getTableNames()) {
           if (tableOps.exists(table)) {
             tableOps.delete(table);
@@ -84,7 +60,7 @@ final class AccumuloGraphUtils {
       }
 
       // Tables existed, or we want to create them. So do it.
-      if (existedBeforeClear || cfg.isCreate()) {
+      if (existedBeforeClear || cfg.getCreate()) {
         for (String table : cfg.getTableNames()) {
           if (!tableOps.exists(table)) {
             tableOps.create(table);
@@ -96,17 +72,7 @@ final class AccumuloGraphUtils {
         }
       }
 
-    } catch (AccumuloException e) {
-      throw new IllegalArgumentException(e);
-    } catch (AccumuloSecurityException e) {
-      throw new IllegalArgumentException(e);
-    } catch (IOException e) {
-      throw new IllegalArgumentException(e);
-    } catch (InterruptedException e) {
-      throw new IllegalArgumentException(e);
-    } catch (TableNotFoundException e) {
-      throw new IllegalArgumentException(e);
-    } catch (TableExistsException e) {
+    } catch (Exception e) {
       throw new IllegalArgumentException(e);
     }
   }

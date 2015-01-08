@@ -29,6 +29,14 @@ import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
 
+  private static final String PREFIX = ElementOutputFormat.class.getSimpleName()+".";
+  private static final String USER = "username";
+  private static final String PASSWORD = PREFIX+"password";
+  private static final String GRAPH_NAME = PREFIX+"graphName";
+  private static final String INSTANCE = PREFIX+"instanceName";
+  private static final String INSTANCE_TYPE = PREFIX+"instanceType";
+  private static final String ZK_HOSTS = PREFIX+"zookeeperHosts";
+
   @Override
   public RecordWriter<NullWritable,Element> getRecordWriter(TaskAttemptContext context) throws IOException, InterruptedException {
     return new ElementRecordWriter(context);
@@ -43,13 +51,13 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
     acc.validate();
     Configuration jobconf = job.getConfiguration();
 
-    jobconf.set(AccumuloGraphConfiguration.USER, acc.getUser());
-    jobconf.set(AccumuloGraphConfiguration.PASSWORD, new String(acc.getPassword().array()));
-    jobconf.set(AccumuloGraphConfiguration.GRAPH_NAME, acc.getName());
-    jobconf.set(AccumuloGraphConfiguration.INSTANCE, acc.getInstance());
-    jobconf.set(AccumuloGraphConfiguration.INSTANCE_TYPE, acc.getInstanceType().toString());
+    jobconf.set(USER, acc.getUser());
+    jobconf.set(PASSWORD, acc.getPassword());
+    jobconf.set(GRAPH_NAME, acc.getGraphName());
+    jobconf.set(INSTANCE, acc.getInstanceName());
+    jobconf.set(INSTANCE_TYPE, acc.getInstanceType().toString());
     if(acc.getInstanceType().equals(InstanceType.Distributed))
-      jobconf.set(AccumuloGraphConfiguration.ZK_HOSTS, acc.getZooKeeperHosts());
+      jobconf.set(ZK_HOSTS, acc.getZooKeeperHosts());
   }
 
   /**
@@ -67,12 +75,12 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
     protected ElementRecordWriter(TaskAttemptContext context) {
       config = new AccumuloGraphConfiguration();
       Configuration jobconf = context.getConfiguration();
-      config.setUser(jobconf.get(AccumuloGraphConfiguration.USER));
-      config.setPassword(jobconf.get(AccumuloGraphConfiguration.PASSWORD));
-      config.setGraphName(jobconf.get(AccumuloGraphConfiguration.GRAPH_NAME));
-      config.setInstanceName(jobconf.get(AccumuloGraphConfiguration.INSTANCE));
-      config.setInstanceType(InstanceType.valueOf(jobconf.get(AccumuloGraphConfiguration.INSTANCE_TYPE)));
-      config.setZookeeperHosts(jobconf.get(AccumuloGraphConfiguration.ZK_HOSTS));
+      config.setUser(jobconf.get(USER));
+      config.setPassword(jobconf.get(PASSWORD));
+      config.setGraphName(jobconf.get(GRAPH_NAME));
+      config.setInstanceName(jobconf.get(INSTANCE));
+      config.setInstanceType(InstanceType.valueOf(jobconf.get(INSTANCE_TYPE)));
+      config.setZooKeeperHosts(jobconf.get(ZK_HOSTS));
 
     }
 
