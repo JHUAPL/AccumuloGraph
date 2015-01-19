@@ -45,6 +45,7 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Features;
 import com.tinkerpop.blueprints.Graph;
+import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.GraphQuery;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.IndexableGraph;
@@ -123,17 +124,34 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   private GlobalInstances globals;
 
+  /**
+   * @deprecated Use {@link #globals} instead.
+   */
   private AccumuloGraphConfiguration config;
 
+  /**
+   * @deprecated Remove when vertex functionality is gone.
+   */
   private BatchWriter vertexBW;
 
+  /**
+   * Factory method for {@link GraphFactory}.
+   */
+  public static AccumuloGraph open(Configuration properties) throws AccumuloException {
+    return new AccumuloGraph(properties);
+  }
+
+  /**
+   * Instantiate from a generic {@link Configuration} populated
+   * with appropriate AccumuloGraph parameters.
+   * @param cfg
+   */
   public AccumuloGraph(Configuration cfg) {
     this(new AccumuloGraphConfiguration(cfg));
   }
 
   /**
-   * Constructor that ensures that the needed tables are made
-   * 
+   * Main constructor.
    * @param config
    */
   public AccumuloGraph(AccumuloGraphConfiguration config) {
@@ -162,13 +180,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   private void setupWriters() throws Exception {
     vertexBW = globals.getMtbw().getBatchWriter(config.getVertexTableName());
-  }
-
-  /**
-   * Factory method for GraphFactory
-   */
-  public static AccumuloGraph open(Configuration properties) throws AccumuloException {
-    return new AccumuloGraph(properties);
   }
 
   protected Scanner getElementScanner(Class<? extends Element> type) {
