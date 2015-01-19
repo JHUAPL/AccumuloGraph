@@ -24,6 +24,7 @@ import com.tinkerpop.blueprints.Vertex;
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
+import edu.jhuapl.tinkerpop.tables.KeyMetadataTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
 /**
@@ -37,6 +38,7 @@ public class GlobalInstances {
   private final MultiTableBatchWriter mtbw;
   private VertexTableWrapper vertexWrapper;
   private EdgeTableWrapper edgeWrapper;
+  private KeyMetadataTableWrapper keyMetadataWrapper;
   private final ElementCaches caches;
 
   public GlobalInstances(AccumuloGraph graph,
@@ -68,6 +70,10 @@ public class GlobalInstances {
     return edgeWrapper;
   }
 
+  public KeyMetadataTableWrapper getKeyMetadataWrapper() {
+    return keyMetadataWrapper;
+  }
+
   public <T extends Element> ElementTableWrapper getElementWrapper(Class<T> clazz) {
     if (Vertex.class.equals(clazz)) {
       return vertexWrapper;
@@ -97,19 +103,28 @@ public class GlobalInstances {
 
   /**
    * TODO: Refactor these away when the {@link #graph} member is gone.
-   * @param vertexWrapper
+   * @param wrapper
    */
   @Deprecated
-  public void setVertexWrapper(VertexTableWrapper vertexWrapper) {
-    this.vertexWrapper = vertexWrapper;
+  public void setVertexWrapper(VertexTableWrapper wrapper) {
+    this.vertexWrapper = wrapper;
   }
 
   /**
    * TODO: Refactor these away when the {@link #graph} member is gone.
-   * @param vertexWrapper
+   * @param wrapper
    */
   @Deprecated
-  public void setEdgeWrapper(EdgeTableWrapper edgeWrapper) {
-    this.edgeWrapper = edgeWrapper;
+  public void setEdgeWrapper(EdgeTableWrapper wrapper) {
+    this.edgeWrapper = wrapper;
+  }
+
+  /**
+   * TODO: Refactor these away when the {@link #graph} member is gone.
+   * @param wrapper
+   */
+  @Deprecated
+  public void setKeyMetadataWrapper(KeyMetadataTableWrapper wrapper) {
+    this.keyMetadataWrapper = wrapper;
   }
 }

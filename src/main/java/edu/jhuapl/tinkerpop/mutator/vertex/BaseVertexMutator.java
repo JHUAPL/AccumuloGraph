@@ -16,9 +16,9 @@ package edu.jhuapl.tinkerpop.mutator.vertex;
 
 import com.tinkerpop.blueprints.Vertex;
 
-import edu.jhuapl.tinkerpop.mutator.BaseMutator;
+import edu.jhuapl.tinkerpop.mutator.Mutator;
 
-public abstract class BaseVertexMutator extends BaseMutator {
+public abstract class BaseVertexMutator implements Mutator {
 
   protected final Vertex vertex;
 

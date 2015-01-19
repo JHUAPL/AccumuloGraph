@@ -16,9 +16,9 @@ package edu.jhuapl.tinkerpop.mutator.edge;
 
 import com.tinkerpop.blueprints.Edge;
 
-import edu.jhuapl.tinkerpop.mutator.BaseMutator;
+import edu.jhuapl.tinkerpop.mutator.Mutator;
 
-public abstract class BaseEdgeMutator extends BaseMutator {
+public abstract class BaseEdgeMutator implements Mutator {
 
   protected final Edge edge;
 

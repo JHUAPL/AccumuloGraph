@@ -16,7 +16,7 @@ package edu.jhuapl.tinkerpop.mutator;
 
 import org.apache.accumulo.core.data.Mutation;
 
-public abstract class BaseMutator {
+public interface Mutator {
 
-  public abstract Iterable<Mutation> create();
+  public Iterable<Mutation> create();
 }

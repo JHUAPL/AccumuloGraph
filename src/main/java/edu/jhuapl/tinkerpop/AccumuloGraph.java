@@ -59,6 +59,7 @@ import com.tinkerpop.blueprints.util.StringFactory;
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
+import edu.jhuapl.tinkerpop.tables.KeyMetadataTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
 /**
@@ -170,6 +171,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     globals.setVertexWrapper(new VertexTableWrapper(globals));
     globals.setEdgeWrapper(new EdgeTableWrapper(globals));
+    globals.setKeyMetadataWrapper(new KeyMetadataTableWrapper(globals));
 
     try {
       setupWriters();
@@ -888,19 +890,17 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
 
+    globals.getKeyMetadataWrapper().clearKeyMetadataEntry(key, elementClass);
+
     String table = null;
     if (elementClass.equals(Vertex.class)) {
       table = config.getVertexKeyIndexTableName();
     } else {
       table = config.getEdgeKeyIndexTableName();
     }
-    BatchWriter w = getKeyMetadataWriter();
     BatchDeleter bd = null;
-    Mutation m = new Mutation(key);
-    m.putDelete(elementClass.getSimpleName().getBytes(), Constants.EMPTY);
     try {
       bd = config.getConnector().createBatchDeleter(table, config.getAuthorizations(), config.getMaxWriteThreads(), config.getBatchWriterConfig());
-      w.addMutation(m);
       bd.setRanges(Collections.singleton(new Range()));
       bd.fetchColumnFamily(new Text(key));
       bd.delete();
@@ -919,16 +919,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    BatchWriter w = getKeyMetadataWriter();
 
-    Mutation m = new Mutation(key);
-    m.put(elementClass.getSimpleName().getBytes(), Constants.EMPTY, Constants.EMPTY);
-    try {
-      w.addMutation(m);
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-    }
+    globals.getKeyMetadataWrapper().writeKeyMetadataEntry(key, elementClass);
     checkedFlush();
+
     // Re Index Graph
     BatchScanner scan = getElementBatchScanner(elementClass);
     try {

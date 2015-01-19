@@ -28,7 +28,7 @@ import edu.jhuapl.tinkerpop.AccumuloGraphException;
 
 public class Mutators {
 
-  public static void apply(BatchWriter writer, BaseMutator mut) {
+  public static void apply(BatchWriter writer, Mutator mut) {
     try {
       writer.addMutations(mut.create());
     } catch (MutationsRejectedException e) {

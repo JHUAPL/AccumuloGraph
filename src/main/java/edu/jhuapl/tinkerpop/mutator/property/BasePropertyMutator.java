@@ -16,9 +16,9 @@ package edu.jhuapl.tinkerpop.mutator.property;
 
 import com.tinkerpop.blueprints.Element;
 
-import edu.jhuapl.tinkerpop.mutator.BaseMutator;
+import edu.jhuapl.tinkerpop.mutator.Mutator;
 
-public abstract class BasePropertyMutator extends BaseMutator {
+public abstract class BasePropertyMutator implements Mutator {
 
   protected Element element;
   protected String key;
