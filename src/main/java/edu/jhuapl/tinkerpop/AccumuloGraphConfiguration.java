@@ -928,32 +928,65 @@ implements Serializable {
     return this;
   }
 
+  /**
+   * Name of vertex table (keyed by vertex id).
+   * @return
+   */
   public String getVertexTableName() {
     return getGraphName() + "_vertex";
   }
 
+  /**
+   * Name of edge table (keyed by edge id).
+   * @return
+   */
   public String getEdgeTableName() {
     return getGraphName() + "_edge";
   }
 
+  /**
+   * Name of vertex key index table (keyed on
+   * vertex property keys).
+   * @return
+   */
   public String getVertexKeyIndexTableName() {
     return getGraphName() + "_vertex_key_index";
   }
 
+  /**
+   * Name of edge key index table (keyed on
+   * edge property keys).
+   * @return
+   */
   public String getEdgeKeyIndexTableName() {
     return getGraphName() + "_edge_key_index";
   }
 
-  String getMetadataTableName() {
-    return getGraphName() + "_metadata";
+  /**
+   * Table of the index with given name (keyed
+   * on property keys of the given element type).
+   * @param indexName
+   * @return
+   */
+  public String getIndexTableName(String indexName) {
+    return getGraphName() + "_index_" + indexName;
   }
 
+  /**
+   * Table listing the key-indexed properties
+   * of elements.
+   * @return
+   */
   public String getKeyMetadataTableName() {
     return getGraphName() + "_key_metadata";
   }
 
-  public String getIndexTableName(String indexName) {
-    return getGraphName() + "_index_" + indexName;
+  /**
+   * Table of existing index names.
+   * @return
+   */
+  String getMetadataTableName() {
+    return getGraphName() + "_metadata";
   }
 
   List<String> getTableNames() {

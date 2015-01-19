@@ -229,10 +229,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return getScanner(config.getKeyMetadataTableName());
   }
 
-  private BatchWriter getKeyMetadataWriter() {
-    return getWriter(config.getKeyMetadataTableName());
-  }
-
   public BatchWriter getWriter(String tablename) {
     try {
       return globals.getMtbw().getBatchWriter(tablename);
