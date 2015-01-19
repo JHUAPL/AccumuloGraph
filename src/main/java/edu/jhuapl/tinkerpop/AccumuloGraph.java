@@ -23,7 +23,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.regex.Pattern;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.BatchDeleter;
@@ -598,36 +597,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         }
       };
     } else {
-
-      BatchScanner scan = getElementBatchScanner(Edge.class);
-      scan.fetchColumnFamily(new Text(key));
-
-      byte[] val = AccumuloByteSerializer.serialize(value);
-      if (val[0] != AccumuloByteSerializer.SERIALIZABLE) {
-        IteratorSetting is = new IteratorSetting(10, "filter", RegExFilter.class);
-        RegExFilter.setRegexs(is, null, null, null, Pattern.quote(new String(val)), false);
-        scan.addScanIterator(is);
-
-        return new ScannerIterable<Edge>(scan) {
-
-          @Override
-          public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
-
-            Key k = iterator.next().getKey();
-
-            if (k.getColumnFamily().toString().equals(Constants.LABEL)) {
-              String[] vals = k.getColumnQualifier().toString().split(Constants.ID_DELIM);
-              return new AccumuloEdge(globals, k.getRow().toString(),
-                  new AccumuloVertex(globals, vals[0]),
-                  new AccumuloVertex(globals, vals[1]), null);
-            }
-            return new AccumuloEdge(globals, k.getRow().toString());
-          }
-        };
-      } else {
-        // TODO
-        throw new UnsupportedOperationException("Filtering on binary data not currently supported.");
-      }
+      return globals.getEdgeWrapper().getEdges(key, value);
     }
   }
 

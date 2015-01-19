@@ -30,6 +30,7 @@ import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.util.ExceptionFactory;
 import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
@@ -181,5 +182,38 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
 
   public void close() {
     // TODO?
+  }
+
+  /**
+   * Ensure that the given key/value don't conflict with
+   * Blueprints reserved words.
+   * @param key
+   * @param value
+   */
+  protected void validateProperty(String key, Object value) {
+    nullCheckProperty(key, value);
+    if (key.equals(StringFactory.ID)) {
+      throw ExceptionFactory.propertyKeyIdIsReserved();
+    } else if (key.equals(StringFactory.LABEL)) {
+      throw ExceptionFactory.propertyKeyLabelIsReservedForEdges();
+    } else if (value == null) {
+      throw ExceptionFactory.propertyValueCanNotBeNull();
+    }
+  }
+
+  /**
+   * Disallow null keys/values and throw appropriate
+   * Blueprints exceptions.
+   * @param key
+   * @param value
+   */
+  protected void nullCheckProperty(String key, Object value) {
+    if (key == null) {
+      throw ExceptionFactory.propertyKeyCanNotBeNull();
+    } else if (value == null) {
+      throw ExceptionFactory.propertyValueCanNotBeNull();
+    } else if (key.trim().equals(StringFactory.EMPTY_STRING)) {
+      throw ExceptionFactory.propertyKeyCanNotBeEmpty();
+    }
   }
 }

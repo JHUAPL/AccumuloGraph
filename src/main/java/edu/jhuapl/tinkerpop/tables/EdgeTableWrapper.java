@@ -18,11 +18,15 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
+import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
@@ -102,6 +106,43 @@ public class EdgeTableWrapper extends ElementTableWrapper {
         return edge;
       }
     };
+  }
+
+  public Iterable<Edge> getEdges(String key, Object value) {
+    nullCheckProperty(key, value);
+    if (key.equalsIgnoreCase("label")) {
+      key = Constants.LABEL;
+    }
+    
+    BatchScanner scan = getBatchScanner();
+    scan.fetchColumnFamily(new Text(key));
+
+    byte[] val = AccumuloByteSerializer.serialize(value);
+    if (val[0] != AccumuloByteSerializer.SERIALIZABLE) {
+      IteratorSetting is = new IteratorSetting(10, "filter", RegExFilter.class);
+      RegExFilter.setRegexs(is, null, null, null, Pattern.quote(new String(val)), false);
+      scan.addScanIterator(is);
+
+      return new ScannerIterable<Edge>(scan) {
+
+        @Override
+        public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
+
+          Key k = iterator.next().getKey();
+
+          if (k.getColumnFamily().toString().equals(Constants.LABEL)) {
+            String[] vals = k.getColumnQualifier().toString().split(Constants.ID_DELIM);
+            return new AccumuloEdge(globals, k.getRow().toString(),
+                new AccumuloVertex(globals, vals[0]),
+                new AccumuloVertex(globals, vals[1]), null);
+          }
+          return new AccumuloEdge(globals, k.getRow().toString());
+        }
+      };
+    } else {
+      // TODO
+      throw new UnsupportedOperationException("Filtering on binary data not currently supported.");
+    }
   }
 
   public void loadEndpointsAndLabel(AccumuloEdge edge) {

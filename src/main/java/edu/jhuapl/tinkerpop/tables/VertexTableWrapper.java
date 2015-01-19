@@ -32,9 +32,6 @@ import org.apache.hadoop.io.Text;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.ExceptionFactory;
-import com.tinkerpop.blueprints.util.StringFactory;
-
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.AccumuloElement;
@@ -231,27 +228,6 @@ public class VertexTableWrapper extends ElementTableWrapper {
     } else {
       // TODO
       throw new UnsupportedOperationException("Filtering on binary data not currently supported.");
-    }
-  }
-
-  private void validateProperty(String key, Object val) {
-    nullCheckProperty(key, val);
-    if (key.equals(StringFactory.ID)) {
-      throw ExceptionFactory.propertyKeyIdIsReserved();
-    } else if (key.equals(StringFactory.LABEL)) {
-      throw ExceptionFactory.propertyKeyLabelIsReservedForEdges();
-    } else if (val == null) {
-      throw ExceptionFactory.propertyValueCanNotBeNull();
-    }
-  }
-
-  private void nullCheckProperty(String key, Object val) {
-    if (key == null) {
-      throw ExceptionFactory.propertyKeyCanNotBeNull();
-    } else if (val == null) {
-      throw ExceptionFactory.propertyValueCanNotBeNull();
-    } else if (key.trim().equals(StringFactory.EMPTY_STRING)) {
-      throw ExceptionFactory.propertyKeyCanNotBeEmpty();
     }
   }
 }
