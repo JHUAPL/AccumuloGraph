@@ -121,9 +121,9 @@ import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
  */
 public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
-  protected GlobalInstances globals;
+  private GlobalInstances globals;
 
-  protected AccumuloGraphConfiguration config;
+  private AccumuloGraphConfiguration config;
 
   private BatchWriter vertexBW;
 
