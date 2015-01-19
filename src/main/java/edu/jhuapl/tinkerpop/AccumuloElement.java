@@ -108,7 +108,7 @@ public abstract class AccumuloElement implements Element {
   @Override
   public <T> T removeProperty(String key) {
     if (StringFactory.LABEL.equals(key) ||
-        AccumuloGraph.SLABEL.equals(key)) {
+        Constants.LABEL.equals(key)) {
       throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
     }
 

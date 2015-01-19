@@ -109,7 +109,8 @@ public final class AccumuloBulkIngester {
    */
   public PropertyBuilder addVertex(String id) throws MutationsRejectedException {
     Mutation m = new Mutation(id);
-    m.put(AccumuloGraph.LABEL, AccumuloGraph.EXISTS, AccumuloGraph.EMPTY);
+    m.put(Constants.LABEL.getBytes(),
+        Constants.EXISTS.getBytes(), Constants.EMPTY);
     vertexWriter.addMutation(m);
     return new PropertyBuilder(vertexWriter, id);
   }
@@ -169,14 +170,18 @@ public final class AccumuloBulkIngester {
    */
   public PropertyBuilder addEdge(String id, String src, String dest, String label) throws MutationsRejectedException {
     Mutation m = new Mutation(id);
-    m.put(AccumuloGraph.LABEL, (dest + "_" + src).getBytes(), AccumuloByteSerializer.serialize(label));
+    m.put(Constants.LABEL.getBytes(), (dest + "_" + src).getBytes(), AccumuloByteSerializer.serialize(label));
     edgeWriter.addMutation(m);
 
     m = new Mutation(dest);
-    m.put(AccumuloGraph.INEDGE, (src + AccumuloGraph.IDDELIM + id).getBytes(), (AccumuloGraph.IDDELIM + label).getBytes());
+    m.put(Constants.IN_EDGE.getBytes(),
+        (src + Constants.ID_DELIM + id).getBytes(),
+        (Constants.ID_DELIM + label).getBytes());
     vertexWriter.addMutation(m);
     m = new Mutation(src);
-    m.put(AccumuloGraph.OUTEDGE, (dest + AccumuloGraph.IDDELIM + id).getBytes(), (AccumuloGraph.IDDELIM + label).getBytes());
+    m.put(Constants.OUT_EDGE.getBytes(),
+        (dest + Constants.ID_DELIM + id).getBytes(),
+        (Constants.ID_DELIM + label).getBytes());
     vertexWriter.addMutation(m);
     return new PropertyBuilder(edgeWriter, id);
   }
@@ -212,7 +217,7 @@ public final class AccumuloBulkIngester {
   private void addProperty(BatchWriter writer, String id, String key, Object value) throws MutationsRejectedException {
     byte[] newByteVal = AccumuloByteSerializer.serialize(value);
     Mutation m = new Mutation(id);
-    m.put(key.getBytes(), AccumuloGraph.EMPTY, newByteVal);
+    m.put(key.getBytes(), Constants.EMPTY, newByteVal);
     writer.addMutation(m);
   }
 
@@ -296,7 +301,7 @@ public final class AccumuloBulkIngester {
      * @return
      */
     public PropertyBuilder add(String key, Object value) {
-      mutation.put(key.getBytes(), AccumuloGraph.EMPTY, AccumuloByteSerializer.serialize(value));
+      mutation.put(key.getBytes(), Constants.EMPTY, AccumuloByteSerializer.serialize(value));
       return this;
     }
 

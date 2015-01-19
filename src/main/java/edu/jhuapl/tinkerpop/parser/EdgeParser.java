@@ -21,9 +21,9 @@ import org.apache.accumulo.core.data.Value;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
-import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
+import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 
 /**
@@ -52,9 +52,9 @@ public class EdgeParser extends ElementParser<AccumuloEdge> {
   private AccumuloEdge makeEdge(String id, Iterable<Entry<Key,Value>> entries) {
     for (Entry<Key, Value> entry : entries) {
       String cf = entry.getKey().getColumnFamily().toString();
-      if (AccumuloGraph.SLABEL.equals(cf)) {
+      if (Constants.LABEL.equals(cf)) {
         String cq = entry.getKey().getColumnQualifier().toString();
-        String[] parts = cq.split(AccumuloGraph.IDDELIM);
+        String[] parts = cq.split(Constants.ID_DELIM);
         String inVertexId = parts[0];
         String outVertexId = parts[1];
         String label = AccumuloByteSerializer.deserialize(entry.getValue().get());

@@ -33,7 +33,7 @@ import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
-import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.mutator.property.ClearPropertyMutator;
 import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
@@ -73,12 +73,8 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
 
     s.setRange(new Range(element.getId().toString()));
 
-    Text colf = null;
-    if (StringFactory.LABEL.equals(key)) {
-      colf = AccumuloGraph.TLABEL;
-    } else {
-      colf = new Text(key);
-    }
+    Text colf = StringFactory.LABEL.equals(key)
+        ? new Text(Constants.LABEL) : new Text(key);
     s.fetchColumnFamily(colf);
 
     V value = null;
@@ -103,7 +99,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
   public Map<String, Object> readProperties(Element element, String... propertyKeys) {
     Scanner s = getScanner();
     s.setRange(new Range(element.getId().toString()));
-    s.fetchColumnFamily(AccumuloGraph.TLABEL);
+    s.fetchColumnFamily(new Text(Constants.LABEL));
 
     for (String key : propertyKeys) {
       s.fetchColumnFamily(new Text(key));
@@ -135,9 +131,9 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
     s.close();
 
     // Remove some special keys.
-    keys.remove(AccumuloGraph.TINEDGE.toString());
-    keys.remove(AccumuloGraph.TLABEL.toString());
-    keys.remove(AccumuloGraph.TOUTEDGE.toString());
+    keys.remove(Constants.IN_EDGE);
+    keys.remove(Constants.LABEL);
+    keys.remove(Constants.OUT_EDGE);
 
     return keys;
   }
@@ -175,7 +171,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
     for (String lab : labels) {
       if (regex.length() != 0)
         regex.append("|");
-      regex.append(".*"+AccumuloGraph.IDDELIM+"\\Q").append(lab).append("\\E$");
+      regex.append(".*"+Constants.ID_DELIM+"\\Q").append(lab).append("\\E$");
     }
 
     IteratorSetting is = new IteratorSetting(10, "edgeValueFilter", RegExFilter.class);

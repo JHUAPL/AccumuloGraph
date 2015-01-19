@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 
-import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.Constants;
 
 public class EdgeEndpointsMutator {
 
@@ -39,14 +39,14 @@ public class EdgeEndpointsMutator {
       String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
 
       Mutation in = new Mutation(inVertexId);
-      in.put(AccumuloGraph.INEDGE,
-          (outVertexId + AccumuloGraph.IDDELIM + edge.getId()).getBytes(),
-          (AccumuloGraph.IDDELIM + edge.getLabel()).getBytes());
+      in.put(Constants.IN_EDGE.getBytes(),
+          (outVertexId + Constants.ID_DELIM + edge.getId()).getBytes(),
+          (Constants.ID_DELIM + edge.getLabel()).getBytes());
 
       Mutation out = new Mutation(outVertexId);
-      out.put(AccumuloGraph.OUTEDGE,
-          (inVertexId + AccumuloGraph.IDDELIM + edge.getId()).getBytes(),
-          (AccumuloGraph.IDDELIM + edge.getLabel()).getBytes());
+      out.put(Constants.OUT_EDGE.getBytes(),
+          (inVertexId + Constants.ID_DELIM + edge.getId()).getBytes(),
+          (Constants.ID_DELIM + edge.getLabel()).getBytes());
 
       return Lists.newArrayList(in, out);
     }
@@ -64,12 +64,12 @@ public class EdgeEndpointsMutator {
       String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
 
       Mutation in = new Mutation(inVertexId);
-      in.putDelete(AccumuloGraph.INEDGE,
-          (outVertexId + AccumuloGraph.IDDELIM + edge.getId()).getBytes());
+      in.putDelete(Constants.IN_EDGE.getBytes(),
+          (outVertexId + Constants.ID_DELIM + edge.getId()).getBytes());
 
       Mutation out = new Mutation(outVertexId);
-      out.putDelete(AccumuloGraph.OUTEDGE,
-          (inVertexId + AccumuloGraph.IDDELIM + edge.getId()).getBytes());
+      out.putDelete(Constants.OUT_EDGE.getBytes(),
+          (inVertexId + Constants.ID_DELIM + edge.getId()).getBytes());
 
       return Lists.newArrayList(in, out);
     }

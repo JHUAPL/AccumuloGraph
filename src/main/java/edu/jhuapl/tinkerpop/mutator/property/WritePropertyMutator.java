@@ -20,7 +20,7 @@ import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Element;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
-import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.Constants;
 
 public class WritePropertyMutator extends BasePropertyMutator {
 
@@ -35,7 +35,7 @@ public class WritePropertyMutator extends BasePropertyMutator {
   public Iterable<Mutation> create() {
     byte[] bytes = AccumuloByteSerializer.serialize(value);
     Mutation m = new Mutation(element.getId().toString());
-    m.put(key.getBytes(), AccumuloGraph.EMPTY, bytes);
+    m.put(key.getBytes(), Constants.EMPTY, bytes);
     return Lists.newArrayList(m);
   }
 }

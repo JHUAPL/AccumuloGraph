@@ -21,7 +21,7 @@ import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
-import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.Constants;
 
 public final class EdgeMutator {
 
@@ -37,8 +37,8 @@ public final class EdgeMutator {
       Object outVertexId = edge.getVertex(Direction.OUT).getId();
 
       Mutation m = new Mutation(edge.getId().toString());
-      m.put(AccumuloGraph.LABEL,
-          (inVertexId + AccumuloGraph.IDDELIM + outVertexId).getBytes(),
+      m.put(Constants.LABEL.getBytes(),
+          (inVertexId + Constants.ID_DELIM + outVertexId).getBytes(),
           AccumuloByteSerializer.serialize(edge.getLabel()));
 
       return Lists.newArrayList(m);
@@ -57,8 +57,8 @@ public final class EdgeMutator {
       Object outVertexId = edge.getVertex(Direction.OUT).getId();
 
       Mutation m = new Mutation(edge.getId().toString());
-      m.putDelete(AccumuloGraph.LABEL,
-          (inVertexId + AccumuloGraph.IDDELIM + outVertexId).getBytes());
+      m.putDelete(Constants.LABEL.getBytes(),
+          (inVertexId + Constants.ID_DELIM + outVertexId).getBytes());
 
       return Lists.newArrayList(m);
     }

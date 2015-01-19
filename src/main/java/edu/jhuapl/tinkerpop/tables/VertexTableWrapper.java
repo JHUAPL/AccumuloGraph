@@ -38,8 +38,8 @@ import com.tinkerpop.blueprints.util.StringFactory;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.AccumuloElement;
-import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
+import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
@@ -86,12 +86,12 @@ public class VertexTableWrapper extends ElementTableWrapper {
     Scanner scan = getScanner();
     scan.setRange(new Range(vertex.getId().toString()));
     if (direction.equals(Direction.IN)) {
-      scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
+      scan.fetchColumnFamily(new Text(Constants.IN_EDGE));
     } else if (direction.equals(Direction.OUT)) {
-      scan.fetchColumnFamily(AccumuloGraph.TOUTEDGE);
+      scan.fetchColumnFamily(new Text(Constants.OUT_EDGE));
     } else {
-      scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
-      scan.fetchColumnFamily(AccumuloGraph.TOUTEDGE);
+      scan.fetchColumnFamily(new Text(Constants.IN_EDGE));
+      scan.fetchColumnFamily(new Text(Constants.OUT_EDGE));
     }
 
     if (labels.length > 0) {
@@ -108,11 +108,11 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
         Entry<Key,Value> kv = iterator.next();
 
-        String[] parts = kv.getKey().getColumnQualifier().toString().split(AccumuloGraph.IDDELIM);
+        String[] parts = kv.getKey().getColumnQualifier().toString().split(Constants.ID_DELIM);
         String label = (new String(kv.getValue().get())).split("_")[1];
 
         AccumuloEdge edge;
-        if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(AccumuloGraph.SINEDGE)) {
+        if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(Constants.IN_EDGE)) {
           edge = new AccumuloEdge(globals, parts[1],
               new AccumuloVertex(globals, kv.getKey().getRow().toString()),
               new AccumuloVertex(globals, parts[0]), label);
@@ -132,12 +132,12 @@ public class VertexTableWrapper extends ElementTableWrapper {
     Scanner scan = getScanner();
     scan.setRange(new Range(vertex.getId().toString()));
     if (direction.equals(Direction.IN)) {
-      scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
+      scan.fetchColumnFamily(new Text(Constants.IN_EDGE));
     } else if (direction.equals(Direction.OUT)) {
-      scan.fetchColumnFamily(AccumuloGraph.TOUTEDGE);
+      scan.fetchColumnFamily(new Text(Constants.OUT_EDGE));
     } else {
-      scan.fetchColumnFamily(AccumuloGraph.TINEDGE);
-      scan.fetchColumnFamily(AccumuloGraph.TOUTEDGE);
+      scan.fetchColumnFamily(new Text(Constants.IN_EDGE));
+      scan.fetchColumnFamily(new Text(Constants.OUT_EDGE));
     }
 
     if (labels != null && labels.length > 0) {
@@ -152,7 +152,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
         // TODO could also check local cache before creating a new
         // instance?
         String[] parts = iterator.next().getKey().getColumnQualifier()
-            .toString().split(AccumuloGraph.IDDELIM);
+            .toString().split(Constants.ID_DELIM);
 
         AccumuloVertex vertex = new AccumuloVertex(globals, parts[0]);
         globals.getCaches().cache(vertex, Vertex.class);
@@ -164,7 +164,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
   public Iterable<Vertex> getVertices() {
     Scanner scan = getScanner();
-    scan.fetchColumnFamily(AccumuloGraph.TLABEL);
+    scan.fetchColumnFamily(new Text(Constants.LABEL));
 
     if (globals.getConfig().getPreloadedProperties() != null) {
       for (String key : globals.getConfig().getPreloadedProperties()) {

@@ -24,6 +24,7 @@ import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
+import edu.jhuapl.tinkerpop.Constants;
 
 public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
   static AccumuloGraphConfiguration conf;
@@ -85,17 +86,17 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
           String vid = currentKey.getRow().toString();
           String colf = currentKey.getColumnFamily().toString();
           switch (colf) {
-            case AccumuloGraph.SLABEL:
+            case Constants.LABEL:
               currentK.set(vid);
               vertex.prepareId(vid);
               break;
-            case AccumuloGraph.SINEDGE:
-              String[] parts = currentKey.getColumnQualifier().toString().split(AccumuloGraph.IDDELIM);
+            case Constants.IN_EDGE:
+              String[] parts = currentKey.getColumnQualifier().toString().split(Constants.ID_DELIM);
               String label = new String(entry.getValue().get());
               vertex.prepareEdge(parts[1], parts[0], label, vid);
               break;
-            case AccumuloGraph.SOUTEDGE:
-              parts = currentKey.getColumnQualifier().toString().split(AccumuloGraph.IDDELIM);
+            case Constants.OUT_EDGE:
+              parts = currentKey.getColumnQualifier().toString().split(Constants.ID_DELIM);
               label = new String(entry.getValue().get());
               vertex.prepareEdge(parts[1], vid, label, parts[0]);
               break;

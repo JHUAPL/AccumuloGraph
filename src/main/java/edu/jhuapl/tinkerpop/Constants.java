@@ -12,26 +12,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.mutator.vertex;
+package edu.jhuapl.tinkerpop;
 
-import org.apache.accumulo.core.data.Mutation;
+/**
+ * Collect up various constants here.
+ * @author Michael Lieberman
+ *
+ */
+public class Constants {
 
-import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Vertex;
+  private Constants() { }
 
-import edu.jhuapl.tinkerpop.Constants;
+  public static final String ID_DELIM = "_";
 
-public class AddVertexMutator extends BaseVertexMutator {
+  public static final byte[] EMPTY = new byte[0];
 
-  public AddVertexMutator(Vertex vertex) {
-    super(vertex);
-  }
-
-  @Override
-  public Iterable<Mutation> create() {
-    Mutation m = new Mutation((String) vertex.getId());
-    m.put(Constants.LABEL.getBytes(),
-        Constants.EXISTS.getBytes(), Constants.EMPTY);
-    return Lists.newArrayList(m);
-  }
+  /**
+   * Prefixes for various Accumulo entries.
+   */
+  public static final String LABEL = "L";
+  public static final String IN_EDGE = "I";
+  public static final String OUT_EDGE = "O";
+  public static final String EXISTS = "E";
 }

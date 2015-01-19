@@ -30,9 +30,9 @@ import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
-import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
+import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
@@ -70,7 +70,7 @@ public class EdgeTableWrapper extends ElementTableWrapper {
 
   public Iterable<Edge> getEdges() {
     Scanner scan = getScanner();
-    scan.fetchColumnFamily(AccumuloGraph.TLABEL);
+    scan.fetchColumnFamily(new Text(Constants.LABEL));
 
     if (globals.getConfig().getPreloadedProperties() != null) {
       for (String key : globals.getConfig().getPreloadedProperties()) {
@@ -109,7 +109,7 @@ public class EdgeTableWrapper extends ElementTableWrapper {
 
     try {
       s.setRange(new Range(edge.getId().toString()));
-      s.fetchColumnFamily(AccumuloGraph.TLABEL);
+      s.fetchColumnFamily(new Text(Constants.LABEL));
       Iterator<Entry<Key,Value>> iter = s.iterator();
       if (!iter.hasNext()) {
         dump();
@@ -119,7 +119,7 @@ public class EdgeTableWrapper extends ElementTableWrapper {
       Entry<Key, Value> entry = iter.next();
 
       String cq = entry.getKey().getColumnQualifier().toString();
-      String[] ids = cq.split(AccumuloGraph.IDDELIM);
+      String[] ids = cq.split(Constants.ID_DELIM);
 
       String label = AccumuloByteSerializer.deserialize(entry.getValue().get());
 

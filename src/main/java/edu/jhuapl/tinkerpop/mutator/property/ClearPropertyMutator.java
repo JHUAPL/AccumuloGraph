@@ -19,7 +19,7 @@ import org.apache.accumulo.core.data.Mutation;
 import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Element;
 
-import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.Constants;
 
 public class ClearPropertyMutator extends BasePropertyMutator {
 
@@ -30,7 +30,7 @@ public class ClearPropertyMutator extends BasePropertyMutator {
   @Override
   public Iterable<Mutation> create() {
     Mutation m = new Mutation(element.getId().toString());
-    m.putDelete(key.getBytes(), AccumuloGraph.EMPTY);
+    m.putDelete(key.getBytes(), Constants.EMPTY);
     return Lists.newArrayList(m);
   }
 }

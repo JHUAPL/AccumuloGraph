@@ -22,7 +22,7 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
-import edu.jhuapl.tinkerpop.AccumuloGraph;
+import edu.jhuapl.tinkerpop.Constants;
 
 /**
  * TODO
@@ -57,8 +57,8 @@ public class PropertyParser implements EntryParser<Map<String, Object>> {
    * @return
    */
   private static boolean isExistenceKey(Key key) {
-    return AccumuloGraph.TLABEL.equals(key.getColumnFamily()) &&
-        AccumuloGraph.TEXISTS.equals(key.getColumnQualifier());
+    return Constants.LABEL.equals(key.getColumnFamily().toString()) &&
+        Constants.EXISTS.equals(key.getColumnQualifier().toString());
   }
 
 }
