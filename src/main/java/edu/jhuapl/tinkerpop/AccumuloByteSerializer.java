@@ -26,21 +26,21 @@ import javax.xml.namespace.QName;
 
 public final class AccumuloByteSerializer {
 
-  static final int NULL = 'n';
+  public static final int NULL = 'n';
 
-  static final int BYTE = 'b';
-  static final int SHORT = 's';
-  static final int CHARACTER = 'c';
-  static final int INTEGER = 'i';
-  static final int LONG = 'l';
-  static final int FLOAT = 'f';
-  static final int DOUBLE = 'd';
-  static final int BOOLEAN = 'o';
-  static final int DATE = 't';
-  static final int ENUM = 'e';
-  static final int STRING = 'a';
-  static final int SERIALIZABLE = 'x';
-  static final int QNAME = 'q';
+  public static final int BYTE = 'b';
+  public static final int SHORT = 's';
+  public static final int CHARACTER = 'c';
+  public static final int INTEGER = 'i';
+  public static final int LONG = 'l';
+  public static final int FLOAT = 'f';
+  public static final int DOUBLE = 'd';
+  public static final int BOOLEAN = 'o';
+  public static final int DATE = 't';
+  public static final int ENUM = 'e';
+  public static final int STRING = 'a';
+  public static final int SERIALIZABLE = 'x';
+  public static final int QNAME = 'q';
 
   private AccumuloByteSerializer() {
 
@@ -53,6 +53,7 @@ public final class AccumuloByteSerializer {
     }
   };
 
+  @SuppressWarnings("unchecked")
   public static <T> T deserialize(byte[] target) {
     if (target[0] == NULL) {
       return null;

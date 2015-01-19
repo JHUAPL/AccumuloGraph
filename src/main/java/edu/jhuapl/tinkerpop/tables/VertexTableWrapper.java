@@ -17,19 +17,27 @@ package edu.jhuapl.tinkerpop.tables;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
+import org.apache.accumulo.core.client.BatchScanner;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+import com.tinkerpop.blueprints.util.ExceptionFactory;
+import com.tinkerpop.blueprints.util.StringFactory;
 
+import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
+import edu.jhuapl.tinkerpop.AccumuloElement;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.GlobalInstances;
@@ -187,5 +195,63 @@ public class VertexTableWrapper extends ElementTableWrapper {
         return vertex;
       }
     };
+  }
+
+  public Iterable<Vertex> getVertices(String key, Object value) {
+    validateProperty(key, value);
+
+    byte[] val = AccumuloByteSerializer.serialize(value);
+    if (val[0] != AccumuloByteSerializer.SERIALIZABLE) {
+      BatchScanner scan = getBatchScanner();
+      scan.fetchColumnFamily(new Text(key));
+
+      IteratorSetting is = new IteratorSetting(10, "filter", RegExFilter.class);
+      RegExFilter.setRegexs(is, null, null, null, Pattern.quote(new String(val)), false);
+      scan.addScanIterator(is);
+
+      return new ScannerIterable<Vertex>(scan) {
+
+        @Override
+        public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
+          Entry<Key, Value> kv = iterator.next();
+          String key = kv.getKey().getColumnFamily().toString();
+          Object value = AccumuloByteSerializer.deserialize(kv.getValue().get());
+
+          Vertex v = globals.getCaches().retrieve(kv.getKey().getRow().toString(), Vertex.class);
+          if (v == null) {
+            v = new AccumuloVertex(globals, kv.getKey().getRow().toString());
+          }
+
+          ((AccumuloElement) v).setPropertyInMemory(key, value);
+          globals.getCaches().cache(v, Vertex.class);
+
+          return v;
+        }
+      };
+    } else {
+      // TODO
+      throw new UnsupportedOperationException("Filtering on binary data not currently supported.");
+    }
+  }
+
+  private void validateProperty(String key, Object val) {
+    nullCheckProperty(key, val);
+    if (key.equals(StringFactory.ID)) {
+      throw ExceptionFactory.propertyKeyIdIsReserved();
+    } else if (key.equals(StringFactory.LABEL)) {
+      throw ExceptionFactory.propertyKeyLabelIsReservedForEdges();
+    } else if (val == null) {
+      throw ExceptionFactory.propertyValueCanNotBeNull();
+    }
+  }
+
+  private void nullCheckProperty(String key, Object val) {
+    if (key == null) {
+      throw ExceptionFactory.propertyKeyCanNotBeNull();
+    } else if (val == null) {
+      throw ExceptionFactory.propertyValueCanNotBeNull();
+    } else if (key.trim().equals(StringFactory.EMPTY_STRING)) {
+      throw ExceptionFactory.propertyKeyCanNotBeEmpty();
+    }
   }
 }

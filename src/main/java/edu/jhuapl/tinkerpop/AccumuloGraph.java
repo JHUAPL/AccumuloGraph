@@ -492,41 +492,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           caches.cache(v, Vertex.class);
 
           return v;
-
         }
       };
     } else {
-      byte[] val = AccumuloByteSerializer.serialize(value);
-      if (val[0] != AccumuloByteSerializer.SERIALIZABLE) {
-        BatchScanner scan = getElementBatchScanner(Vertex.class);
-        scan.fetchColumnFamily(new Text(key));
-
-        IteratorSetting is = new IteratorSetting(10, "filter", RegExFilter.class);
-        RegExFilter.setRegexs(is, null, null, null, Pattern.quote(new String(val)), false);
-        scan.addScanIterator(is);
-
-        return new ScannerIterable<Vertex>(scan) {
-
-          @Override
-          public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
-
-            Entry<Key,Value> kv = iterator.next();
-
-            Vertex v = caches.retrieve(kv.getKey().getRow().toString(), Vertex.class);
-
-            v = (v == null ? new AccumuloVertex(globals, kv.getKey().getRow().toString()) : v);
-            ((AccumuloElement) v).cacheProperty(kv.getKey().getColumnFamily().toString(),
-                AccumuloByteSerializer.deserialize(kv.getValue().get()));
-
-            caches.cache(v, Vertex.class);
-
-            return v;
-          }
-        };
-      } else {
-        // TODO
-        throw new UnsupportedOperationException("Filtering on binary data not currently supported.");
-      }
+      return vertexWrapper.getVertices(key, value);
     }
   }
 

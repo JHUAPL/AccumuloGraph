@@ -14,11 +14,14 @@
  */
 package edu.jhuapl.tinkerpop.tables;
 
+import java.util.Collections;
 import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
@@ -47,6 +50,16 @@ public abstract class BaseTableWrapper {
     }
   }
 
+  protected BatchScanner getBatchScanner() {
+    try {
+      BatchScanner scanner = globals.getConfig().getConnector().createBatchScanner(tableName,
+          globals.getConfig().getAuthorizations(), globals.getConfig().getQueryThreads());
+      scanner.setRanges(Collections.singletonList(new Range()));
+      return scanner;
+    } catch (Exception e) {
+      throw new AccumuloGraphException(e);
+    }
+  }
   protected BatchWriter getWriter() {
     try {
       return globals.getMtbw().getBatchWriter(tableName);
