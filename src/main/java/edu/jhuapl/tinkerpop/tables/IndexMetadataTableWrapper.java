@@ -25,9 +25,8 @@ import edu.jhuapl.tinkerpop.mutator.index.IndexMetadataMutator;
  */
 public class IndexMetadataTableWrapper extends BaseTableWrapper {
 
-  public IndexMetadataTableWrapper(GlobalInstances globals,
-      String indexName) {
-    super(globals, globals.getConfig().getIndexTableName(indexName));
+  public IndexMetadataTableWrapper(GlobalInstances globals) {
+    super(globals, globals.getConfig().getIndexMetadataTableName());
   }
 
   public void writeIndexMetadataEntry(String indexName,

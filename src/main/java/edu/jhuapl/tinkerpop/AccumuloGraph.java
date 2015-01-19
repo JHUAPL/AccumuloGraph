@@ -59,6 +59,7 @@ import com.tinkerpop.blueprints.util.StringFactory;
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
+import edu.jhuapl.tinkerpop.tables.IndexMetadataTableWrapper;
 import edu.jhuapl.tinkerpop.tables.KeyMetadataTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
@@ -128,11 +129,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   /**
    * @deprecated Use {@link #globals} instead.
    */
+  @Deprecated
   private AccumuloGraphConfiguration config;
 
   /**
    * @deprecated Remove when vertex functionality is gone.
    */
+  @Deprecated
   private BatchWriter vertexBW;
 
   /**
@@ -172,6 +175,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     globals.setVertexWrapper(new VertexTableWrapper(globals));
     globals.setEdgeWrapper(new EdgeTableWrapper(globals));
     globals.setKeyMetadataWrapper(new KeyMetadataTableWrapper(globals));
+    globals.setIndexMetadataWrapper(new IndexMetadataTableWrapper(globals));
 
     try {
       setupWriters();
@@ -206,7 +210,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   // Aliases for the lazy
   private Scanner getMetadataScanner() {
-    return getScanner(config.getMetadataTableName());
+    return getScanner(config.getIndexMetadataTableName());
   }
 
   public Scanner getVertexIndexScanner() {
@@ -595,7 +599,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         @Override
         public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
           Entry<Key,Value> kv = iterator.next();
-          
+
           Edge e = globals.getCaches().retrieve(kv.getKey().getColumnQualifier().toString(), Edge.class);
           e = (e == null ? new AccumuloEdge(globals, kv.getKey().getColumnQualifier().toString()) : e);
 
@@ -790,14 +794,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       if (s.iterator().hasNext())
         throw ExceptionFactory.indexAlreadyExists(indexName);
 
-      BatchWriter writer = getWriter(config.getMetadataTableName());
-      Mutation m = new Mutation(indexName);
-      m.put(indexClass.getSimpleName().getBytes(), Constants.EMPTY, Constants.EMPTY);
-      try {
-        writer.addMutation(m);
-      } catch (MutationsRejectedException e) {
-        e.printStackTrace();
-      }
+      globals.getIndexMetadataWrapper().writeIndexMetadataEntry(indexName, indexClass);
+
       return new AccumuloIndex<T>(indexClass, globals, indexName);
     } finally {
       s.close();
@@ -812,7 +810,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
-    Scanner scan = getScanner(config.getMetadataTableName());
+    Scanner scan = getScanner(config.getIndexMetadataTableName());
     try {
       scan.setRange(new Range(indexName, indexName));
       Iterator<Entry<Key,Value>> iter = scan.iterator();
@@ -836,7 +834,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();
-    Scanner scan = getScanner(config.getMetadataTableName());
+    Scanner scan = getScanner(config.getIndexMetadataTableName());
     try {
       Iterator<Entry<Key,Value>> iter = scan.iterator();
 
@@ -864,20 +862,23 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public void dropIndex(String indexName) {
     if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
-    BatchDeleter deleter = null;
-    try {
 
-      deleter = config.getConnector().createBatchDeleter(config.getMetadataTableName(), config.getAuthorizations(), config.getQueryThreads(),
-          config.getBatchWriterConfig());
-      deleter.setRanges(Collections.singleton(new Range(indexName)));
-      deleter.delete();
-      config.getConnector().tableOperations().delete(config.getGraphName() + "_index_" + indexName);
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    } finally {
-      if (deleter != null)
-        deleter.close();
+    for (Index<? extends Element> index : getIndices()) {
+      if (index.getIndexName().equals(indexName)) {
+        globals.getIndexMetadataWrapper().clearIndexMetadataEntry(indexName, index.getIndexClass());
+
+        try {
+          globals.getConfig().getConnector().tableOperations().delete(globals.getConfig()
+              .getIndexTableName(indexName));
+        } catch (Exception e) {
+          throw new AccumuloGraphException(e);
+        }
+
+        return;
+      }
     }
+
+    throw new AccumuloGraphException("Index does not exist: "+indexName);
   }
 
   @Override

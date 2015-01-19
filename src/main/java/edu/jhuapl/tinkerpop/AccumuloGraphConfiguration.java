@@ -982,17 +982,17 @@ implements Serializable {
   }
 
   /**
-   * Table of existing index names.
+   * Table of existing named indexes.
    * @return
    */
-  String getMetadataTableName() {
-    return getGraphName() + "_metadata";
+  public String getIndexMetadataTableName() {
+    return getGraphName() + "_index_metadata";
   }
 
   List<String> getTableNames() {
     return Arrays.asList(getVertexTableName(),
         getEdgeTableName(), getVertexKeyIndexTableName(), getEdgeKeyIndexTableName(),
-        getMetadataTableName(), getKeyMetadataTableName());
+        getIndexMetadataTableName(), getKeyMetadataTableName());
   }
 
   /**

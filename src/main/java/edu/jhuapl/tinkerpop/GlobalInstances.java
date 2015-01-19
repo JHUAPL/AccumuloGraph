@@ -24,6 +24,7 @@ import com.tinkerpop.blueprints.Vertex;
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
+import edu.jhuapl.tinkerpop.tables.IndexMetadataTableWrapper;
 import edu.jhuapl.tinkerpop.tables.KeyMetadataTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
@@ -39,6 +40,7 @@ public class GlobalInstances {
   private VertexTableWrapper vertexWrapper;
   private EdgeTableWrapper edgeWrapper;
   private KeyMetadataTableWrapper keyMetadataWrapper;
+  private IndexMetadataTableWrapper indexMetadataWrapper;
   private final ElementCaches caches;
 
   public GlobalInstances(AccumuloGraph graph,
@@ -72,6 +74,10 @@ public class GlobalInstances {
 
   public KeyMetadataTableWrapper getKeyMetadataWrapper() {
     return keyMetadataWrapper;
+  }
+
+  public IndexMetadataTableWrapper getIndexMetadataWrapper() {
+    return indexMetadataWrapper;
   }
 
   public <T extends Element> ElementTableWrapper getElementWrapper(Class<T> clazz) {
@@ -126,5 +132,14 @@ public class GlobalInstances {
   @Deprecated
   public void setKeyMetadataWrapper(KeyMetadataTableWrapper wrapper) {
     this.keyMetadataWrapper = wrapper;
+  }
+
+  /**
+   * TODO: Refactor these away when the {@link #graph} member is gone.
+   * @param wrapper
+   */
+  @Deprecated
+  public void setIndexMetadataWrapper(IndexMetadataTableWrapper indexMetadataWrapper) {
+    this.indexMetadataWrapper = indexMetadataWrapper;
   }
 }
