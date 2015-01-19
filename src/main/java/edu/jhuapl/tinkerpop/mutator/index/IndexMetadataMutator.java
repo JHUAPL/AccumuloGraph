@@ -23,16 +23,16 @@ import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.mutator.Mutator;
 
 /**
- * Add/delete entries for key index metadata.
+ * Mutators for index metadata table entries.
  */
-public class KeyIndexMetadataMutator {
+public class IndexMetadataMutator {
 
-  private KeyIndexMetadataMutator() { }
+  private IndexMetadataMutator() { }
 
   public static class Add implements Mutator {
 
-    private String key;
-    private Class<? extends Element> clazz;
+    private final String key;
+    private final Class<? extends Element> clazz;
 
     public Add(String key, Class<? extends Element> clazz) {
       this.key = key;
@@ -50,11 +50,11 @@ public class KeyIndexMetadataMutator {
 
   public static class Delete implements Mutator {
 
-    private String key;
-    private Class<? extends Element> clazz;
+    private final String key;
+    private final Class<? extends Element> clazz;
 
-    public Delete(String key, Class<? extends Element> clazz) {
-      this.key = key;
+    public Delete(String indexName, Class<? extends Element> clazz) {
+      this.key = indexName;
       this.clazz = clazz;
     }
 
