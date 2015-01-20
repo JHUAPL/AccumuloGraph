@@ -280,7 +280,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     vert = new AccumuloVertex(globals, myID);
 
     globals.getVertexWrapper().writeVertex(vert);
-    checkedFlush();
+    globals.checkedFlush();
 
     globals.getCaches().cache(vert, Vertex.class);
 
@@ -368,7 +368,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         }
 
       }
-      checkedFlush();
+      globals.checkedFlush();
       scan.close();
 
       // If Edges are found, delete the whole row
@@ -483,7 +483,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     globals.getEdgeWrapper().writeEdge(edge);
     globals.getVertexWrapper().writeEdgeEndpoints(edge);
 
-    checkedFlush();
+    globals.checkedFlush();
 
     globals.getCaches().cache(edge, Edge.class);
 
@@ -563,7 +563,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       globals.getVertexWrapper().deleteEdgeEndpoints(edge);
       globals.getEdgeWrapper().deleteEdge(edge);
 
-      checkedFlush();
+      globals.checkedFlush();
       edgedeleter = config.getConnector().createBatchDeleter(config.getVertexTableName(), config.getAuthorizations(), config.getQueryThreads(),
           config.getBatchWriterConfig());
       Mutators.deleteElementRanges(edgedeleter, edge);
@@ -676,12 +676,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   /**
    * @deprecated Move this somewhere appropriate
    */
+  /*
   @Deprecated
   void checkedFlush() {
     if (config.getAutoFlush()) {
       flush();
     }
   }
+  */
 
   // methods used by AccumuloElement, AccumuloVertex, AccumuloEdge to interact
   // with the backing Accumulo data store...
@@ -708,7 +710,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         Mutation m = new Mutation(val);
         m.putDelete(key, element.getId().toString());
         getIndexBatchWriter(type).addMutation(m);
-        checkedFlush();
+        globals.checkedFlush();
       }
     } catch (MutationsRejectedException e) {
       e.printStackTrace();
@@ -873,7 +875,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       if (bd != null)
         bd.close();
     }
-    checkedFlush();
+    globals.checkedFlush();
   }
 
   @Override
@@ -884,7 +886,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     globals.getKeyMetadataWrapper().writeKeyMetadataEntry(key, elementClass);
-    checkedFlush();
+    globals.checkedFlush();
 
     // Re Index Graph
     BatchScanner scan = getElementBatchScanner(elementClass);
@@ -910,8 +912,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } finally {
       scan.close();
     }
-    checkedFlush();
-
+    globals.checkedFlush();
   }
 
   @Override

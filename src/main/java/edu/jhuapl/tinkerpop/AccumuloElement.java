@@ -90,7 +90,7 @@ public abstract class AccumuloElement implements Element {
     // MDL 31 Dec 2014:  The above calls getProperty, so this
     //   order is important (for now).
     globals.getElementWrapper(type).writeProperty(this, key, value);
-    globals.getGraph().checkedFlush();
+    globals.checkedFlush();
     setPropertyInMemory(key, value);
   }
 
@@ -116,7 +116,7 @@ public abstract class AccumuloElement implements Element {
     T value = getProperty(key);
     if (value != null) {
       globals.getElementWrapper(type).clearProperty(this, key);
-      globals.getGraph().checkedFlush();
+      globals.checkedFlush();
     }
     globals.getGraph().removePropertyFromIndex(type, this, key, value);
     // MDL 31 Dec 2014:  AccumuloGraph.removeProperty
