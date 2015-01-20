@@ -435,30 +435,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public Iterable<Vertex> getVertices(String key, Object value) {
     AccumuloGraphUtils.validateProperty(key, value);
     if (config.getAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
-      // Use the index
-      Scanner s = getVertexIndexScanner();
-      byte[] val = AccumuloByteSerializer.serialize(value);
-      Text tVal = new Text(val);
-      s.setRange(new Range(tVal, tVal));
-      s.fetchColumnFamily(new Text(key));
-
-      return new ScannerIterable<Vertex>(s) {
-
-        @Override
-        public Vertex next(PeekingIterator<Entry<Key,Value>> iterator) {
-
-          Key key = iterator.next().getKey();
-          Vertex v = globals.getCaches().retrieve(key.getColumnQualifier().toString(), Vertex.class);
-
-          v = (v == null ? new AccumuloVertex(globals, key.getColumnQualifier().toString()) : v);
-          ((AccumuloElement) v).cacheProperty(key.getColumnFamily().toString(),
-              AccumuloByteSerializer.deserialize(key.getRow().getBytes()));
-
-          globals.getCaches().cache(v, Vertex.class);
-
-          return v;
-        }
-      };
+      return globals.getVertexIndexWrapper().getVertices(key, value);
     } else {
       return globals.getVertexWrapper().getVertices(key, value);
     }

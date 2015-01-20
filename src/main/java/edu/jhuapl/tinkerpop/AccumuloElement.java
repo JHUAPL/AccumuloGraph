@@ -136,6 +136,25 @@ public abstract class AccumuloElement implements Element {
     propertyCache.remove(key);
   }
 
+  /**
+   * Return the properties currently cached in memory.
+   * @return
+   */
+  public Iterable<String> getPropertyKeysInMemory() {
+    makeCache();
+    return propertyCache.keySet();
+  }
+
+  /**
+   * Retrieve a property from memory.
+   * @param key
+   * @return
+   */
+  public Object getPropertyInMemory(String key) {
+    makeCache();
+    return propertyCache.get(key);
+  }
+
   @Override
   public Object getId() {
     return id;
@@ -159,7 +178,7 @@ public abstract class AccumuloElement implements Element {
     return getClass().hashCode() ^ id.hashCode();
   }
 
-  /*
+  /**
    * Internal method for unit tests.
    * @return
    */
