@@ -57,9 +57,11 @@ import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.tables.EdgeIndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.IndexNameTableWrapper;
 import edu.jhuapl.tinkerpop.tables.IndexedKeysTableWrapper;
+import edu.jhuapl.tinkerpop.tables.VertexIndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
 /**
@@ -173,6 +175,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     globals.setVertexWrapper(new VertexTableWrapper(globals));
     globals.setEdgeWrapper(new EdgeTableWrapper(globals));
+    globals.setVertexIndexWrapper(new VertexIndexTableWrapper(globals));
+    globals.setEdgeIndexWrapper(new EdgeIndexTableWrapper(globals));
     globals.setKeyMetadataWrapper(new IndexedKeysTableWrapper(globals));
     globals.setIndexMetadataWrapper(new IndexNameTableWrapper(globals));
 

@@ -21,10 +21,6 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
  */
 public abstract class IndexTableWrapper extends BaseTableWrapper {
 
-  /**
-   * @param config
-   * @param mtbw
-   */
   protected IndexTableWrapper(GlobalInstances globals, String tableName) {
     super(globals, tableName);
   }

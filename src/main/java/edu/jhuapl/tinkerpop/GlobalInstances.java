@@ -22,10 +22,12 @@ import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
+import edu.jhuapl.tinkerpop.tables.EdgeIndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.IndexNameTableWrapper;
 import edu.jhuapl.tinkerpop.tables.IndexedKeysTableWrapper;
+import edu.jhuapl.tinkerpop.tables.VertexIndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
 /**
@@ -39,6 +41,8 @@ public class GlobalInstances {
   private final MultiTableBatchWriter mtbw;
   private VertexTableWrapper vertexWrapper;
   private EdgeTableWrapper edgeWrapper;
+  private VertexIndexTableWrapper vertexIndexWrapper;
+  private EdgeIndexTableWrapper edgeIndexWrapper;
   private IndexedKeysTableWrapper keyMetadataWrapper;
   private IndexNameTableWrapper indexMetadataWrapper;
   private final ElementCaches caches;
@@ -70,6 +74,14 @@ public class GlobalInstances {
 
   public EdgeTableWrapper getEdgeWrapper() {
     return edgeWrapper;
+  }
+
+  public VertexIndexTableWrapper getVertexIndexWrapper() {
+    return vertexIndexWrapper;
+  }
+
+  public EdgeIndexTableWrapper getEdgeIndexWrapper() {
+    return edgeIndexWrapper;
   }
 
   public IndexedKeysTableWrapper getKeyMetadataWrapper() {
@@ -123,6 +135,24 @@ public class GlobalInstances {
   @Deprecated
   public void setEdgeWrapper(EdgeTableWrapper wrapper) {
     this.edgeWrapper = wrapper;
+  }
+
+  /**
+   * TODO: Refactor these away when the {@link #graph} member is gone.
+   * @param wrapper
+   */
+  @Deprecated
+  public void setVertexIndexWrapper(VertexIndexTableWrapper wrapper) {
+    this.vertexIndexWrapper = wrapper;
+  }
+
+  /**
+   * TODO: Refactor these away when the {@link #graph} member is gone.
+   * @param wrapper
+   */
+  @Deprecated
+  public void setEdgeIndexWrapper(EdgeIndexTableWrapper wrapper) {
+    this.edgeIndexWrapper = wrapper;
   }
 
   /**

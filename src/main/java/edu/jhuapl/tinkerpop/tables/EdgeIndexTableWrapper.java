@@ -23,13 +23,7 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
  */
 public class EdgeIndexTableWrapper extends IndexTableWrapper {
 
-  /**
-   * @param config
-   * @param mtbw
-   * @param tableName
-   */
   public EdgeIndexTableWrapper(GlobalInstances globals) {
     super(globals, globals.getConfig().getEdgeKeyIndexTableName());
   }
-
 }
