@@ -35,6 +35,7 @@ import com.tinkerpop.blueprints.Edge;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
+import edu.jhuapl.tinkerpop.AccumuloGraphUtils;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
@@ -109,7 +110,7 @@ public class EdgeTableWrapper extends ElementTableWrapper {
   }
 
   public Iterable<Edge> getEdges(String key, Object value) {
-    nullCheckProperty(key, value);
+    AccumuloGraphUtils.nullCheckProperty(key, value);
     if (key.equalsIgnoreCase("label")) {
       key = Constants.LABEL;
     }

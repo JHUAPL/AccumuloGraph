@@ -36,7 +36,13 @@ import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
  */
 public class GlobalInstances {
 
+  /**
+   * This member should eventually disappear - users
+   * should be able to access everything through this class.
+   */
+  @Deprecated
   private final AccumuloGraph graph;
+
   private final AccumuloGraphConfiguration config;
   private final MultiTableBatchWriter mtbw;
   private VertexTableWrapper vertexWrapper;

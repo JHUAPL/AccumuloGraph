@@ -53,7 +53,6 @@ import com.tinkerpop.blueprints.Parameter;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
-import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
@@ -72,6 +71,8 @@ import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
  * supports {@link IndexableGraph} and {@link KeyIndexableGraph}.
  * 
  * <p/>Tables have the following formats.
+ * 
+ * <p/><strong>NOTE: This documentation is way out of date.</strong>
  * 
  * <p/>
  * <table border="1">
@@ -432,7 +433,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Vertex> getVertices(String key, Object value) {
-    checkProperty(key, value);
+    AccumuloGraphUtils.validateProperty(key, value);
     if (config.getAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
       // Use the index
       Scanner s = getVertexIndexScanner();
@@ -581,7 +582,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Edge> getEdges(String key, Object value) {
-    nullCheckProperty(key, value);
+    AccumuloGraphUtils.nullCheckProperty(key, value);
     if (key.equalsIgnoreCase("label")) {
       key = Constants.LABEL;
     }
@@ -698,7 +699,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    */
   @Deprecated
   void setPropertyForIndexes(Class<? extends Element> type, Element element, String key, Object val) {
-    checkProperty(key, val);
+    AccumuloGraphUtils.validateProperty(key, val);
     try {
       if (config.getAutoIndex() || getIndexedKeys(type).contains(key)) {
         byte[] newByteVal = AccumuloByteSerializer.serialize(val);
@@ -750,6 +751,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  /*
   private void nullCheckProperty(String key, Object val) {
     if (key == null) {
       throw ExceptionFactory.propertyKeyCanNotBeNull();
@@ -772,6 +774,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw ExceptionFactory.propertyValueCanNotBeNull();
     }
   }
+  */
 
   @Override
   public String toString() {

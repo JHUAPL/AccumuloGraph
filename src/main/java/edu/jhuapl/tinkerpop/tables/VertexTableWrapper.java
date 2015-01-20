@@ -32,9 +32,11 @@ import org.apache.hadoop.io.Text;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
+
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.AccumuloElement;
+import edu.jhuapl.tinkerpop.AccumuloGraphUtils;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
@@ -195,7 +197,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
   }
 
   public Iterable<Vertex> getVertices(String key, Object value) {
-    validateProperty(key, value);
+    AccumuloGraphUtils.validateProperty(key, value);
 
     byte[] val = AccumuloByteSerializer.serialize(value);
     if (val[0] != AccumuloByteSerializer.SERIALIZABLE) {
