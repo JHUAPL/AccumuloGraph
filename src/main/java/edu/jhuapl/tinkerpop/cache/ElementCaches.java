@@ -62,6 +62,7 @@ public class ElementCaches {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private <T extends Element> ElementCache<T> pick(Class<T> clazz) {
     if (Vertex.class.equals(clazz)) {
       return (ElementCache<T>) vertexCache;

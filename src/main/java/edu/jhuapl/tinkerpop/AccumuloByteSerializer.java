@@ -93,6 +93,7 @@ public final class AccumuloByteSerializer {
       case ENUM:
         try {
           String[] s = new String(target, 1, target.length - 1).split(":");
+          @SuppressWarnings("rawtypes")
           Class<? extends Enum> clz = (Class<? extends Enum>) Class.forName(s[0]);
           return (T) Enum.valueOf(clz, s[1]);
         } catch (ClassNotFoundException cnfe) {

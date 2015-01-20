@@ -47,10 +47,7 @@ public class AutoIndexTest {
     v1.setProperty(KEY, VALUE);
 
     Scanner scan = ag.getVertexIndexScanner();
-    for (Entry<Key,Value> kv : scan) {
-      assertTrue(false);
-    }
-
+    assertFalse(scan.iterator().hasNext());
   }
 
 }

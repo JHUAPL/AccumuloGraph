@@ -64,6 +64,7 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
     return id;
   }
 
+  @SuppressWarnings("unchecked")
   @Override
   public <T> T getProperty(String key) {
 

@@ -143,6 +143,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
       if (!isClosed) {
         return new ScannerIterable<T>(scan) {
 
+          @SuppressWarnings("unchecked")
           @Override
           public T next(PeekingIterator<Entry<Key, Value>> iterator) {
             String id = iterator.next()

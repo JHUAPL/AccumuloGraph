@@ -62,6 +62,7 @@ public class PropertyCache {
     }
   }
 
+  @SuppressWarnings("unchecked")
   public <T> T get(String key) {
     long now = System.currentTimeMillis();
 

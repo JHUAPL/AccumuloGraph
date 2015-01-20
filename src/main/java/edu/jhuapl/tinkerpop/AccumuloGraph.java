@@ -747,6 +747,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return AccumuloGraphConfiguration.ACCUMULO_GRAPH_CLASS.getSimpleName().toLowerCase();
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
   public <T extends Element> Index<T> createIndex(String indexName,
       Class<T> indexClass, Parameter... indexParameters) {
@@ -878,6 +879,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     globals.checkedFlush();
   }
 
+  @SuppressWarnings("rawtypes")
   @Override
   public <T extends Element> void createKeyIndex(String key,
       Class<T> elementClass, Parameter... indexParameters) {

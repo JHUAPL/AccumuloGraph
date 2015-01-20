@@ -14,12 +14,7 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.io.IOException;
 import java.lang.reflect.Method;
-
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.TableNotFoundException;
 
 import com.tinkerpop.blueprints.EdgeTestSuite;
 import com.tinkerpop.blueprints.Graph;
@@ -93,6 +88,7 @@ public class AccumuloGraphTest extends GraphTest {
     printTestPerformance("GraphSONReaderTestSuite", this.stopWatch());
   }
 
+  @Override
   public void doTestSuite(final TestSuite testSuite) throws Exception {
     String doTest = System.getProperty("testTinkerGraph");
     if (doTest == null || doTest.equals("true")) {
@@ -117,6 +113,7 @@ public class AccumuloGraphTest extends GraphTest {
     new AccumuloGraphTest().generateGraph();
   }
 
+  @Override
   public void dropGraph(final String graphDirectoryName) {
     if (graphDirectoryName != null) {
       AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig(graphDirectoryName);
@@ -130,6 +127,7 @@ public class AccumuloGraphTest extends GraphTest {
     }
   }
 
+  @Override
   public Object convertId(final Object id) {
     return id.toString();
   }
