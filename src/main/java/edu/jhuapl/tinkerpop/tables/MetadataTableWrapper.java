@@ -17,23 +17,26 @@ package edu.jhuapl.tinkerpop.tables;
 import com.tinkerpop.blueprints.Element;
 
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.mutator.index.IndexMetadataMutator;
 
 /**
- * Wrapper around index metadata table.
+ * Wraps the metadata tables which stores information
+ * about which property keys are indexed for different
+ * graph types.
  */
-public class IndexMetadataTableWrapper extends MetadataTableWrapper {
+public abstract class MetadataTableWrapper extends BaseTableWrapper {
 
-  public IndexMetadataTableWrapper(GlobalInstances globals) {
-    super(globals, globals.getConfig().getIndexMetadataTableName());
+  protected MetadataTableWrapper(GlobalInstances globals,
+      String tableName) {
+    super(globals, tableName);
   }
-  
-  public void writeIndexMetadataEntry(String indexName,
-      Class<? extends Element> indexClass) {
-    writeEntry(indexName, indexClass);
+
+  protected void writeEntry(String key, Class<? extends Element> clazz) {
+    Mutators.apply(getWriter(), new IndexMetadataMutator.Add(key, clazz));
   }
-  
-  public void clearIndexMetadataEntry(String indexName,
-      Class<? extends Element> indexClass) {
-    clearEntry(indexName, indexClass);
+
+  protected void clearEntry(String key, Class<? extends Element> clazz) {
+    Mutators.apply(getWriter(), new IndexMetadataMutator.Delete(key, clazz));
   }
 }

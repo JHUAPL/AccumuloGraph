@@ -14,28 +14,45 @@
  */
 package edu.jhuapl.tinkerpop.tables;
 
+import java.util.HashSet;
+import java.util.Set;
+import org.apache.accumulo.core.client.Scanner;
 import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 import edu.jhuapl.tinkerpop.GlobalInstances;
-import edu.jhuapl.tinkerpop.mutator.Mutators;
-import edu.jhuapl.tinkerpop.mutator.index.IndexMetadataMutator;
+import edu.jhuapl.tinkerpop.parser.IndexMetadataParser;
 
 /**
  * Wraps the metadata tables which stores information
  * about which property keys are indexed for different
  * graph types.
  */
-public class KeyMetadataTableWrapper extends BaseTableWrapper {
+public class KeyMetadataTableWrapper extends MetadataTableWrapper {
 
   public KeyMetadataTableWrapper(GlobalInstances globals) {
     super(globals, globals.getConfig().getKeyMetadataTableName());
   }
 
   public void writeKeyMetadataEntry(String key, Class<? extends Element> clazz) {
-    Mutators.apply(getWriter(), new IndexMetadataMutator.Add(key, clazz));
+    writeEntry(key, clazz);
   }
 
   public void clearKeyMetadataEntry(String key, Class<? extends Element> clazz) {
-    Mutators.apply(getWriter(), new IndexMetadataMutator.Delete(key, clazz));
+    clearEntry(key, clazz);
+  }
+
+  public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
+    if (elementClass == null) {
+      throw ExceptionFactory.classForElementCannotBeNull();
+    }
+
+    IndexMetadataParser parser = new IndexMetadataParser(elementClass);
+
+    Scanner s = getScanner();
+    Set<String> keys = new HashSet<String>(parser.parse(s));
+    s.close();
+
+    return keys;
   }
 }

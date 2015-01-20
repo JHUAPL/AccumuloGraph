@@ -16,7 +16,6 @@ package edu.jhuapl.tinkerpop;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -950,23 +949,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
-    if (elementClass == null) {
-      throw ExceptionFactory.classForElementCannotBeNull();
-    }
-
-    Scanner s = getKeyMetadataScanner();
-
-    try {
-      s.fetchColumnFamily(new Text(elementClass.getSimpleName()));
-      Iterator<Entry<Key,Value>> iter = s.iterator();
-      Set<String> toRet = new HashSet<String>();
-      while (iter.hasNext()) {
-        toRet.add(iter.next().getKey().getRow().toString());
-      }
-      return toRet;
-    } finally {
-      s.close();
-    }
+    return globals.getKeyMetadataWrapper().getIndexedKeys(elementClass);
   }
 
   public boolean isEmpty() {
