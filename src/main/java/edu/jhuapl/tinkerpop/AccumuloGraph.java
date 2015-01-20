@@ -694,31 +694,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return getVertexIndexWriter();
   }
 
-  /*
-  private void nullCheckProperty(String key, Object val) {
-    if (key == null) {
-      throw ExceptionFactory.propertyKeyCanNotBeNull();
-    } else if (val == null) {
-      throw ExceptionFactory.propertyValueCanNotBeNull();
-    } else if (key.trim().equals(StringFactory.EMPTY_STRING)) {
-      throw ExceptionFactory.propertyKeyCanNotBeEmpty();
-    }
-  }
-
-  // internal methods used by this class
-
-  private void checkProperty(String key, Object val) {
-    nullCheckProperty(key, val);
-    if (key.equals(StringFactory.ID)) {
-      throw ExceptionFactory.propertyKeyIdIsReserved();
-    } else if (key.equals(StringFactory.LABEL)) {
-      throw ExceptionFactory.propertyKeyLabelIsReservedForEdges();
-    } else if (val == null) {
-      throw ExceptionFactory.propertyValueCanNotBeNull();
-    }
-  }
-  */
-
   @Override
   public String toString() {
     return AccumuloGraphConfiguration.ACCUMULO_GRAPH_CLASS.getSimpleName().toLowerCase();
