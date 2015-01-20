@@ -24,8 +24,8 @@ import com.tinkerpop.blueprints.Vertex;
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
-import edu.jhuapl.tinkerpop.tables.IndexMetadataTableWrapper;
-import edu.jhuapl.tinkerpop.tables.KeyMetadataTableWrapper;
+import edu.jhuapl.tinkerpop.tables.IndexNameTableWrapper;
+import edu.jhuapl.tinkerpop.tables.IndexedKeysTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
 /**
@@ -39,8 +39,8 @@ public class GlobalInstances {
   private final MultiTableBatchWriter mtbw;
   private VertexTableWrapper vertexWrapper;
   private EdgeTableWrapper edgeWrapper;
-  private KeyMetadataTableWrapper keyMetadataWrapper;
-  private IndexMetadataTableWrapper indexMetadataWrapper;
+  private IndexedKeysTableWrapper keyMetadataWrapper;
+  private IndexNameTableWrapper indexMetadataWrapper;
   private final ElementCaches caches;
 
   public GlobalInstances(AccumuloGraph graph,
@@ -72,11 +72,11 @@ public class GlobalInstances {
     return edgeWrapper;
   }
 
-  public KeyMetadataTableWrapper getKeyMetadataWrapper() {
+  public IndexedKeysTableWrapper getKeyMetadataWrapper() {
     return keyMetadataWrapper;
   }
 
-  public IndexMetadataTableWrapper getIndexMetadataWrapper() {
+  public IndexNameTableWrapper getIndexMetadataWrapper() {
     return indexMetadataWrapper;
   }
 
@@ -130,7 +130,7 @@ public class GlobalInstances {
    * @param wrapper
    */
   @Deprecated
-  public void setKeyMetadataWrapper(KeyMetadataTableWrapper wrapper) {
+  public void setKeyMetadataWrapper(IndexedKeysTableWrapper wrapper) {
     this.keyMetadataWrapper = wrapper;
   }
 
@@ -139,7 +139,7 @@ public class GlobalInstances {
    * @param wrapper
    */
   @Deprecated
-  public void setIndexMetadataWrapper(IndexMetadataTableWrapper indexMetadataWrapper) {
+  public void setIndexMetadataWrapper(IndexNameTableWrapper indexMetadataWrapper) {
     this.indexMetadataWrapper = indexMetadataWrapper;
   }
 }

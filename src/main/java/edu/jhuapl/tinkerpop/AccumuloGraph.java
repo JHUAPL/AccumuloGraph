@@ -58,8 +58,8 @@ import com.tinkerpop.blueprints.util.StringFactory;
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
-import edu.jhuapl.tinkerpop.tables.IndexMetadataTableWrapper;
-import edu.jhuapl.tinkerpop.tables.KeyMetadataTableWrapper;
+import edu.jhuapl.tinkerpop.tables.IndexNameTableWrapper;
+import edu.jhuapl.tinkerpop.tables.IndexedKeysTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
 
 /**
@@ -173,8 +173,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     globals.setVertexWrapper(new VertexTableWrapper(globals));
     globals.setEdgeWrapper(new EdgeTableWrapper(globals));
-    globals.setKeyMetadataWrapper(new KeyMetadataTableWrapper(globals));
-    globals.setIndexMetadataWrapper(new IndexMetadataTableWrapper(globals));
+    globals.setKeyMetadataWrapper(new IndexedKeysTableWrapper(globals));
+    globals.setIndexMetadataWrapper(new IndexNameTableWrapper(globals));
 
     try {
       setupWriters();
@@ -209,7 +209,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   // Aliases for the lazy
   private Scanner getMetadataScanner() {
-    return getScanner(config.getIndexMetadataTableName());
+    return getScanner(config.getIndexNamesTableName());
   }
 
   public Scanner getVertexIndexScanner() {
@@ -226,10 +226,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   private BatchWriter getEdgeIndexWriter() {
     return getWriter(config.getEdgeKeyIndexTableName());
-  }
-
-  private Scanner getKeyMetadataScanner() {
-    return getScanner(config.getKeyMetadataTableName());
   }
 
   public BatchWriter getWriter(String tablename) {
@@ -809,7 +805,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
 
-    Scanner scan = getScanner(config.getIndexMetadataTableName());
+    Scanner scan = getScanner(config.getIndexNamesTableName());
     try {
       scan.setRange(new Range(indexName, indexName));
       Iterator<Entry<Key,Value>> iter = scan.iterator();
@@ -833,7 +829,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (config.getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();
-    Scanner scan = getScanner(config.getIndexMetadataTableName());
+    Scanner scan = getScanner(config.getIndexNamesTableName());
     try {
       Iterator<Entry<Key,Value>> iter = scan.iterator();
 
@@ -868,7 +864,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
         try {
           globals.getConfig().getConnector().tableOperations().delete(globals.getConfig()
-              .getIndexTableName(indexName));
+              .getNamedIndexTableName(indexName));
         } catch (Exception e) {
           throw new AccumuloGraphException(e);
         }

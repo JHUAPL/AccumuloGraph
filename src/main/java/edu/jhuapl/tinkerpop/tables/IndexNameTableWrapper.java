@@ -21,10 +21,10 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
 /**
  * Wrapper around index metadata table.
  */
-public class IndexMetadataTableWrapper extends MetadataTableWrapper {
+public class IndexNameTableWrapper extends MetadataTableWrapper {
 
-  public IndexMetadataTableWrapper(GlobalInstances globals) {
-    super(globals, globals.getConfig().getIndexMetadataTableName());
+  public IndexNameTableWrapper(GlobalInstances globals) {
+    super(globals, globals.getConfig().getIndexNamesTableName());
   }
   
   public void writeIndexMetadataEntry(String indexName,

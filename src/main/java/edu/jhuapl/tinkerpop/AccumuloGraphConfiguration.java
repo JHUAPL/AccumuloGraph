@@ -968,7 +968,7 @@ implements Serializable {
    * @param indexName
    * @return
    */
-  public String getIndexTableName(String indexName) {
+  public String getNamedIndexTableName(String indexName) {
     return getGraphName() + "_index_" + indexName;
   }
 
@@ -977,22 +977,22 @@ implements Serializable {
    * of elements.
    * @return
    */
-  public String getKeyMetadataTableName() {
-    return getGraphName() + "_key_metadata";
+  public String getIndexedKeysTableName() {
+    return getGraphName() + "_indexed_keys";
   }
 
   /**
    * Table of existing named indexes.
    * @return
    */
-  public String getIndexMetadataTableName() {
-    return getGraphName() + "_index_metadata";
+  public String getIndexNamesTableName() {
+    return getGraphName() + "_index_names";
   }
 
   List<String> getTableNames() {
     return Arrays.asList(getVertexTableName(),
         getEdgeTableName(), getVertexKeyIndexTableName(), getEdgeKeyIndexTableName(),
-        getIndexMetadataTableName(), getKeyMetadataTableName());
+        getIndexNamesTableName(), getIndexedKeysTableName());
   }
 
   /**

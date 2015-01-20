@@ -28,10 +28,10 @@ import edu.jhuapl.tinkerpop.parser.IndexMetadataParser;
  * about which property keys are indexed for different
  * graph types.
  */
-public class KeyMetadataTableWrapper extends MetadataTableWrapper {
+public class IndexedKeysTableWrapper extends MetadataTableWrapper {
 
-  public KeyMetadataTableWrapper(GlobalInstances globals) {
-    super(globals, globals.getConfig().getKeyMetadataTableName());
+  public IndexedKeysTableWrapper(GlobalInstances globals) {
+    super(globals, globals.getConfig().getIndexedKeysTableName());
   }
 
   public void writeKeyMetadataEntry(String key, Class<? extends Element> clazz) {

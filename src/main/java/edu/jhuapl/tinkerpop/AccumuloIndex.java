@@ -44,7 +44,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     this.indexedType = t;
     this.globals = globals;
     this.indexName = indexName;
-    this.tableName = globals.getConfig().getIndexTableName(indexName);
+    this.tableName = globals.getConfig().getNamedIndexTableName(indexName);
 
     try {
       if (!globals.getConfig().getConnector().tableOperations().exists(tableName)) {
