@@ -686,42 +686,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   // methods used by AccumuloElement, AccumuloVertex, AccumuloEdge to interact
   // with the backing Accumulo data store...
 
-  /**
-   * Sets the property. Requires a round-trip to Accumulo to see if the property exists
-   * iff the provided key has an index. Therefore, for best performance, if at
-   * all possible, create indices after bulk ingest.
-   * 
-   * @deprecated Move to appropriate place
-   * @param type
-   * @param id
-   * @param key
-   * @param val
-   */
-  @Deprecated
-  void setPropertyForIndexes(Class<? extends Element> type, Element element, String key, Object val) {
-    AccumuloGraphUtils.validateProperty(key, val);
-    try {
-      if (config.getAutoIndex() || getIndexedKeys(type).contains(key)) {
-        byte[] newByteVal = AccumuloByteSerializer.serialize(val);
-
-        BatchWriter bw = getIndexBatchWriter(type);
-        Object old = element.getProperty(key);
-        if (old != null) {
-          byte[] oldByteVal = AccumuloByteSerializer.serialize(old);
-          Mutation m = new Mutation(oldByteVal);
-          m.putDelete(key, element.getId().toString());
-          bw.addMutation(m);
-        }
-        Mutation m = new Mutation(newByteVal);
-        m.put(key.getBytes(), element.getId().toString().getBytes(), Constants.EMPTY);
-        bw.addMutation(m);
-        checkedFlush();
-      }
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-    }
-  }
-
   private BatchWriter getIndexBatchWriter(Class<? extends Element> type) {
     if (type.equals(Edge.class))
       return getEdgeIndexWriter();

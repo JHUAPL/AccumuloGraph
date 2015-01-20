@@ -26,6 +26,7 @@ import edu.jhuapl.tinkerpop.tables.EdgeIndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.IndexNameTableWrapper;
+import edu.jhuapl.tinkerpop.tables.IndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.IndexedKeysTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexIndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.VertexTableWrapper;
@@ -106,6 +107,16 @@ public class GlobalInstances {
     } else {
       throw new AccumuloGraphException("Unrecognized class: "+clazz);
     }
+  }
+
+  public <T extends Element> IndexTableWrapper getIndexWrapper(Class<T> clazz) {
+    if (Vertex.class.equals(clazz)) {
+      return vertexIndexWrapper;
+    } else if (Edge.class.equals(clazz)) {
+      return edgeIndexWrapper;
+    } else {
+      throw new AccumuloGraphException("Unrecognized class: "+clazz);
+    }    
   }
 
   public ElementCaches getCaches() {

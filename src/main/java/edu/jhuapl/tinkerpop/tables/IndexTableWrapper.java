@@ -14,6 +14,16 @@
  */
 package edu.jhuapl.tinkerpop.tables;
 
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.MutationsRejectedException;
+import org.apache.accumulo.core.data.Mutation;
+
+import com.tinkerpop.blueprints.Element;
+
+import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
+import edu.jhuapl.tinkerpop.AccumuloGraphUtils;
+import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 
 /**
@@ -21,7 +31,47 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
  */
 public abstract class IndexTableWrapper extends BaseTableWrapper {
 
-  protected IndexTableWrapper(GlobalInstances globals, String tableName) {
+  protected final Class<? extends Element> elementType;
+
+  protected IndexTableWrapper(GlobalInstances globals,
+      Class<? extends Element> elementType, String tableName) {
     super(globals, tableName);
+    this.elementType = elementType;
+  }
+
+  /**
+   * Add the property to this index.
+   * 
+   * <p/>Note that this requires a round-trip to Accumulo to see
+   * if the property exists if the provided key has an index.
+   * So for best performance, create indices after bulk ingest.
+   * @param element
+   * @param key
+   * @param val
+   */
+  public void setPropertyForIndex(Element element, String key, Object val) {
+    AccumuloGraphUtils.validateProperty(key, val);
+    try {
+      if (globals.getConfig().getAutoIndex() ||
+          globals.getGraph().getIndexedKeys(elementType).contains(key)) {
+        BatchWriter bw = getWriter();
+
+        Object old = element.getProperty(key);
+        if (old != null) {
+          byte[] oldByteVal = AccumuloByteSerializer.serialize(old);
+          Mutation m = new Mutation(oldByteVal);
+          m.putDelete(key, element.getId().toString());
+          bw.addMutation(m);
+        }
+
+        byte[] newByteVal = AccumuloByteSerializer.serialize(val);
+        Mutation m = new Mutation(newByteVal);
+        m.put(key.getBytes(), element.getId().toString().getBytes(), Constants.EMPTY);
+        bw.addMutation(m);
+        globals.checkedFlush();
+      }
+    } catch (MutationsRejectedException e) {
+      throw new AccumuloGraphException(e);
+    }
   }
 }

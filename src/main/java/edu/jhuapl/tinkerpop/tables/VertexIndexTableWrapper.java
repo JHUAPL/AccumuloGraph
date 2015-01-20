@@ -24,6 +24,7 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
 public class VertexIndexTableWrapper extends IndexTableWrapper {
 
   public VertexIndexTableWrapper(GlobalInstances globals) {
-    super(globals, globals.getConfig().getVertexKeyIndexTableName());
+    super(globals, Vertex.class, globals.getConfig()
+        .getVertexKeyIndexTableName());
   }
 }

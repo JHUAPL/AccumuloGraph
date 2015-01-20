@@ -24,6 +24,7 @@ import edu.jhuapl.tinkerpop.GlobalInstances;
 public class EdgeIndexTableWrapper extends IndexTableWrapper {
 
   public EdgeIndexTableWrapper(GlobalInstances globals) {
-    super(globals, globals.getConfig().getEdgeKeyIndexTableName());
+    super(globals, Edge.class, globals.getConfig()
+        .getEdgeKeyIndexTableName());
   }
 }
