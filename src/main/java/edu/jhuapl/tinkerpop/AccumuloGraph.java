@@ -36,7 +36,6 @@ import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
-import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 
@@ -565,27 +564,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     if (config.getAutoIndex() || getIndexedKeys(Edge.class).contains(key)) {
-      // Use the index
-      Scanner s = getEdgeIndexScanner();
-      byte[] val = AccumuloByteSerializer.serialize(value);
-      Text tVal = new Text(val);
-      s.setRange(new Range(tVal, tVal));
-      s.fetchColumnFamily(new Text(key));
-
-      return new ScannerIterable<Edge>(s) {
-        @Override
-        public Edge next(PeekingIterator<Entry<Key,Value>> iterator) {
-          Entry<Key,Value> kv = iterator.next();
-
-          Edge e = globals.getCaches().retrieve(kv.getKey().getColumnQualifier().toString(), Edge.class);
-          e = (e == null ? new AccumuloEdge(globals, kv.getKey().getColumnQualifier().toString()) : e);
-
-          ((AccumuloElement) e).cacheProperty(kv.getKey().getColumnFamily().toString(),
-              AccumuloByteSerializer.deserialize(kv.getKey().getRow().getBytes()));
-          globals.getCaches().cache(e, Edge.class);
-          return e;
-        }
-      };
+      return globals.getEdgeIndexWrapper().getEdges(key, value);
     } else {
       return globals.getEdgeWrapper().getEdges(key, value);
     }
