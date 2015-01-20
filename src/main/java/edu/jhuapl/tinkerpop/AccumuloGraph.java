@@ -216,12 +216,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return getScanner(config.getIndexNamesTableName());
   }
 
+  /**
+   * @deprecated This is used in a unit test that
+   * needs to be updated to work with
+   * {@link VertexIndexTableWrapper}.
+   * @return
+   */
   public Scanner getVertexIndexScanner() {
     return getScanner(config.getVertexKeyIndexTableName());
-  }
-
-  private Scanner getEdgeIndexScanner() {
-    return getScanner(config.getEdgeKeyIndexTableName());
   }
 
   private BatchWriter getVertexIndexWriter() {
