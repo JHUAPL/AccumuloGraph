@@ -61,4 +61,17 @@ public abstract class IndexTableWrapper extends BaseTableWrapper {
       globals.checkedFlush();
     }
   }
+
+  /**
+   * Remove property from the index.
+   * @param element
+   * @param key
+   * @param value
+   */
+  public void removePropertyFromIndex(Element element, String key, Object value) {
+    if (value != null) {
+      Mutators.apply(getWriter(), new IndexValueMutator.Delete(element, key, value));
+      globals.checkedFlush();
+    }
+  }
 }

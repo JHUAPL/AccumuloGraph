@@ -694,29 +694,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return getVertexIndexWriter();
   }
 
-  /**
-   * @deprecated Move to appropriate place
-   * @param type
-   * @param element
-   * @param key
-   * @return
-   */
-  @Deprecated
-  void removePropertyFromIndex(Class<? extends Element> type, Element element,
-      String key, Object obj) {
-    try {
-      if (obj != null) {
-        byte[] val = AccumuloByteSerializer.serialize(obj);
-        Mutation m = new Mutation(val);
-        m.putDelete(key, element.getId().toString());
-        getIndexBatchWriter(type).addMutation(m);
-        globals.checkedFlush();
-      }
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-    }
-  }
-
   /*
   private void nullCheckProperty(String key, Object val) {
     if (key == null) {

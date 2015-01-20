@@ -118,7 +118,7 @@ public abstract class AccumuloElement implements Element {
       globals.getElementWrapper(type).clearProperty(this, key);
       globals.checkedFlush();
     }
-    globals.getGraph().removePropertyFromIndex(type, this, key, value);
+    globals.getIndexWrapper(type).removePropertyFromIndex(this, key, value);
     // MDL 31 Dec 2014:  AccumuloGraph.removeProperty
     //   calls getProperty which populates the cache.
     //   So the order here is important (for now).
