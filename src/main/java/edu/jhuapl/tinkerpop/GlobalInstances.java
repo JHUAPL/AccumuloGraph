@@ -63,6 +63,7 @@ public class GlobalInstances {
     this.caches = caches;
   }
 
+  @Deprecated
   public AccumuloGraph getGraph() {
     return graph;
   }
