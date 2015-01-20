@@ -15,16 +15,12 @@
 package edu.jhuapl.tinkerpop.tables;
 
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.data.Mutation;
-
 import com.tinkerpop.blueprints.Element;
 
-import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
-import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.AccumuloGraphUtils;
-import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.mutator.index.IndexValueMutator;
 
 /**
  * Wrapper around index tables.
@@ -47,31 +43,22 @@ public abstract class IndexTableWrapper extends BaseTableWrapper {
    * So for best performance, create indices after bulk ingest.
    * @param element
    * @param key
-   * @param val
+   * @param value
    */
-  public void setPropertyForIndex(Element element, String key, Object val) {
-    AccumuloGraphUtils.validateProperty(key, val);
-    try {
-      if (globals.getConfig().getAutoIndex() ||
-          globals.getGraph().getIndexedKeys(elementType).contains(key)) {
-        BatchWriter bw = getWriter();
+  public void setPropertyForIndex(Element element, String key, Object value) {
+    AccumuloGraphUtils.validateProperty(key, value);
+    if (globals.getConfig().getAutoIndex() ||
+        globals.getGraph().getIndexedKeys(elementType).contains(key)) {
+      BatchWriter writer = getWriter();
 
-        Object old = element.getProperty(key);
-        if (old != null) {
-          byte[] oldByteVal = AccumuloByteSerializer.serialize(old);
-          Mutation m = new Mutation(oldByteVal);
-          m.putDelete(key, element.getId().toString());
-          bw.addMutation(m);
-        }
-
-        byte[] newByteVal = AccumuloByteSerializer.serialize(val);
-        Mutation m = new Mutation(newByteVal);
-        m.put(key.getBytes(), element.getId().toString().getBytes(), Constants.EMPTY);
-        bw.addMutation(m);
-        globals.checkedFlush();
+      Object oldValue = element.getProperty(key);
+      if (oldValue != null) {
+        Mutators.apply(writer, new IndexValueMutator.Delete(element, key, oldValue));
       }
-    } catch (MutationsRejectedException e) {
-      throw new AccumuloGraphException(e);
+
+      Mutators.apply(writer, new IndexValueMutator.Add(element, key, value));
+
+      globals.checkedFlush();
     }
   }
 }
