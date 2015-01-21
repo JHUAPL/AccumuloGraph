@@ -15,9 +15,6 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.Iterator;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.data.Mutation;
 import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
@@ -66,16 +63,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
   @Override
   public void put(String key, Object value, Element element) {
-    element.setProperty(key, value);
-    Mutation m = new Mutation(AccumuloByteSerializer.serialize(value));
-    m.put(key.getBytes(), element.getId().toString().getBytes(), "".getBytes());
-    BatchWriter w = getWriter();
-    try {
-      w.addMutation(m);
-      w.flush();
-    } catch (MutationsRejectedException e) {
-      throw new AccumuloGraphException(e);
-    }
+    indexWrapper.setPropertyForIndex(element, key, value, true);
   }
 
   @Override
@@ -104,9 +92,5 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
   @Override
   public void remove(String key, Object value, Element element) {
     indexWrapper.removePropertyFromIndex(element, key, value);
-  }
-
-  private BatchWriter getWriter() {
-    return globals.getGraph().getWriter(getTableName());
   }
 }

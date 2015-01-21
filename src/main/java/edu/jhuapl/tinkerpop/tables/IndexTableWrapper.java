@@ -29,6 +29,7 @@ import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.IndexableGraph;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
@@ -56,18 +57,34 @@ public abstract class IndexTableWrapper extends BaseTableWrapper {
   }
 
   /**
-   * Add the property to this index.
-   * 
-   * <p/>Note that this requires a round-trip to Accumulo to see
-   * if the property exists if the provided key has an index.
-   * So for best performance, create indices after bulk ingest.
+   * Add the property to this index, if autoindexing is enabled
+   * and/or the given key has indexing enabled.
    * @param element
    * @param key
    * @param value
    */
   public void setPropertyForIndex(Element element, String key, Object value) {
+    setPropertyForIndex(element, key, value, false);
+  }
+
+  /**
+   * Add the property to this index.
+   * 
+   * <p/>Note that this requires a round-trip to Accumulo to see
+   * if the property exists if the provided key has an index.
+   * So for best performance, create indices after bulk ingest.
+   * <p/>If the force parameter is true, set the property regardless
+   * of whether indexing is enabled for the given key. This is needed
+   * for {@link IndexableGraph} operations.
+   * @param element
+   * @param key
+   * @param value
+   * @param force
+   */
+  public void setPropertyForIndex(Element element, String key, Object value,
+      boolean force) {
     AccumuloGraphUtils.validateProperty(key, value);
-    if (globals.getConfig().getAutoIndex() ||
+    if (force || globals.getConfig().getAutoIndex() ||
         globals.getGraph().getIndexedKeys(elementType).contains(key)) {
       BatchWriter writer = getWriter();
 
