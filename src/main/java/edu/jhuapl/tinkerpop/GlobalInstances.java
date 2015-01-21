@@ -46,12 +46,6 @@ public class GlobalInstances {
 
   private final AccumuloGraphConfiguration config;
   private final MultiTableBatchWriter mtbw;
-  private VertexTableWrapper vertexWrapper;
-  private EdgeTableWrapper edgeWrapper;
-  private VertexIndexTableWrapper vertexIndexWrapper;
-  private EdgeIndexTableWrapper edgeIndexWrapper;
-  private IndexedKeysTableWrapper keyMetadataWrapper;
-  private IndexNameTableWrapper indexMetadataWrapper;
   private final ElementCaches caches;
 
   public GlobalInstances(AccumuloGraph graph,
@@ -77,34 +71,34 @@ public class GlobalInstances {
   }
 
   public VertexTableWrapper getVertexWrapper() {
-    return vertexWrapper;
+    return new VertexTableWrapper(this);
   }
 
   public EdgeTableWrapper getEdgeWrapper() {
-    return edgeWrapper;
+    return new EdgeTableWrapper(this);
   }
 
   public VertexIndexTableWrapper getVertexIndexWrapper() {
-    return vertexIndexWrapper;
+    return new VertexIndexTableWrapper(this);
   }
 
   public EdgeIndexTableWrapper getEdgeIndexWrapper() {
-    return edgeIndexWrapper;
+    return new EdgeIndexTableWrapper(this);
   }
 
   public IndexedKeysTableWrapper getKeyMetadataWrapper() {
-    return keyMetadataWrapper;
+    return new IndexedKeysTableWrapper(this);
   }
 
   public IndexNameTableWrapper getIndexMetadataWrapper() {
-    return indexMetadataWrapper;
+    return new IndexNameTableWrapper(this);
   }
 
   public <T extends Element> ElementTableWrapper getElementWrapper(Class<T> clazz) {
     if (Vertex.class.equals(clazz)) {
-      return vertexWrapper;
+      return getVertexWrapper();
     } else if (Edge.class.equals(clazz)) {
-      return edgeWrapper;
+      return getEdgeWrapper();
     } else {
       throw new AccumuloGraphException("Unrecognized class: "+clazz);
     }
@@ -112,9 +106,9 @@ public class GlobalInstances {
 
   public <T extends Element> IndexTableWrapper getKeyIndexWrapper(Class<T> clazz) {
     if (Vertex.class.equals(clazz)) {
-      return vertexIndexWrapper;
+      return getVertexIndexWrapper();
     } else if (Edge.class.equals(clazz)) {
-      return edgeIndexWrapper;
+      return getEdgeIndexWrapper();
     } else {
       throw new AccumuloGraphException("Unrecognized class: "+clazz);
     }    
@@ -135,59 +129,5 @@ public class GlobalInstances {
         throw new AccumuloGraphException(e);
       }
     }
-  }
-
-  /**
-   * TODO: Refactor these away when the {@link #graph} member is gone.
-   * @param wrapper
-   */
-  @Deprecated
-  public void setVertexWrapper(VertexTableWrapper wrapper) {
-    this.vertexWrapper = wrapper;
-  }
-
-  /**
-   * TODO: Refactor these away when the {@link #graph} member is gone.
-   * @param wrapper
-   */
-  @Deprecated
-  public void setEdgeWrapper(EdgeTableWrapper wrapper) {
-    this.edgeWrapper = wrapper;
-  }
-
-  /**
-   * TODO: Refactor these away when the {@link #graph} member is gone.
-   * @param wrapper
-   */
-  @Deprecated
-  public void setVertexIndexWrapper(VertexIndexTableWrapper wrapper) {
-    this.vertexIndexWrapper = wrapper;
-  }
-
-  /**
-   * TODO: Refactor these away when the {@link #graph} member is gone.
-   * @param wrapper
-   */
-  @Deprecated
-  public void setEdgeIndexWrapper(EdgeIndexTableWrapper wrapper) {
-    this.edgeIndexWrapper = wrapper;
-  }
-
-  /**
-   * TODO: Refactor these away when the {@link #graph} member is gone.
-   * @param wrapper
-   */
-  @Deprecated
-  public void setKeyMetadataWrapper(IndexedKeysTableWrapper wrapper) {
-    this.keyMetadataWrapper = wrapper;
-  }
-
-  /**
-   * TODO: Refactor these away when the {@link #graph} member is gone.
-   * @param wrapper
-   */
-  @Deprecated
-  public void setIndexMetadataWrapper(IndexNameTableWrapper indexMetadataWrapper) {
-    this.indexMetadataWrapper = indexMetadataWrapper;
   }
 }
