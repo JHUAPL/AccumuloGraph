@@ -30,7 +30,6 @@ import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.CloseableIterable;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.Vertex;
@@ -41,7 +40,7 @@ import edu.jhuapl.tinkerpop.parser.VertexIndexParser;
 import edu.jhuapl.tinkerpop.tables.NamedIndexTableWrapper;
 
 /**
- * Accumulo-based index implementation
+ * Accumulo-based index implementation.
  * @param <T>
  */
 public class AccumuloIndex<T extends Element> implements Index<T> {
@@ -124,16 +123,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
   @Override
   public void remove(String key, Object value, Element element) {
-    Mutation m = new Mutation(AccumuloByteSerializer.serialize(value));
-    m.putDelete(key.getBytes(), element.getId().toString().getBytes());
-    BatchWriter w = getWriter();
-    try {
-      w.addMutation(m);
-      w.flush();
-    } catch (MutationsRejectedException e) {
-      throw new AccumuloGraphException(e);
-    }
-
+    indexWrapper.removePropertyFromIndex(element, key, value);
   }
 
   private BatchWriter getWriter() {
