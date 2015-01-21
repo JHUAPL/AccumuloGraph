@@ -14,6 +14,7 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -32,7 +33,11 @@ import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
+import com.tinkerpop.blueprints.Vertex;
 
+import edu.jhuapl.tinkerpop.parser.EdgeIndexParser;
+import edu.jhuapl.tinkerpop.parser.ElementIndexParser;
+import edu.jhuapl.tinkerpop.parser.VertexIndexParser;
 import edu.jhuapl.tinkerpop.tables.NamedIndexTableWrapper;
 
 /**
@@ -151,22 +156,17 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
     @Override
     public Iterator<T> iterator() {
+      final ElementIndexParser<? extends AccumuloElement> parser =
+          Vertex.class.equals(indexedType) ? new VertexIndexParser(globals) :
+            new EdgeIndexParser(globals);
+
       if (scan != null) {
         return new ScannerIterable<T>(scan) {
 
           @SuppressWarnings("unchecked")
           @Override
           public T next(PeekingIterator<Entry<Key, Value>> iterator) {
-            String id = iterator.next()
-                .getKey().getColumnQualifier().toString();
-            // TODO better use of information readily
-            // available...
-            if (indexedType.equals(Edge.class)) {
-              return (T) new AccumuloEdge(globals, id);
-            }
-            else {
-              return (T) new AccumuloVertex(globals, id);
-            }
+            return (T) parser.parse(Arrays.asList(iterator.next()));
           }
         }.iterator();
       }
