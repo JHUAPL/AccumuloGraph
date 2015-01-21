@@ -15,13 +15,18 @@
 package edu.jhuapl.tinkerpop.tables;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
+import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
@@ -32,6 +37,7 @@ import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloElement;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.AccumuloGraphUtils;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
@@ -127,11 +133,37 @@ public abstract class IndexTableWrapper extends BaseTableWrapper {
         Vertex.class.equals(elementType) ? new VertexIndexParser(globals) :
           new EdgeIndexParser(globals);
 
-    return new ScannerIterable<T>(scan) {
-      @Override
-      public T next(PeekingIterator<Entry<Key,Value>> iterator) {
-        return (T) parser.parse(Arrays.asList(iterator.next()));
-      }      
-    };
+        return new ScannerIterable<T>(scan) {
+          @Override
+          public T next(PeekingIterator<Entry<Key,Value>> iterator) {
+            return (T) parser.parse(Arrays.asList(iterator.next()));
+          }      
+        };
+  }
+
+  /**
+   * Remove the given element's properties from the index.
+   * @param element
+   */
+  public void removeElementFromIndex(Element element) {
+    BatchDeleter deleter = null;
+
+    try {
+      deleter = getDeleter();
+      deleter.setRanges(Collections.singleton(new Range()));
+
+      IteratorSetting is = new IteratorSetting(10, "getEdgeFilter", RegExFilter.class);
+      RegExFilter.setRegexs(is, null, null,
+          "^"+Pattern.quote(element.getId().toString())+"$", null, false);
+      deleter.addScanIterator(is);
+      deleter.delete();
+      deleter.close();
+    } catch (Exception e) {
+      throw new AccumuloGraphException(e);
+    } finally {
+      if (deleter != null) {
+        deleter.close();
+      }
+    }
   }
 }

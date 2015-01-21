@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
+import java.util.regex.Pattern;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.BatchDeleter;
@@ -392,12 +393,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
             globals.getConfig().getAuthorizations(), globals.getConfig().getMaxWriteThreads(),
             globals.getConfig().getBatchWriterConfig());
         del.setRanges(Collections.singleton(new Range()));
-        StringBuilder regex = new StringBuilder();
-        regex.append(".*\\Q").append(id.toString()).append("\\E$");
 
         IteratorSetting is = new IteratorSetting(10, "getEdgeFilter", RegExFilter.class);
-        RegExFilter.setRegexs(is, null, null, regex.toString(), null, false);
+        RegExFilter.setRegexs(is, null, null,
+            "^"+Pattern.quote(id.toString())+"$", null, false);
         del.addScanIterator(is);
+
         del.delete();
       } catch (Exception e) {
         throw new AccumuloGraphException(e);
