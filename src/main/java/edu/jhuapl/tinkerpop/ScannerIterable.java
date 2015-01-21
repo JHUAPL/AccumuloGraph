@@ -14,7 +14,6 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.io.Closeable;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -23,12 +22,13 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.util.PeekingIterator;
 
+import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Element;
 
 /**
  * TODO
  */
-public abstract class ScannerIterable<T extends Element> implements Iterable<T>, Closeable {
+public abstract class ScannerIterable<T extends Element> implements CloseableIterable<T> {
 
   private ScannerBase scanner;
 

@@ -15,12 +15,10 @@
 package edu.jhuapl.tinkerpop.tables;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.ScannerBase;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
@@ -124,43 +122,16 @@ public abstract class IndexTableWrapper extends BaseTableWrapper {
     byte[] id = AccumuloByteSerializer.serialize(value);
     scan.setRange(Range.exact(new Text(id)));
     scan.fetchColumnFamily(new Text(key));
-    return new IndexIterable(scan);
-  }
 
-  private class IndexIterable<T extends Element> implements CloseableIterable<T> {
-    private ScannerBase scan;
+    final ElementIndexParser<? extends AccumuloElement> parser =
+        Vertex.class.equals(elementType) ? new VertexIndexParser(globals) :
+          new EdgeIndexParser(globals);
 
-    private IndexIterable(ScannerBase scan) {
-      this.scan = scan;
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-      final ElementIndexParser<? extends AccumuloElement> parser =
-          Vertex.class.equals(elementType) ? new VertexIndexParser(globals) :
-            new EdgeIndexParser(globals);
-
-          if (scan != null) {
-            return new ScannerIterable<T>(scan) {
-
-              @SuppressWarnings("unchecked")
-              @Override
-              public T next(PeekingIterator<Entry<Key, Value>> iterator) {
-                return (T) parser.parse(Arrays.asList(iterator.next()));
-              }
-            }.iterator();
-          }
-          else {
-            return null;
-          }
-    }
-
-    @Override
-    public void close() {
-      if (scan != null) {
-        scan.close();
-        scan = null;
-      }
-    }
+    return new ScannerIterable<T>(scan) {
+      @Override
+      public T next(PeekingIterator<Entry<Key,Value>> iterator) {
+        return (T) parser.parse(Arrays.asList(iterator.next()));
+      }      
+    };
   }
 }
