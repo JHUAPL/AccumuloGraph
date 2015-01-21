@@ -56,10 +56,10 @@ public abstract class ScannerIterable<T extends Element> implements Iterable<T>,
     close();
   }
 
-  class ScannerIterator implements Iterator<T> {
-    PeekingIterator<Entry<Key,Value>> iterator;
+  private class ScannerIterator implements Iterator<T> {
+    private PeekingIterator<Entry<Key,Value>> iterator;
 
-    ScannerIterator(PeekingIterator<Entry<Key,Value>> iterator) {
+    private ScannerIterator(PeekingIterator<Entry<Key,Value>> iterator) {
       this.iterator = iterator;
     }
 
@@ -77,7 +77,5 @@ public abstract class ScannerIterable<T extends Element> implements Iterable<T>,
     public void remove() {
       throw new UnsupportedOperationException();
     }
-
   }
-
 }

@@ -33,6 +33,8 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
 
+import edu.jhuapl.tinkerpop.tables.NamedIndexTableWrapper;
+
 /**
  * Accumulo-based index implementation
  * @param <T>
@@ -41,6 +43,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
   private final GlobalInstances globals;
   private final Class<T> indexedType;
   private final String indexName;
+  private final NamedIndexTableWrapper indexWrapper;
 
   public AccumuloIndex(GlobalInstances globals, String indexName, Class<T> indexedType) {
     this.globals = globals;
@@ -54,6 +57,9 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
+
+    this.indexWrapper = new NamedIndexTableWrapper(globals,
+        indexedType, indexName);
   }
 
   @Override
@@ -88,9 +94,8 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
   public CloseableIterable<T> get(String key, Object value) {
     Scanner scan = getScanner();
     byte[] id = AccumuloByteSerializer.serialize(value);
-    scan.setRange(new Range(new Text(id), new Text(id)));
+    scan.setRange(Range.exact(new Text(id)));
     scan.fetchColumnFamily(new Text(key));
-
     return new IndexIterable(globals.getGraph(), scan, indexedType);
   }
 
@@ -134,22 +139,19 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     return globals.getGraph().getScanner(getTableName());
   }
 
-  public class IndexIterable implements CloseableIterable<T> {
-    AccumuloGraph parent;
-    ScannerBase scan;
-    boolean isClosed;
-    Class<T> indexedType;
+  private class IndexIterable implements CloseableIterable<T> {
+    private ScannerBase scan;
+    private Class<T> indexedType;
 
-    IndexIterable(AccumuloGraph parent, ScannerBase scan, Class<T> t) {
+    private IndexIterable(AccumuloGraph parent, ScannerBase scan,
+        Class<T> indexedType) {
       this.scan = scan;
-      this.parent = parent;
-      isClosed = false;
-      indexedType = t;
+      this.indexedType = indexedType;
     }
 
     @Override
     public Iterator<T> iterator() {
-      if (!isClosed) {
+      if (scan != null) {
         return new ScannerIterable<T>(scan) {
 
           @SuppressWarnings("unchecked")
@@ -173,12 +175,12 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
       }
     }
 
+    @Override
     public void close() {
-      if (!isClosed) {
+      if (scan != null) {
         scan.close();
-        isClosed = true;
+        scan = null;
       }
     }
-
   }
 }
