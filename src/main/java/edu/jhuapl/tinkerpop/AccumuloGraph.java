@@ -394,11 +394,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   // Maybe an Custom Iterator could make this better.
   private void clearIndex(Object id) {
-    Iterable<Index<? extends Element>> it = this.getIndices();
-    Iterator<Index<? extends Element>> iter = it.iterator();
-    while (iter.hasNext()) {
-      AccumuloIndex<?> in = (AccumuloIndex<?>) iter.next();
-      String table = in.tableName;
+    for (Index<? extends Element> index : getIndices()) {
+      String table = ((AccumuloIndex<? extends Element>) index).getTableName();
 
       BatchDeleter del = null;
       try {
@@ -604,7 +601,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       Iterator<Index<? extends Element>> iter = it.iterator();
       while (iter.hasNext()) {
         AccumuloIndex<?> in = (AccumuloIndex<?>) iter.next();
-        to.delete(in.tableName);
+        to.delete(in.getTableName());
       }
 
       for (String t : globals.getConfig().getTableNames()) {
@@ -653,7 +650,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       globals.getIndexMetadataWrapper().writeIndexMetadataEntry(indexName, indexClass);
 
-      return new AccumuloIndex<T>(indexClass, globals, indexName);
+      return new AccumuloIndex<T>(globals, indexName, indexClass);
     } finally {
       s.close();
     }
@@ -675,7 +672,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
         if (k.getColumnFamily().toString().equals(indexClass.getSimpleName())) {
-          return new AccumuloIndex<T>(indexClass, globals, indexName);
+          return new AccumuloIndex<T>(globals, indexName, indexClass);
         } else {
           throw ExceptionFactory.indexDoesNotSupportClass(indexName, indexClass);
         }
@@ -697,8 +694,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
-        toRet.add(new AccumuloIndex(getClass(k.getColumnFamily().toString()),
-            globals, k.getRow().toString()));
+        toRet.add(new AccumuloIndex(globals, k.getRow().toString(),
+            getClass(k.getColumnFamily().toString())));
       }
       return toRet;
     } catch (Exception e) {

@@ -110,7 +110,7 @@ public class GlobalInstances {
     }
   }
 
-  public <T extends Element> IndexTableWrapper getIndexWrapper(Class<T> clazz) {
+  public <T extends Element> IndexTableWrapper getKeyIndexWrapper(Class<T> clazz) {
     if (Vertex.class.equals(clazz)) {
       return vertexIndexWrapper;
     } else if (Edge.class.equals(clazz)) {

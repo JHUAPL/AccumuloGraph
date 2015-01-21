@@ -33,32 +33,41 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
 
-
+/**
+ * Accumulo-based index implementation
+ * @param <T>
+ */
 public class AccumuloIndex<T extends Element> implements Index<T> {
-  Class<T> indexedType;
-  String indexName;
-  String tableName;
-  private GlobalInstances globals;
+  private final GlobalInstances globals;
+  private final Class<T> indexedType;
+  private final String indexName;
 
-  public AccumuloIndex(Class<T> t, GlobalInstances globals, String indexName) {
-    this.indexedType = t;
+  public AccumuloIndex(GlobalInstances globals, String indexName, Class<T> indexedType) {
     this.globals = globals;
     this.indexName = indexName;
-    this.tableName = globals.getConfig().getNamedIndexTableName(indexName);
+    this.indexedType = indexedType;
 
     try {
-      if (!globals.getConfig().getConnector().tableOperations().exists(tableName)) {
-        globals.getConfig().getConnector().tableOperations().create(tableName);
+      if (!globals.getConfig().getConnector().tableOperations().exists(getTableName())) {
+        globals.getConfig().getConnector().tableOperations().create(getTableName());
       }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
-
   }
 
   @Override
   public String getIndexName() {
     return indexName;
+  }
+
+  public String getTableName() {
+    return globals.getConfig().getNamedIndexTableName(indexName);
+  }
+
+  @Override
+  public Class<T> getIndexClass() {
+    return indexedType;
   }
 
   @Override
@@ -71,7 +80,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
       w.addMutation(m);
       w.flush();
     } catch (MutationsRejectedException e) {
-      e.printStackTrace();
+      throw new AccumuloGraphException(e);
     }
   }
 
@@ -112,17 +121,17 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
       w.addMutation(m);
       w.flush();
     } catch (MutationsRejectedException e) {
-      e.printStackTrace();
+      throw new AccumuloGraphException(e);
     }
 
   }
 
   private BatchWriter getWriter() {
-    return globals.getGraph().getWriter(tableName);
+    return globals.getGraph().getWriter(getTableName());
   }
 
   private Scanner getScanner() {
-    return globals.getGraph().getScanner(tableName);
+    return globals.getGraph().getScanner(getTableName());
   }
 
   public class IndexIterable implements CloseableIterable<T> {
@@ -171,10 +180,5 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
       }
     }
 
-  }
-
-  @Override
-  public Class<T> getIndexClass() {
-    return indexedType;
   }
 }
