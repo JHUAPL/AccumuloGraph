@@ -14,13 +14,33 @@
  */
 package edu.jhuapl.tinkerpop.tables;
 
-import org.apache.accumulo.core.client.BatchWriter;
-import com.tinkerpop.blueprints.Element;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Map.Entry;
 
+import org.apache.accumulo.core.client.BatchWriter;
+import org.apache.accumulo.core.client.Scanner;
+import org.apache.accumulo.core.client.ScannerBase;
+import org.apache.accumulo.core.data.Key;
+import org.apache.accumulo.core.data.Range;
+import org.apache.accumulo.core.data.Value;
+import org.apache.accumulo.core.util.PeekingIterator;
+import org.apache.hadoop.io.Text;
+
+import com.tinkerpop.blueprints.CloseableIterable;
+import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.Vertex;
+
+import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
+import edu.jhuapl.tinkerpop.AccumuloElement;
 import edu.jhuapl.tinkerpop.AccumuloGraphUtils;
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.mutator.index.IndexValueMutator;
+import edu.jhuapl.tinkerpop.parser.EdgeIndexParser;
+import edu.jhuapl.tinkerpop.parser.ElementIndexParser;
+import edu.jhuapl.tinkerpop.parser.VertexIndexParser;
 
 /**
  * Wrapper around index tables.
@@ -72,6 +92,58 @@ public abstract class IndexTableWrapper extends BaseTableWrapper {
     if (value != null) {
       Mutators.apply(getWriter(), new IndexValueMutator.Delete(element, key, value));
       globals.checkedFlush();
+    }
+  }
+
+  /**
+   * Get elements with the key/value pair.
+   * @param key
+   * @param value
+   * @return
+   */
+  @SuppressWarnings("unchecked")
+  public <T extends Element> CloseableIterable<T> readElementsFromIndex(String key, Object value) {
+    Scanner scan = getScanner();
+    byte[] id = AccumuloByteSerializer.serialize(value);
+    scan.setRange(Range.exact(new Text(id)));
+    scan.fetchColumnFamily(new Text(key));
+    return new IndexIterable(scan);
+  }
+
+  private class IndexIterable<T extends Element> implements CloseableIterable<T> {
+    private ScannerBase scan;
+
+    private IndexIterable(ScannerBase scan) {
+      this.scan = scan;
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+      final ElementIndexParser<? extends AccumuloElement> parser =
+          Vertex.class.equals(elementType) ? new VertexIndexParser(globals) :
+            new EdgeIndexParser(globals);
+
+          if (scan != null) {
+            return new ScannerIterable<T>(scan) {
+
+              @SuppressWarnings("unchecked")
+              @Override
+              public T next(PeekingIterator<Entry<Key, Value>> iterator) {
+                return (T) parser.parse(Arrays.asList(iterator.next()));
+              }
+            }.iterator();
+          }
+          else {
+            return null;
+          }
+    }
+
+    @Override
+    public void close() {
+      if (scan != null) {
+        scan.close();
+        scan = null;
+      }
     }
   }
 }

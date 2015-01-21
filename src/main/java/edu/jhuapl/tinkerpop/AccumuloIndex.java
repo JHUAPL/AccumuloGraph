@@ -14,29 +14,13 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.util.Arrays;
 import java.util.Iterator;
-import java.util.Map.Entry;
-
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.ScannerBase;
-import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.PeekingIterator;
-import org.apache.hadoop.io.Text;
-
 import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
-import com.tinkerpop.blueprints.Vertex;
-
-import edu.jhuapl.tinkerpop.parser.EdgeIndexParser;
-import edu.jhuapl.tinkerpop.parser.ElementIndexParser;
-import edu.jhuapl.tinkerpop.parser.VertexIndexParser;
 import edu.jhuapl.tinkerpop.tables.NamedIndexTableWrapper;
 
 /**
@@ -96,11 +80,7 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
   @Override
   public CloseableIterable<T> get(String key, Object value) {
-    Scanner scan = getScanner();
-    byte[] id = AccumuloByteSerializer.serialize(value);
-    scan.setRange(Range.exact(new Text(id)));
-    scan.fetchColumnFamily(new Text(key));
-    return new IndexIterable(globals.getGraph(), scan, indexedType);
+    return indexWrapper.readElementsFromIndex(key, value);
   }
 
   @Override
@@ -128,49 +108,5 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
   private BatchWriter getWriter() {
     return globals.getGraph().getWriter(getTableName());
-  }
-
-  private Scanner getScanner() {
-    return globals.getGraph().getScanner(getTableName());
-  }
-
-  private class IndexIterable implements CloseableIterable<T> {
-    private ScannerBase scan;
-    private Class<T> indexedType;
-
-    private IndexIterable(AccumuloGraph parent, ScannerBase scan,
-        Class<T> indexedType) {
-      this.scan = scan;
-      this.indexedType = indexedType;
-    }
-
-    @Override
-    public Iterator<T> iterator() {
-      final ElementIndexParser<? extends AccumuloElement> parser =
-          Vertex.class.equals(indexedType) ? new VertexIndexParser(globals) :
-            new EdgeIndexParser(globals);
-
-      if (scan != null) {
-        return new ScannerIterable<T>(scan) {
-
-          @SuppressWarnings("unchecked")
-          @Override
-          public T next(PeekingIterator<Entry<Key, Value>> iterator) {
-            return (T) parser.parse(Arrays.asList(iterator.next()));
-          }
-        }.iterator();
-      }
-      else {
-        return null;
-      }
-    }
-
-    @Override
-    public void close() {
-      if (scan != null) {
-        scan.close();
-        scan = null;
-      }
-    }
   }
 }
