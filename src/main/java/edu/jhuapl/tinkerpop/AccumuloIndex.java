@@ -15,13 +15,16 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.Iterator;
+
 import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
+import com.tinkerpop.blueprints.IndexableGraph;
+
 import edu.jhuapl.tinkerpop.tables.NamedIndexTableWrapper;
 
 /**
- * Accumulo-based index implementation.
+ * Accumulo-based implementation for {@link IndexableGraph}.
  * @param <T>
  */
 public class AccumuloIndex<T extends Element> implements Index<T> {
@@ -36,15 +39,16 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     this.indexedType = indexedType;
 
     try {
-      if (!globals.getConfig().getConnector().tableOperations().exists(getTableName())) {
-        globals.getConfig().getConnector().tableOperations().create(getTableName());
+      if (!globals.getConfig().getConnector()
+          .tableOperations().exists(getTableName())) {
+        globals.getConfig().getConnector()
+        .tableOperations().create(getTableName());
       }
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
 
-    this.indexWrapper = new NamedIndexTableWrapper(globals,
-        indexedType, indexName);
+    indexWrapper = new NamedIndexTableWrapper(globals, indexedType, indexName);
   }
 
   @Override
@@ -54,6 +58,10 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
 
   public String getTableName() {
     return globals.getConfig().getNamedIndexTableName(indexName);
+  }
+
+  public NamedIndexTableWrapper getWrapper() {
+    return indexWrapper;
   }
 
   @Override

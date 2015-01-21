@@ -22,13 +22,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.regex.Pattern;
-
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.TableOperations;
@@ -36,7 +33,6 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 
@@ -194,6 +190,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   // Aliases for the lazy
+  /**
+   * @deprecated Move this somewhere appropriate
+   * @return
+   */
+  @Deprecated
   private Scanner getMetadataScanner() {
     return getScanner(globals.getConfig().getIndexNamesTableName());
   }
@@ -209,14 +210,29 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return getScanner(globals.getConfig().getVertexKeyIndexTableName());
   }
 
+  /**
+   * @deprecated Move this somewhere appropriate
+   * @return
+   */
+  @Deprecated
   private BatchWriter getVertexIndexWriter() {
     return getWriter(globals.getConfig().getVertexKeyIndexTableName());
   }
 
+  /**
+   * @deprecated Move this somewhere appropriate
+   * @return
+   */
+  @Deprecated
   private BatchWriter getEdgeIndexWriter() {
     return getWriter(globals.getConfig().getEdgeKeyIndexTableName());
   }
 
+  /**
+   * @deprecated Move this somewhere appropriate
+   * @return
+   */
+  @Deprecated
   public BatchWriter getWriter(String tablename) {
     try {
       return globals.getMtbw().getBatchWriter(tablename);
@@ -225,6 +241,11 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  /**
+   * @deprecated Move this somewhere appropriate
+   * @return
+   */
+  @Deprecated
   private BatchScanner getElementBatchScanner(Class<? extends Element> type) {
     try {
       String tableName = globals.getConfig().getVertexTableName();
@@ -311,7 +332,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     globals.getCaches().remove(vertex.getId(), Vertex.class);
 
     if (!globals.getConfig().getIndexableGraphDisabled())
-      clearIndex(vertex.getId());
+      removeElementFromIndexes(vertex);
 
     Scanner scan = getElementScanner(Vertex.class);
     scan.setRange(new Range(vertex.getId().toString()));
@@ -383,29 +404,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   // Maybe an Custom Iterator could make this better.
-  private void clearIndex(Object id) {
+  private void removeElementFromIndexes(Element element) {
     for (Index<? extends Element> index : getIndices()) {
-      String table = ((AccumuloIndex<? extends Element>) index).getTableName();
-
-      BatchDeleter del = null;
-      try {
-        del = globals.getConfig().getConnector().createBatchDeleter(table,
-            globals.getConfig().getAuthorizations(), globals.getConfig().getMaxWriteThreads(),
-            globals.getConfig().getBatchWriterConfig());
-        del.setRanges(Collections.singleton(new Range()));
-
-        IteratorSetting is = new IteratorSetting(10, "getEdgeFilter", RegExFilter.class);
-        RegExFilter.setRegexs(is, null, null,
-            "^"+Pattern.quote(id.toString())+"$", null, false);
-        del.addScanIterator(is);
-
-        del.delete();
-      } catch (Exception e) {
-        throw new AccumuloGraphException(e);
-      } finally {
-        if (del != null)
-          del.close();
-      }
+      ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(element);
     }
   }
 
@@ -493,7 +494,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   @Override
   public void removeEdge(Edge edge) {
     if (!globals.getConfig().getIndexableGraphDisabled())
-      clearIndex(edge.getId());
+      removeElementFromIndexes(edge);
 
     globals.getCaches().remove(edge.getId(), Edge.class);
 
@@ -608,9 +609,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
-
   }
 
+  /**
+   * @deprecated Move this somewhere appropriate
+   * @param type
+   * @return
+   */
   private BatchWriter getIndexBatchWriter(Class<? extends Element> type) {
     if (type.equals(Edge.class))
       return getEdgeIndexWriter();
