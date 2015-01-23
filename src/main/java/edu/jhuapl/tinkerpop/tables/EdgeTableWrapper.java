@@ -173,4 +173,13 @@ public class EdgeTableWrapper extends ElementTableWrapper {
       s.close();
     }
   }
+
+  public AccumuloEdge readEdgeAndAllProperties(String id) {
+    Scanner s = getScanner();
+    s.setRange(Range.exact(id));
+    EdgeParser parser = new EdgeParser(globals);
+    AccumuloEdge edge = parser.parse(s);
+    s.close();
+    return edge;
+  }
 }

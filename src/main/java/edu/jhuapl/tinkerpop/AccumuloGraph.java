@@ -51,7 +51,6 @@ import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
-import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.tables.VertexIndexTableWrapper;
 
 /**
@@ -335,7 +334,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     globals.getCaches().remove(vertex.getId(), Vertex.class);
 
     if (!globals.getConfig().getIndexableGraphDisabled())
-      removeElementFromIndexes(vertex);
+      removeElementFromNamedIndexes(vertex);
 
     Scanner scan = getElementScanner(Vertex.class);
     scan.setRange(new Range(vertex.getId().toString()));
@@ -407,7 +406,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   // Maybe an Custom Iterator could make this better.
-  private void removeElementFromIndexes(Element element) {
+  private void removeElementFromNamedIndexes(Element element) {
     for (Index<? extends Element> index : getIndices()) {
       ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(element);
     }
@@ -500,53 +499,31 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public void removeEdge(Edge edge) {
-    if (!globals.getConfig().getIndexableGraphDisabled())
-      removeElementFromIndexes(edge);
+    // TODO Move the below into AccumuloEdge.
 
+    // Load edge and all properties.
+    AccumuloEdge copy = globals.getEdgeWrapper()
+        .readEdgeAndAllProperties(edge.getId().toString());
+
+    // Remove from named indexes.
+    if (!globals.getConfig().getIndexableGraphDisabled()) {
+      removeElementFromNamedIndexes(copy);
+    }
+
+    // Remove from key/value indexes.
+    for (String key : copy.getPropertyKeysInMemory()) {
+      globals.getEdgeIndexWrapper().removePropertyFromIndex(copy,
+          key, copy.getPropertyInMemory(key));
+    }
+
+    // Get rid of the endpoints and edge themselves.
+    globals.getVertexWrapper().deleteEdgeEndpoints(copy);
+    globals.getEdgeWrapper().deleteEdge(edge);
+
+    // Remove element from cache.
     globals.getCaches().remove(edge.getId(), Edge.class);
 
-    Scanner s = getElementScanner(Edge.class);
-    s.setRange(new Range(edge.getId().toString()));
-
-    Iterator<Entry<Key,Value>> iter = s.iterator();
-    Text inVert = null;
-    Text outVert = null;
-    List<Mutation> indexMutations = new ArrayList<Mutation>();
-    while (iter.hasNext()) {
-      Entry<Key,Value> e = iter.next();
-      Key k = e.getKey();
-      if (k.getColumnFamily().toString().equals(Constants.LABEL)) {
-        String[] ids = k.getColumnQualifier().toString().split(Constants.ID_DELIM);
-        inVert = new Text(ids[0]);
-        outVert = new Text(ids[1]);
-      } else {
-        Mutation m = new Mutation(k.getColumnQualifier());
-        m.putDelete(k.getColumnFamily(), k.getRow());
-        indexMutations.add(m);
-      }
-    }
-    s.close();
-    if (inVert == null || outVert == null) {
-      return;
-    }
-
-    BatchDeleter edgedeleter = null;
-    try {
-      getEdgeIndexWriter().addMutations(indexMutations);
-      globals.getVertexWrapper().deleteEdgeEndpoints(edge);
-      globals.getEdgeWrapper().deleteEdge(edge);
-
-      globals.checkedFlush();
-      edgedeleter = globals.getConfig().getConnector().createBatchDeleter(globals.getConfig().getVertexTableName(),
-          globals.getConfig().getAuthorizations(), globals.getConfig().getQueryThreads(),
-          globals.getConfig().getBatchWriterConfig());
-      Mutators.deleteElementRanges(edgedeleter, edge);
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    } finally {
-      if (edgedeleter != null)
-        edgedeleter.close();
-    }
+    globals.checkedFlush();
   }
 
   @Override
@@ -623,6 +600,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @param type
    * @return
    */
+  @Deprecated
   private BatchWriter getIndexBatchWriter(Class<? extends Element> type) {
     if (type.equals(Edge.class))
       return getEdgeIndexWriter();
