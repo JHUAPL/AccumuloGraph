@@ -17,6 +17,7 @@ package edu.jhuapl.tinkerpop;
 import java.util.Set;
 
 import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.cache.PropertyCache;
@@ -123,6 +124,19 @@ public abstract class AccumuloElement implements Element {
     //   So the order here is important (for now).
     removePropertyInMemory(key);
     return value;
+  }
+
+  /**
+   * @deprecated Refactor this to use index metadata.
+   * @param element
+   */
+  @Deprecated
+  protected void removeElementFromNamedIndexes() {
+    if (!globals.getConfig().getIndexableGraphDisabled()) {
+      for (Index<? extends Element> index : globals.getGraph().getIndices()) {
+        ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(this);
+      }
+    }
   }
 
   /**
