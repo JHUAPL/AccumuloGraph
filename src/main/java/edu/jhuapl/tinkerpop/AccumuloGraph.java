@@ -560,37 +560,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     globals.getCaches().clear(Edge.class);
   }
 
-  // public methods not defined by Graph interface, but potentially useful for
-  // applications that know they are using an AccumuloGraph
-  public void clear() {
-    shutdown();
-
-    try {
-      TableOperations to;
-      to = globals.getConfig().getConnector().tableOperations();
-      Iterable<Index<? extends Element>> it = this.getIndices();
-      Iterator<Index<? extends Element>> iter = it.iterator();
-      while (iter.hasNext()) {
-        AccumuloIndex<?> in = (AccumuloIndex<?>) iter.next();
-        to.delete(in.getTableName());
-      }
-
-      for (String t : globals.getConfig().getTableNames()) {
-        if (to.exists(t)) {
-          to.delete(t);
-          to.create(t);
-          SortedSet<Text> splits = globals.getConfig().getSplits();
-          if (splits != null) {
-            to.addSplits(t, splits);
-          }
-        }
-      }
-      setupWriters();
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
   /**
    * @deprecated Move this somewhere appropriate
    * @param type
@@ -783,6 +752,37 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   @Override
   public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
     return globals.getKeyMetadataWrapper().getIndexedKeys(elementClass);
+  }
+
+  /**
+   * Clear out this graph. This drops and recreates the backing tables.
+   */
+  public void clear() {
+    shutdown();
+
+    try {
+      TableOperations tableOps = globals.getConfig()
+          .getConnector().tableOperations();
+      for (Index<? extends Element> index : getIndices()) {
+        tableOps.delete(((AccumuloIndex<? extends Element>)
+            index).getTableName());
+      }
+
+      for (String table : globals.getConfig().getTableNames()) {
+        if (tableOps.exists(table)) {
+          tableOps.delete(table);
+          tableOps.create(table);
+
+          SortedSet<Text> splits = globals.getConfig().getSplits();
+          if (splits != null) {
+            tableOps.addSplits(table, splits);
+          }
+        }
+      }
+      setupWriters();
+    } catch (Exception e) {
+      throw new AccumuloGraphException(e);
+    }
   }
 
   public boolean isEmpty() {
