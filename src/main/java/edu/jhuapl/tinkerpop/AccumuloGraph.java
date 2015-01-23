@@ -319,7 +319,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       if (props == null) {
         return null;
       }
-      ((AccumuloElement) vertex).cacheAllProperties(props);
+
+      for (String key : props.keySet()) {
+        ((AccumuloElement) vertex).setPropertyInMemory(key, props.get(key));
+      }
     }
 
     globals.getCaches().cache(vertex, Vertex.class);
@@ -479,11 +482,15 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         preload = new String[]{};
       }
 
-      Map<String, Object> props = globals.getEdgeWrapper().readProperties(edge, preload);
+      Map<String, Object> props = globals.getEdgeWrapper()
+          .readProperties(edge, preload);
       if (props == null) {
         return null;
       }
-      ((AccumuloElement) edge).cacheAllProperties(props);
+
+      for (String key : props.keySet()) {
+        ((AccumuloElement) edge).setPropertyInMemory(key, props.get(key));
+      }
     }
 
     globals.getCaches().cache(edge, Edge.class);

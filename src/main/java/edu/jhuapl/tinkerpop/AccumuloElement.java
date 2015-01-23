@@ -14,7 +14,6 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.util.Map;
 import java.util.Set;
 
 import com.tinkerpop.blueprints.Element;
@@ -184,25 +183,5 @@ public abstract class AccumuloElement implements Element {
    */
   PropertyCache getPropertyCache() {
     return propertyCache;
-  }
-
-  /**
-   * @deprecated This is used in {@link AccumuloGraph} but needs to go away.
-   * @param key
-   * @param value
-   */
-  void cacheProperty(String key, Object value) {
-    makeCache();
-    propertyCache.put(key, value);
-  }
-
-  /**
-   * @deprecated This is used in {@link AccumuloGraph} but needs to go away.
-   * @param props
-   */
-  void cacheAllProperties(Map<String, Object> props) {
-    for (String key : props.keySet()) {
-      cacheProperty(key, props.get(key));
-    }
   }
 }
