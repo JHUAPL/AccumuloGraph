@@ -14,6 +14,8 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Map;
+
 import org.apache.log4j.Logger;
 
 import com.tinkerpop.blueprints.Direction;
@@ -72,24 +74,22 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
 
   @Override
   public void remove() {
-    // Load edge and all properties.
-    AccumuloEdge copy = globals.getEdgeWrapper()
-        .readEdgeAndAllProperties(id);
-
     // Remove from named indexes.
     if (!globals.getConfig().getIndexableGraphDisabled()) {
-      removeElementFromNamedIndexes(copy);
+      removeElementFromNamedIndexes(this);
     }
 
     // Remove from key/value indexes.
-    for (String key : copy.getPropertyKeysInMemory()) {
-      globals.getEdgeIndexWrapper().removePropertyFromIndex(copy,
-          key, copy.getPropertyInMemory(key));
+    Map<String, Object> props = globals.getEdgeWrapper()
+        .readProperties(this);
+    for (String key : props.keySet()) {
+      globals.getEdgeIndexWrapper().removePropertyFromIndex(this,
+          key, props.get(key));
     }
 
     // Get rid of the endpoints and edge themselves.
-    globals.getVertexWrapper().deleteEdgeEndpoints(copy);
-    globals.getEdgeWrapper().deleteEdge(copy);
+    globals.getVertexWrapper().deleteEdgeEndpoints(this);
+    globals.getEdgeWrapper().deleteEdge(this);
 
     // Remove element from cache.
     globals.getCaches().remove(id, Edge.class);
