@@ -164,10 +164,20 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  /**
+   * @deprecated This will go away along with {@link #vertexBW}.
+   * @throws Exception
+   */
   private void setupWriters() throws Exception {
     vertexBW = globals.getMtbw().getBatchWriter(globals.getConfig().getVertexTableName());
   }
 
+  /**
+   * @deprecated Move this somewhere appropriate
+   * @param type
+   * @return
+   */
+  @Deprecated
   protected Scanner getElementScanner(Class<? extends Element> type) {
     try {
       String tableName = globals.getConfig().getEdgeTableName();
@@ -179,6 +189,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
   }
 
+  /**
+   * @deprecated Move this somewhere appropriate
+   * @param tablename
+   * @return
+   */
+  @Deprecated
   protected Scanner getScanner(String tablename) {
     try {
       return globals.getConfig().getConnector().createScanner(tablename,
@@ -406,6 +422,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   // Maybe an Custom Iterator could make this better.
+  /**
+   * @deprecated Move to appropriate location.
+   * @param element
+   */
   private void removeElementFromNamedIndexes(Element element) {
     for (Index<? extends Element> index : getIndices()) {
       ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(element);
@@ -499,31 +519,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public void removeEdge(Edge edge) {
-    // TODO Move the below into AccumuloEdge.
-
-    // Load edge and all properties.
-    AccumuloEdge copy = globals.getEdgeWrapper()
-        .readEdgeAndAllProperties(edge.getId().toString());
-
-    // Remove from named indexes.
-    if (!globals.getConfig().getIndexableGraphDisabled()) {
-      removeElementFromNamedIndexes(copy);
-    }
-
-    // Remove from key/value indexes.
-    for (String key : copy.getPropertyKeysInMemory()) {
-      globals.getEdgeIndexWrapper().removePropertyFromIndex(copy,
-          key, copy.getPropertyInMemory(key));
-    }
-
-    // Get rid of the endpoints and edge themselves.
-    globals.getVertexWrapper().deleteEdgeEndpoints(copy);
-    globals.getEdgeWrapper().deleteEdge(edge);
-
-    // Remove element from cache.
-    globals.getCaches().remove(edge.getId(), Edge.class);
-
-    globals.checkedFlush();
+    edge.remove();
   }
 
   @Override
@@ -665,6 +661,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Index<? extends Element>> getIndices() {
+    // TODO Move the below into the suitable index metadata wrapper.
+
     if (globals.getConfig().getIndexableGraphDisabled())
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();

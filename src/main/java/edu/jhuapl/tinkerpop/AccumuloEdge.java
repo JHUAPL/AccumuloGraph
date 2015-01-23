@@ -18,6 +18,8 @@ import org.apache.log4j.Logger;
 
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
+import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.util.StringFactory;
 
@@ -70,7 +72,40 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
 
   @Override
   public void remove() {
-    globals.getGraph().removeEdge(this);
+    // Load edge and all properties.
+    AccumuloEdge copy = globals.getEdgeWrapper()
+        .readEdgeAndAllProperties(id);
+
+    // Remove from named indexes.
+    if (!globals.getConfig().getIndexableGraphDisabled()) {
+      removeElementFromNamedIndexes(copy);
+    }
+
+    // Remove from key/value indexes.
+    for (String key : copy.getPropertyKeysInMemory()) {
+      globals.getEdgeIndexWrapper().removePropertyFromIndex(copy,
+          key, copy.getPropertyInMemory(key));
+    }
+
+    // Get rid of the endpoints and edge themselves.
+    globals.getVertexWrapper().deleteEdgeEndpoints(copy);
+    globals.getEdgeWrapper().deleteEdge(copy);
+
+    // Remove element from cache.
+    globals.getCaches().remove(id, Edge.class);
+
+    globals.checkedFlush();
+  }
+
+  /**
+   * @deprecated This will go away when {@link AccumuloGraph#getIndices()} refactoring is done.
+   * @param element
+   */
+  @Deprecated
+  private void removeElementFromNamedIndexes(Element element) {
+    for (Index<? extends Element> index : globals.getGraph().getIndices()) {
+      ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(element);
+    }
   }
 
   public void setVertices(AccumuloVertex inVertex, AccumuloVertex outVertex) {
