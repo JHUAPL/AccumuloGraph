@@ -597,12 +597,18 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   public boolean isEmpty() {
-    for (String t : globals.getConfig().getTableNames()) {
-      if (getScanner(t).iterator().hasNext()) {
-        return false;
+    try {
+      TableOperations tableOps = globals.getConfig().getConnector().tableOperations();
+      for (String table : globals.getConfig().getTableNames()) {
+        if (tableOps.getMaxRow(table, globals.getConfig().getAuthorizations(),
+            null, true, null, true) != null) {
+          return false;
+        }
       }
-    }
+      return true;
 
-    return true;
+    } catch (Exception e) {
+      throw new AccumuloGraphException(e);
+    }
   }
 }
