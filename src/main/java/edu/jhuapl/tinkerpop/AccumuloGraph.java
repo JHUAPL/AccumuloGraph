@@ -54,65 +54,19 @@ import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.tables.VertexIndexTableWrapper;
 
 /**
+ * This is an implementation of the TinkerPop Blueprints 2.6 API using
+ * Apache Accumulo as the backend. This combines the many benefits and flexibility
+ * of Blueprints with the scalability and performance of Accumulo.
  * 
- * This is an implementation of TinkerPop's graph API
- * backed by Apache Accumulo. In addition to the basic
- * Graph interface, the implementation
- * supports {@link IndexableGraph} and {@link KeyIndexableGraph}.
- * 
- * <p/>Tables have the following formats.
- * 
- * <p/><strong>NOTE: This documentation is way out of date.</strong>
- * 
- * <p/>
- * <table border="1">
- *  <caption>Vertex table</caption>
- *  <thead>
- *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
- *  </thead>
- *  <tbody>
- *    <tr><td>VertexID</td><td>LABEL</td><td>EXISTS</td><td>[empty]</td></tr>
- *    <tr><td>VertexID</td><td>INEDGE</td><td>InVertexID_EdgeID</td><td>EdgeLabel</td></tr>
- *    <tr><td>VertexID</td><td>OUTEDGE</td><td>OutVertexID_EdgeID</td><td>EdgeLabel</td></tr>
- *    <tr><td>VertexID</td><td>PropertyKey</td><td>[empty]</td><td>Encoded Value</td></tr>
- *  </tbody>
- * </table>
- * 
- * <p/>
- * <table border="1">
- *  <caption>Edge table</caption>
- *  <thead>
- *    <tr> <th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
- *  </thead>
- *  <tbody>
- *    <tr><td>EdgeID</td><td>LABEL</td><td>[empty]</td><td>Encoded LabelValue</td></tr>
- *    <tr><td>EdgeID</td><td>INEDGE</td><td>InVertexID</td><td>[empty]</td></tr>
- *    <tr><td>EdgeID</td><td>OUTEDGE</td><td>OutVertexID</td><td>[empty]</td></tr>
- *    <tr><td>EdgeID</td><td>PropertyKey</td><td>[empty]</td><td>Encoded Value</td></tr>
- *  </tbody>
- * </table>
- * 
- * <p/>
- * <table border="1">
- *  <caption>Vertex / edge index tables (each index gets its own table)</caption>
- *  <thead>
- *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
- *  </thead>
- *  <tbody>
- *    <tr><td>Encoded Value</td><td>PropertyKey</td><td>ElementID</td><td>[empty]</td></tr>
- *  </tbody>
- * </table>
- * 
- * <p/>
- * <table border="1">
- *  <caption>Metadata/key metadata tables</caption>
- *  <thead>
- *    <tr><th>ROWID</th><th>COLFAM</th><th>COLQUAL</th><th>VALUE</th></tr>
- *  </thead>
- *  <tbody>
- *    <tr><td>IndexName</td><td>IndexClassType</td><td>[empty]</td><td>[empty]</td></tr>
- *  </tbody>
- * </table>
+ * <p/>In addition to the basic Blueprints functionality, we provide a number of
+ * enhanced features, including:
+ * <ol>
+ * <li>Indexing implementations via IndexableGraph and KeyIndexableGraph</li>
+ * <li>Support for mock, mini, and distributed instances of Accumulo</li>
+ * <li>Numerous performance tweaks and configuration parameters</li>
+ * <li>Support for high speed ingest</li>
+ * <li>Hadoop integration</li>
+ * </ol>
  */
 public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
