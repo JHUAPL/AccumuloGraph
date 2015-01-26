@@ -113,6 +113,26 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
   }
 
   /**
+   * Return true if the element with given id exists.
+   * @param id
+   * @return
+   */
+  public boolean elementExists(String id) {
+    Scanner scan = null;
+    try {
+      scan = getScanner();
+      scan.setRange(Range.exact(id));
+      scan.fetchColumnFamily(new Text(Constants.LABEL));
+      return new PropertyParser().parse(scan) != null;
+
+    } finally {
+      if (scan != null) {
+        scan.close();
+      }
+    }
+  }
+
+  /**
    * Get all property keys for the given element id.
    * @param id
    * @return

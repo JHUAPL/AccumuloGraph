@@ -14,10 +14,8 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -123,6 +121,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @deprecated This will go away along with {@link #vertexBW}.
    * @throws Exception
    */
+  @Deprecated
   private void setupWriters() throws Exception {
     vertexBW = globals.getMtbw().getBatchWriter(globals.getConfig().getVertexTableName());
   }
@@ -302,79 +301,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public void removeVertex(Vertex vertex) {
-    globals.getCaches().remove(vertex.getId(), Vertex.class);
-
-    if (!globals.getConfig().getIndexableGraphDisabled()) {
-      removeElementFromNamedIndexes(vertex);
-    }
-
-    Scanner scan = getElementScanner(Vertex.class);
-    scan.setRange(new Range(vertex.getId().toString()));
-
-    BatchDeleter edgedeleter = null;
-    BatchDeleter vertexdeleter = null;
-    BatchWriter indexdeleter = getVertexIndexWriter();
-    try {
-      // Set up Deleters
-      edgedeleter = globals.getConfig().getConnector().createBatchDeleter(globals.getConfig().getEdgeTableName(),
-          globals.getConfig().getAuthorizations(), globals.getConfig().getQueryThreads(),
-          globals.getConfig().getBatchWriterConfig());
-      vertexdeleter = globals.getConfig().getConnector().createBatchDeleter(globals.getConfig().getVertexTableName(),
-          globals.getConfig().getAuthorizations(), globals.getConfig().getQueryThreads(),
-          globals.getConfig().getBatchWriterConfig());
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-    Iterator<Entry<Key,Value>> iter = scan.iterator();
-    List<Range> ranges = new ArrayList<Range>();
-    if (!iter.hasNext()) {
-      throw ExceptionFactory.vertexWithIdDoesNotExist(vertex.getId());
-    }
-    try {
-      // Search for edges
-      while (iter.hasNext()) {
-        Entry<Key,Value> e = iter.next();
-        Key k = e.getKey();
-
-        if (k.getColumnFamily().toString().equals(Constants.OUT_EDGE) ||
-            k.getColumnFamily().toString().equals(Constants.IN_EDGE)) {
-          ranges.add(new Range(k.getColumnQualifier().toString().split(Constants.ID_DELIM)[1]));
-
-          Mutation vm = new Mutation(k.getColumnQualifier().toString().split(Constants.ID_DELIM)[0]);
-          vm.putDelete(invert(k.getColumnFamily()),
-              new Text(vertex.getId().toString() + Constants.ID_DELIM + k.getColumnQualifier()
-                  .toString().split(Constants.ID_DELIM)[1]));
-          vertexBW.addMutation(vm);
-        } else {
-          Mutation m = new Mutation(e.getValue().get());
-          m.putDelete(k.getColumnFamily(), k.getRow());
-          indexdeleter.addMutation(m);
-        }
-
-      }
-      globals.checkedFlush();
-      scan.close();
-
-      // If Edges are found, delete the whole row
-      if (!ranges.isEmpty()) {
-        // TODO don't we also have to propagate these deletes to the
-        // vertex index table?
-        edgedeleter.setRanges(ranges);
-        edgedeleter.delete();
-        ranges.clear();
-      }
-      // Delete the whole vertex row
-      ranges.add(new Range(vertex.getId().toString()));
-      vertexdeleter.setRanges(ranges);
-      vertexdeleter.delete();
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    } finally {
-      if (edgedeleter != null)
-        edgedeleter.close();
-      if (vertexdeleter != null)
-        vertexdeleter.close();
-    }
+    vertex.remove();
   }
 
   // Maybe an Custom Iterator could make this better.
@@ -382,6 +309,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @deprecated Move to appropriate location.
    * @param element
    */
+  @Deprecated
   private void removeElementFromNamedIndexes(Element element) {
     for (Index<? extends Element> index : getIndices()) {
       ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(element);

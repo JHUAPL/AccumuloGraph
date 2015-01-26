@@ -14,11 +14,17 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang.ArrayUtils;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
 import com.tinkerpop.blueprints.util.DefaultVertexQuery;
+import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 /**
  * TODO
@@ -54,6 +60,23 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
     globals.getCaches().remove(getId(), Vertex.class);
 
     super.removeElementFromNamedIndexes();
+
+    // Throw exception if the element does not exist.
+    if (!globals.getVertexWrapper().elementExists(id)) {
+      throw ExceptionFactory.vertexWithIdDoesNotExist(getId());
+    }
+
+    // Remove properties from key/value indexes.
+    Set<String> indexedKeys = globals.getIndexedKeysListWrapper()
+        .getIndexedKeys(Vertex.class);
+
+    Map<String, Object> props = globals.getVertexWrapper()
+        .readProperties(this, indexedKeys.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+
+    for (String key : props.keySet()) {
+      globals.getVertexKeyIndexWrapper().removePropertyFromIndex(this,
+          key, props.get(key));
+    }
 
     // Remove edges incident to this vertex.
     for (Edge edge : getEdges(Direction.BOTH)) {

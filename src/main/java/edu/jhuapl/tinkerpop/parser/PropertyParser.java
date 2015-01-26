@@ -40,7 +40,7 @@ public class PropertyParser implements EntryParser<Map<String, Object>> {
 
       Key key = entry.getKey();
 
-      if (!isExistenceKey(key)) {
+      if (!isMetaKey(key)) {
         String attr = key.getColumnFamily().toString();
         Object value = AccumuloByteSerializer.deserialize(entry.getValue().get());
         props.put(attr, value);
@@ -51,14 +51,19 @@ public class PropertyParser implements EntryParser<Map<String, Object>> {
   }
 
   /**
-   * Test whether the given Accumulo key represents an
-   * element's existence (i.e. not a property).
+   * Test whether the given Accumulo key represents a
+   * metadata key (e.g. existence, edge endpoint, etc),
+   * rather than a property.
    * @param key
    * @return
    */
-  private static boolean isExistenceKey(Key key) {
-    return Constants.LABEL.equals(key.getColumnFamily().toString()) &&
-        Constants.EXISTS.equals(key.getColumnQualifier().toString());
+  private static boolean isMetaKey(Key key) {
+    String cf = key.getColumnFamily().toString();
+    String cq = key.getColumnQualifier().toString();
+    return (Constants.LABEL.equals(cf) &&
+        Constants.EXISTS.equals(cq)) ||
+        Constants.IN_EDGE.equals(cf) ||
+        Constants.OUT_EDGE.equals(cf);
   }
 
 }
