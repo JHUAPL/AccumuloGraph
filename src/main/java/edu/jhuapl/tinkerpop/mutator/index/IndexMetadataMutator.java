@@ -42,7 +42,7 @@ public class IndexMetadataMutator {
     @Override
     public Iterable<Mutation> create() {
       Mutation m = new Mutation(key);
-      m.put(clazz.getSimpleName().getBytes(),
+      m.put(clazz.getName().getBytes(),
           Constants.EMPTY, Constants.EMPTY);
       return Lists.newArrayList(m);
     }
@@ -61,7 +61,7 @@ public class IndexMetadataMutator {
     @Override
     public Iterable<Mutation> create() {
       Mutation m = new Mutation(key);
-      m.putDelete(clazz.getSimpleName().getBytes(), Constants.EMPTY);
+      m.putDelete(clazz.getName().getBytes(), Constants.EMPTY);
       return Lists.newArrayList(m);
     }
   }

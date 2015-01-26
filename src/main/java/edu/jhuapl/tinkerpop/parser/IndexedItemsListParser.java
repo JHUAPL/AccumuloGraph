@@ -21,9 +21,13 @@ import java.util.Map.Entry;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 
+import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.IndexableGraph;
 import com.tinkerpop.blueprints.KeyIndexableGraph;
+import com.tinkerpop.blueprints.Vertex;
+
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
 
 /**
  * Entry parser for index metadata. The format
@@ -33,29 +37,55 @@ import com.tinkerpop.blueprints.KeyIndexableGraph;
  * indexes. For the latter, the parser returns
  * indexed keys.
  */
-public class IndexedItemsListParser implements EntryParser<List<String>> {
+public class IndexedItemsListParser implements EntryParser<List<IndexedItem>> {
 
   private final Class<? extends Element> elementClass;
 
+  /**
+   * Constructor to return all items regardless
+   * of element class.
+   */
+  public IndexedItemsListParser() {
+    this(Element.class);
+  }
+
+  /**
+   * Create a parser for items of the specified element class.
+   * This may be Vertex, Edge, or Element.
+   * @param elementClass
+   */
   public IndexedItemsListParser(Class<? extends Element> elementClass) {
+    // Validate element class.
+    if (!Vertex.class.equals(elementClass) &&
+        !Edge.class.equals(elementClass) &&
+        !Element.class.equals(elementClass)) {
+      throw new IllegalArgumentException("elementClass must be Vertex, Edge or Element");
+    }
     this.elementClass = elementClass;
   }
 
-  public Class<? extends Element> getElementClass() {
-    return elementClass;
-  }
-
+  @SuppressWarnings("unchecked")
   @Override
-  public List<String> parse(Iterable<Entry<Key,Value>> entries) {
-    List<String> keys = new ArrayList<String>();
+  public List<IndexedItem> parse(Iterable<Entry<Key,Value>> entries) {
+    List<IndexedItem> items = new ArrayList<IndexedItem>();
 
     for (Entry<Key, Value> entry : entries) {
-      String clazz = entry.getKey().getColumnFamily().toString();
-      if (elementClass.getSimpleName().equals(clazz)) {
-        keys.add(entry.getKey().getRow().toString());
+      Class<? extends Element> clazz;
+      try {
+        clazz = (Class<? extends Element>) Class.forName(entry.getKey()
+            .getColumnFamily().toString());
+      } catch (ClassNotFoundException e) {
+        throw new AccumuloGraphException(e);
+      }
+
+      if (Element.class.equals(elementClass) ||
+          elementClass.equals(clazz)) {
+        IndexedItem item = new IndexedItem(entry.getKey()
+            .getRow().toString(), clazz);
+        items.add(item);
       }
     }
 
-    return keys;
+    return items;
   }
 }

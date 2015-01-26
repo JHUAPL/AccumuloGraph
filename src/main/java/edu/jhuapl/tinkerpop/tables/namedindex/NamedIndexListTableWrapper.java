@@ -14,9 +14,18 @@
  */
 package edu.jhuapl.tinkerpop.tables.namedindex;
 
-import com.tinkerpop.blueprints.Element;
+import java.util.ArrayList;
+import java.util.List;
 
+import org.apache.accumulo.core.client.Scanner;
+
+import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.Index;
+
+import edu.jhuapl.tinkerpop.AccumuloIndex;
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.parser.IndexedItem;
+import edu.jhuapl.tinkerpop.parser.IndexedItemsListParser;
 import edu.jhuapl.tinkerpop.tables.BaseIndexedItemsListTableWrapper;
 
 /**
@@ -37,5 +46,27 @@ public class NamedIndexListTableWrapper extends BaseIndexedItemsListTableWrapper
   public void clearIndexNameEntry(String indexName,
       Class<? extends Element> indexClass) {
     clearEntry(indexName, indexClass);
+  }
+
+  @SuppressWarnings({"rawtypes", "unchecked"})
+  public Iterable<Index<? extends Element>> getIndices() {
+    List<Index<? extends Element>> indexes = new ArrayList<Index<? extends Element>>();
+    IndexedItemsListParser parser = new IndexedItemsListParser();
+    Scanner scan = null;
+    try {
+      scan = getScanner();
+
+      for (IndexedItem item : parser.parse(scan)) {
+        indexes.add(new AccumuloIndex(globals,
+            item.getKey(), item.getElementClass()));
+      }
+
+      return indexes;
+
+    } finally {
+      if (scan != null) {
+        scan.close();
+      }
+    }
   }
 }

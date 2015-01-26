@@ -558,6 +558,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public <T extends Element> Index<T> getIndex(String indexName, Class<T> indexClass) {
+    // TODO Refactor below to appropriate wrapper.
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
@@ -571,7 +572,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       while (iter.hasNext()) {
         Key k = iter.next().getKey();
-        if (k.getColumnFamily().toString().equals(indexClass.getSimpleName())) {
+        if (k.getColumnFamily().toString().equals(indexClass.getName())) {
           return new AccumuloIndex<T>(globals, indexName, indexClass);
         } else {
           throw ExceptionFactory.indexDoesNotSupportClass(indexName, indexClass);
@@ -585,35 +586,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Iterable<Index<? extends Element>> getIndices() {
-    // TODO Move the below into the suitable index metadata wrapper.
-
     if (globals.getConfig().getIndexableGraphDisabled()) {
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     }
-
-    List<Index<? extends Element>> toRet = new ArrayList<Index<? extends Element>>();
-    Scanner scan = getScanner(globals.getConfig().getIndexNamesTableName());
-    try {
-      Iterator<Entry<Key,Value>> iter = scan.iterator();
-
-      while (iter.hasNext()) {
-        Key k = iter.next().getKey();
-        toRet.add(new AccumuloIndex(globals, k.getRow().toString(),
-            getClass(k.getColumnFamily().toString())));
-      }
-      return toRet;
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    } finally {
-      scan.close();
-    }
-  }
-
-  private Class<? extends Element> getClass(String e) {
-    if (e.equals("Vertex")) {
-      return Vertex.class;
-    }
-    return Edge.class;
+    return globals.getNamedIndexListWrapper().getIndices();
   }
 
   @Override

@@ -23,6 +23,7 @@ import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.parser.IndexedItem;
 import edu.jhuapl.tinkerpop.parser.IndexedItemsListParser;
 import edu.jhuapl.tinkerpop.tables.BaseIndexedItemsListTableWrapper;
 
@@ -52,10 +53,21 @@ public class IndexedKeysListTableWrapper extends BaseIndexedItemsListTableWrappe
 
     IndexedItemsListParser parser = new IndexedItemsListParser(elementClass);
 
-    Scanner s = getScanner();
-    Set<String> keys = new HashSet<String>(parser.parse(s));
-    s.close();
+    Scanner scan = null;
+    try {
+      scan = getScanner();
 
-    return keys;
+      Set<String> keys = new HashSet<String>();
+      for (IndexedItem item : parser.parse(scan)) {
+        keys.add(item.getKey());
+      }
+
+      return keys;
+
+    } finally {
+      if (scan != null) {
+        scan.close();
+      }
+    }
   }
 }
