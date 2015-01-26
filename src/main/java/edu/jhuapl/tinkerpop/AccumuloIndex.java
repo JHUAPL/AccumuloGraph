@@ -21,7 +21,7 @@ import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.IndexableGraph;
 
-import edu.jhuapl.tinkerpop.tables.NamedIndexTableWrapper;
+import edu.jhuapl.tinkerpop.tables.namedindex.NamedIndexTableWrapper;
 
 /**
  * Accumulo-based implementation for {@link IndexableGraph}.

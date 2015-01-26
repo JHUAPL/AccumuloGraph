@@ -48,16 +48,25 @@ import edu.jhuapl.tinkerpop.parser.ElementIndexParser;
 import edu.jhuapl.tinkerpop.parser.VertexIndexParser;
 
 /**
- * Wrapper around index tables.
+ * Wrapper around index tables containing properties
+ * and values.
  */
-public abstract class IndexTableWrapper extends BaseTableWrapper {
+public abstract class BaseIndexValuesTableWrapper extends BaseTableWrapper {
 
   protected final Class<? extends Element> elementType;
 
-  protected IndexTableWrapper(GlobalInstances globals,
+  protected BaseIndexValuesTableWrapper(GlobalInstances globals,
       Class<? extends Element> elementType, String tableName) {
     super(globals, tableName);
     this.elementType = elementType;
+  }
+
+  /**
+   * Return class of this index.
+   * @return
+   */
+  public Class<? extends Element> getElementType() {
+    return elementType;
   }
 
   /**

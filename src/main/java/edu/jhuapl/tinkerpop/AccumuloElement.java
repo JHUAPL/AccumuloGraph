@@ -86,7 +86,7 @@ public abstract class AccumuloElement implements Element {
   @Override
   public void setProperty(String key, Object value) {
     makeCache();
-    globals.getKeyIndexWrapper(type).setPropertyForIndex(this, key, value);
+    globals.getIndexValuesWrapper(type).setPropertyForIndex(this, key, value);
     // MDL 31 Dec 2014:  The above calls getProperty, so this
     //   order is important (for now).
     globals.getElementWrapper(type).writeProperty(this, key, value);
@@ -118,7 +118,7 @@ public abstract class AccumuloElement implements Element {
       globals.getElementWrapper(type).clearProperty(this, key);
       globals.checkedFlush();
     }
-    globals.getKeyIndexWrapper(type).removePropertyFromIndex(this, key, value);
+    globals.getIndexValuesWrapper(type).removePropertyFromIndex(this, key, value);
     // MDL 31 Dec 2014:  AccumuloGraph.removeProperty
     //   calls getProperty which populates the cache.
     //   So the order here is important (for now).

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables;
+package edu.jhuapl.tinkerpop.tables.core;
 
 import java.util.HashSet;
 import java.util.Iterator;
@@ -39,6 +39,7 @@ import edu.jhuapl.tinkerpop.mutator.property.ClearPropertyMutator;
 import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.parser.PropertyParser;
+import edu.jhuapl.tinkerpop.tables.BaseTableWrapper;
 
 /**
  * Wrapper around tables with operations

@@ -12,21 +12,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables;
+package edu.jhuapl.tinkerpop.tables.namedindex;
 
 import com.tinkerpop.blueprints.Element;
-import com.tinkerpop.blueprints.IndexableGraph;
 
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.tables.BaseIndexedItemsListTableWrapper;
 
 /**
- * Wrapper around a named index table (for {@link IndexableGraph}).
+ * Wrapper around index metadata table. This lists
+ * names of indexes and their element types.
  */
-public class NamedIndexTableWrapper extends IndexTableWrapper {
+public class NamedIndexListTableWrapper extends BaseIndexedItemsListTableWrapper {
 
-  public NamedIndexTableWrapper(GlobalInstances globals,
-      Class<? extends Element> elementType, String indexName) {
-    super(globals, elementType,
-        globals.getConfig().getNamedIndexTableName(indexName));
+  public NamedIndexListTableWrapper(GlobalInstances globals) {
+    super(globals, globals.getConfig().getIndexNamesTableName());
+  }
+
+  public void writeIndexNameEntry(String indexName,
+      Class<? extends Element> indexClass) {
+    writeEntry(indexName, indexClass);
+  }
+
+  public void clearIndexNameEntry(String indexName,
+      Class<? extends Element> indexClass) {
+    clearEntry(indexName, indexClass);
   }
 }

@@ -79,7 +79,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     Map<String, Object> props = globals.getEdgeWrapper()
         .readProperties(this);
     for (String key : props.keySet()) {
-      globals.getEdgeIndexWrapper().removePropertyFromIndex(this,
+      globals.getEdgeKeyIndexWrapper().removePropertyFromIndex(this,
           key, props.get(key));
     }
 

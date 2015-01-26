@@ -12,25 +12,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables;
+package edu.jhuapl.tinkerpop.tables.keyindex;
 
 import java.util.HashSet;
 import java.util.Set;
+
 import org.apache.accumulo.core.client.Scanner;
+
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 import edu.jhuapl.tinkerpop.GlobalInstances;
-import edu.jhuapl.tinkerpop.parser.IndexMetadataParser;
+import edu.jhuapl.tinkerpop.parser.IndexedItemsListParser;
+import edu.jhuapl.tinkerpop.tables.BaseIndexedItemsListTableWrapper;
 
 /**
  * Wraps the metadata tables which stores information
  * about which property keys are indexed for different
  * graph types.
  */
-public class IndexedKeysTableWrapper extends MetadataTableWrapper {
+public class IndexedKeysListTableWrapper extends BaseIndexedItemsListTableWrapper {
 
-  public IndexedKeysTableWrapper(GlobalInstances globals) {
+  public IndexedKeysListTableWrapper(GlobalInstances globals) {
     super(globals, globals.getConfig().getIndexedKeysTableName());
   }
 
@@ -47,7 +50,7 @@ public class IndexedKeysTableWrapper extends MetadataTableWrapper {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
 
-    IndexMetadataParser parser = new IndexMetadataParser(elementClass);
+    IndexedItemsListParser parser = new IndexedItemsListParser(elementClass);
 
     Scanner s = getScanner();
     Set<String> keys = new HashSet<String>(parser.parse(s));

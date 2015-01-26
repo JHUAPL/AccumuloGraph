@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables;
+package edu.jhuapl.tinkerpop.tables.keyindex;
 
 import java.util.Arrays;
 import java.util.Map.Entry;
@@ -31,13 +31,14 @@ import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.parser.VertexIndexParser;
+import edu.jhuapl.tinkerpop.tables.BaseIndexValuesTableWrapper;
 
 /**
  * Wrapper around {@link Vertex} index table.
  */
-public class VertexIndexTableWrapper extends IndexTableWrapper {
+public class VertexKeyIndexTableWrapper extends BaseIndexValuesTableWrapper {
 
-  public VertexIndexTableWrapper(GlobalInstances globals) {
+  public VertexKeyIndexTableWrapper(GlobalInstances globals) {
     super(globals, Vertex.class, globals.getConfig()
         .getVertexKeyIndexTableName());
   }

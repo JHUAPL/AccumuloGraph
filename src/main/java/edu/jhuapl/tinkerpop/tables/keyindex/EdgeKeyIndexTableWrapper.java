@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables;
+package edu.jhuapl.tinkerpop.tables.keyindex;
 
 import java.util.Arrays;
 import java.util.Map.Entry;
@@ -25,18 +25,20 @@ import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.Edge;
+
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.parser.EdgeIndexParser;
+import edu.jhuapl.tinkerpop.tables.BaseIndexValuesTableWrapper;
 
 /**
  * Wrapper around {@link Edge} index table.
  */
-public class EdgeIndexTableWrapper extends IndexTableWrapper {
+public class EdgeKeyIndexTableWrapper extends BaseIndexValuesTableWrapper {
 
-  public EdgeIndexTableWrapper(GlobalInstances globals) {
+  public EdgeKeyIndexTableWrapper(GlobalInstances globals) {
     super(globals, Edge.class, globals.getConfig()
         .getEdgeKeyIndexTableName());
   }

@@ -22,18 +22,27 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 
 import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.IndexableGraph;
+import com.tinkerpop.blueprints.KeyIndexableGraph;
 
 /**
- * Entry parser for index metadata. This includes index
- * names for named indexes, and property keys for
- * key indexes.
+ * Entry parser for index metadata. The format
+ * is the same for both {@link IndexableGraph}
+ * and {@link KeyIndexableGraph} functionality.
+ * For the former, this parser returns names of
+ * indexes. For the latter, the parser returns
+ * indexed keys.
  */
-public class IndexMetadataParser implements EntryParser<List<String>> {
+public class IndexedItemsListParser implements EntryParser<List<String>> {
 
   private final Class<? extends Element> elementClass;
 
-  public IndexMetadataParser(Class<? extends Element> elementClass) {
+  public IndexedItemsListParser(Class<? extends Element> elementClass) {
     this.elementClass = elementClass;
+  }
+
+  public Class<? extends Element> getElementClass() {
+    return elementClass;
   }
 
   @Override
