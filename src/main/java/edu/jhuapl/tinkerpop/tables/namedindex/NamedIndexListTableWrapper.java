@@ -16,11 +16,10 @@ package edu.jhuapl.tinkerpop.tables.namedindex;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.apache.accumulo.core.client.Scanner;
-
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
+import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 import edu.jhuapl.tinkerpop.AccumuloIndex;
 import edu.jhuapl.tinkerpop.GlobalInstances;
@@ -51,7 +50,9 @@ public class NamedIndexListTableWrapper extends BaseIndexedItemsListTableWrapper
   @SuppressWarnings({"rawtypes", "unchecked"})
   public Iterable<Index<? extends Element>> getIndices() {
     List<Index<? extends Element>> indexes = new ArrayList<Index<? extends Element>>();
+
     IndexedItemsListParser parser = new IndexedItemsListParser();
+
     Scanner scan = null;
     try {
       scan = getScanner();
@@ -67,6 +68,32 @@ public class NamedIndexListTableWrapper extends BaseIndexedItemsListTableWrapper
       if (scan != null) {
         scan.close();
       }
+    }
+  }
+
+  public <T extends Element> Index<T> getIndex(String indexName,
+      Class<T> indexClass) {
+    IndexedItemsListParser parser = new IndexedItemsListParser();
+
+    Scanner scan = null;
+    try {
+      scan = getScanner();
+
+      for (IndexedItem item : parser.parse(scan)) {
+        if (item.getKey().equals(indexName)) {
+          if (item.getElementClass().equals(indexClass)) {
+            return new AccumuloIndex<T>(globals, indexName,
+                indexClass);
+          }
+          else {
+            throw ExceptionFactory.indexDoesNotSupportClass(indexName, indexClass);
+          }
+        }
+      }
+      return null;
+
+    } finally {
+      scan.close();
     }
   }
 }

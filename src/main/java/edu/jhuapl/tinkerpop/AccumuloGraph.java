@@ -558,30 +558,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public <T extends Element> Index<T> getIndex(String indexName, Class<T> indexClass) {
-    // TODO Refactor below to appropriate wrapper.
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if (globals.getConfig().getIndexableGraphDisabled())
+    else if (globals.getConfig().getIndexableGraphDisabled()) {
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
-
-    Scanner scan = getScanner(globals.getConfig().getIndexNamesTableName());
-    try {
-      scan.setRange(new Range(indexName, indexName));
-      Iterator<Entry<Key,Value>> iter = scan.iterator();
-
-      while (iter.hasNext()) {
-        Key k = iter.next().getKey();
-        if (k.getColumnFamily().toString().equals(indexClass.getName())) {
-          return new AccumuloIndex<T>(globals, indexName, indexClass);
-        } else {
-          throw ExceptionFactory.indexDoesNotSupportClass(indexName, indexClass);
-        }
-      }
-      return null;
-    } finally {
-      scan.close();
     }
+
+    return globals.getNamedIndexListWrapper().getIndex(indexName, indexClass);
   }
 
   @Override
@@ -617,6 +601,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public <T extends Element> void dropKeyIndex(String key, Class<T> elementClass) {
+    // TODO Move below to somewhere appropriate.
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
@@ -648,6 +633,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   @Override
   public <T extends Element> void createKeyIndex(String key,
       Class<T> elementClass, Parameter... indexParameters) {
+    // TODO Move below to somewhere appropriate.
     if (elementClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
