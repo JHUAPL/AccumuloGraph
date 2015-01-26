@@ -72,12 +72,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   private GlobalInstances globals;
 
   /**
-   * @deprecated Remove when vertex functionality is gone.
-   */
-  @Deprecated
-  private BatchWriter vertexBW;
-
-  /**
    * Factory method for {@link GraphFactory}.
    */
   public static AccumuloGraph open(Configuration properties) throws AccumuloException {
@@ -109,21 +103,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
-
-    try {
-      setupWriters();
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
-  /**
-   * @deprecated This will go away along with {@link #vertexBW}.
-   * @throws Exception
-   */
-  @Deprecated
-  private void setupWriters() throws Exception {
-    vertexBW = globals.getMtbw().getBatchWriter(globals.getConfig().getVertexTableName());
   }
 
   /**
@@ -304,23 +283,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     vertex.remove();
   }
 
-  // Maybe an Custom Iterator could make this better.
-  /**
-   * @deprecated Move to appropriate location.
-   * @param element
-   */
-  @Deprecated
-  private void removeElementFromNamedIndexes(Element element) {
-    for (Index<? extends Element> index : getIndices()) {
-      ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(element);
-    }
-  }
-
-  private Text invert(Text columnFamily) {
-    return columnFamily.toString().equals(Constants.IN_EDGE) ?
-        new Text(Constants.OUT_EDGE) : new Text(Constants.IN_EDGE);
-  }
-
   @Override
   public Iterable<Vertex> getVertices() {
     return globals.getVertexWrapper().getVertices();
@@ -465,6 +427,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   @Override
   public <T extends Element> Index<T> createIndex(String indexName,
       Class<T> indexClass, Parameter... indexParameters) {
+    // TODO Move below to appropriate place
+
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
@@ -627,7 +591,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
           }
         }
       }
-      setupWriters();
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
