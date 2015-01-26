@@ -51,7 +51,20 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   @Override
   public void remove() {
-    globals.getGraph().removeVertex(this);
+    globals.getCaches().remove(getId(), Vertex.class);
+
+    super.removeElementFromNamedIndexes();
+
+    // Remove edges incident to this vertex.
+    for (Edge edge : getEdges(Direction.BOTH)) {
+      edge.remove();
+    }
+
+    globals.checkedFlush();
+
+    // Get rid of the vertex.
+    globals.getVertexWrapper().deleteVertex(this);
+    globals.checkedFlush();
   }
 
   @Override

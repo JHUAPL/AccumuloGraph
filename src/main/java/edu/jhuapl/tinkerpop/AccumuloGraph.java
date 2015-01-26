@@ -304,8 +304,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public void removeVertex(Vertex vertex) {
     globals.getCaches().remove(vertex.getId(), Vertex.class);
 
-    if (!globals.getConfig().getIndexableGraphDisabled())
+    if (!globals.getConfig().getIndexableGraphDisabled()) {
       removeElementFromNamedIndexes(vertex);
+    }
 
     Scanner scan = getElementScanner(Vertex.class);
     scan.setRange(new Range(vertex.getId().toString()));

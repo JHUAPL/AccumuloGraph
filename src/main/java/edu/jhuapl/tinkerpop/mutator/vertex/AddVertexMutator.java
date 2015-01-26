@@ -20,18 +20,21 @@ import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.Constants;
+import edu.jhuapl.tinkerpop.mutator.Mutator;
 
-public class AddVertexMutator extends BaseVertexMutator {
+public final class AddVertexMutator implements Mutator {
 
-  public AddVertexMutator(Vertex vertex) {
-    super(vertex);
-  }
+    private final Vertex vertex;
 
-  @Override
-  public Iterable<Mutation> create() {
-    Mutation m = new Mutation((String) vertex.getId());
-    m.put(Constants.LABEL.getBytes(),
-        Constants.EXISTS.getBytes(), Constants.EMPTY);
-    return Lists.newArrayList(m);
-  }
+    public AddVertexMutator(Vertex vertex) {
+      this.vertex = vertex;
+    }
+
+    @Override
+    public Iterable<Mutation> create() {
+      Mutation m = new Mutation((String) vertex.getId());
+      m.put(Constants.LABEL.getBytes(),
+          Constants.EXISTS.getBytes(), Constants.EMPTY);
+      return Lists.newArrayList(m);
+    }
 }

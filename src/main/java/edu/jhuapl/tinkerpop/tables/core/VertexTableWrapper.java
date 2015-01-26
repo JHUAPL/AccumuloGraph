@@ -15,10 +15,12 @@
 package edu.jhuapl.tinkerpop.tables.core;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.BatchScanner;
 import org.apache.accumulo.core.client.IteratorSetting;
 import org.apache.accumulo.core.client.Scanner;
@@ -36,12 +38,14 @@ import com.tinkerpop.blueprints.Vertex;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.AccumuloElement;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.AccumuloGraphUtils;
 import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
+import edu.jhuapl.tinkerpop.mutator.Mutator;
 import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.mutator.edge.EdgeEndpointsMutator;
 import edu.jhuapl.tinkerpop.parser.VertexParser;
@@ -64,6 +68,29 @@ public class VertexTableWrapper extends ElementTableWrapper {
   public void writeVertex(Vertex vertex) {
     Mutators.apply(getWriter(), new AddVertexMutator(vertex));
     globals.checkedFlush();
+  }
+
+  /**
+   * Remove the given vertex.
+   * Note: This uses a BatchDeleter rather than {@link Mutator}
+   * because it is more efficient.
+   * @param vertex
+   */
+  public void deleteVertex(Vertex vertex) {
+    BatchDeleter deleter = null;
+
+    try {
+      deleter = getDeleter();
+      deleter.setRanges(Arrays.asList(Range.exact((String) vertex.getId())));
+      deleter.delete();
+
+    } catch (Exception e) {
+      throw new AccumuloGraphException(e);
+    } finally {
+      if (deleter != null) {
+        deleter.close();
+      }
+    }
   }
 
   /**
