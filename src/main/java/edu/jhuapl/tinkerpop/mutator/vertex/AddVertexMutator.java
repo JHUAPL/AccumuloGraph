@@ -17,22 +17,20 @@ package edu.jhuapl.tinkerpop.mutator.vertex;
 import org.apache.accumulo.core.data.Mutation;
 
 import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Vertex;
-
 import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.mutator.Mutator;
 
 public final class AddVertexMutator implements Mutator {
 
-    private final Vertex vertex;
+    private final String id;
 
-    public AddVertexMutator(Vertex vertex) {
-      this.vertex = vertex;
+    public AddVertexMutator(String id) {
+      this.id = id;
     }
 
     @Override
     public Iterable<Mutation> create() {
-      Mutation m = new Mutation((String) vertex.getId());
+      Mutation m = new Mutation(id);
       m.put(Constants.LABEL.getBytes(),
           Constants.EXISTS.getBytes(), Constants.EMPTY);
       return Lists.newArrayList(m);

@@ -32,6 +32,9 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
+import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
+
 
 /**
  * This class provides high-speed ingest into an {@link AccumuloGraph} instance
@@ -108,10 +111,7 @@ public final class AccumuloBulkIngester {
    * @throws MutationsRejectedException
    */
   public PropertyBuilder addVertex(String id) throws MutationsRejectedException {
-    Mutation m = new Mutation(id);
-    m.put(Constants.LABEL.getBytes(),
-        Constants.EXISTS.getBytes(), Constants.EMPTY);
-    vertexWriter.addMutation(m);
+    Mutators.apply(vertexWriter, new AddVertexMutator(id));
     return new PropertyBuilder(vertexWriter, id);
   }
 

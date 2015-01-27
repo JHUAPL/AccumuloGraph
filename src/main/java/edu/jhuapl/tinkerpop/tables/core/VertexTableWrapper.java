@@ -66,7 +66,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
    * @param vertex
    */
   public void writeVertex(Vertex vertex) {
-    Mutators.apply(getWriter(), new AddVertexMutator(vertex));
+    Mutators.apply(getWriter(), new AddVertexMutator(vertex.getId().toString()));
     globals.checkedFlush();
   }
 
