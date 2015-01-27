@@ -16,7 +16,9 @@ package edu.jhuapl.tinkerpop.tables.namedindex;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import org.apache.accumulo.core.client.Scanner;
+
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
@@ -95,5 +97,16 @@ public class NamedIndexListTableWrapper extends BaseIndexedItemsListTableWrapper
     } finally {
       scan.close();
     }
+  }
+  
+  public <T extends Element> Index<T> createIndex(String indexName, Class<T> indexClass) {
+    for (Index<?> index : globals.getNamedIndexListWrapper().getIndices()) {
+      if (index.getIndexName().equals(indexName)) {
+        throw ExceptionFactory.indexAlreadyExists(indexName);
+      }
+    }
+
+    writeIndexNameEntry(indexName, indexClass);
+    return new AccumuloIndex<T>(globals, indexName, indexClass);
   }
 }

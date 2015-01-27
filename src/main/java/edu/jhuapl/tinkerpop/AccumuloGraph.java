@@ -22,7 +22,6 @@ import java.util.SortedSet;
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.accumulo.core.data.Range;
 import org.apache.commons.configuration.Configuration;
@@ -104,31 +103,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    */
   GlobalInstances getGlobals() {
     return globals;
-  }
-
-  /**
-   * @deprecated Move this somewhere appropriate
-   * @param tablename
-   * @return
-   */
-  @Deprecated
-  private Scanner getScanner(String tablename) {
-    try {
-      return globals.getConfig().getConnector().createScanner(tablename,
-          globals.getConfig().getAuthorizations());
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
-  // Aliases for the lazy
-  /**
-   * @deprecated Move this somewhere appropriate
-   * @return
-   */
-  @Deprecated
-  private Scanner getMetadataScanner() {
-    return getScanner(globals.getConfig().getIndexNamesTableName());
   }
 
   @Override
@@ -317,26 +291,20 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   @Override
   public <T extends Element> Index<T> createIndex(String indexName,
       Class<T> indexClass, Parameter... indexParameters) {
-    // TODO Move below to appropriate place
-
     if (indexClass == null) {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
-    if (globals.getConfig().getIndexableGraphDisabled())
+    else if (globals.getConfig().getIndexableGraphDisabled()) {
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
-
-    Scanner s = getMetadataScanner();
-    try {
-      s.setRange(new Range(indexName, indexName));
-      if (s.iterator().hasNext())
-        throw ExceptionFactory.indexAlreadyExists(indexName);
-
-      globals.getNamedIndexListWrapper().writeIndexNameEntry(indexName, indexClass);
-
-      return new AccumuloIndex<T>(globals, indexName, indexClass);
-    } finally {
-      s.close();
     }
+
+    for (Index<?> index : globals.getNamedIndexListWrapper().getIndices()) {
+      if (index.getIndexName().equals(indexName)) {
+        throw ExceptionFactory.indexAlreadyExists(indexName);
+      }
+    }
+
+    return globals.getNamedIndexListWrapper().createIndex(indexName, indexClass);
   }
 
   @Override

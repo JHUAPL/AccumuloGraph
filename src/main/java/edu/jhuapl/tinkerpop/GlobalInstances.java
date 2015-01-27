@@ -22,7 +22,6 @@ import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
-import edu.jhuapl.tinkerpop.tables.BaseIndexValuesTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.VertexTableWrapper;
