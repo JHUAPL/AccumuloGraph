@@ -135,7 +135,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
         Entry<Key,Value> kv = iterator.next();
 
         String[] parts = kv.getKey().getColumnQualifier().toString().split(Constants.ID_DELIM);
-        String label = (new String(kv.getValue().get())).split("_")[1];
+        String label = (new String(kv.getValue().get())).split(Constants.ID_DELIM)[1];
 
         AccumuloEdge edge;
         if (kv.getKey().getColumnFamily().toString().equalsIgnoreCase(Constants.IN_EDGE)) {

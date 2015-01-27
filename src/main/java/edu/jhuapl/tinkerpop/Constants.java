@@ -23,15 +23,15 @@ public class Constants {
 
   private Constants() { }
 
-  public static final String ID_DELIM = "_";
+  public static final String ID_DELIM = "__DELIM__";
 
   public static final byte[] EMPTY = new byte[0];
 
   /**
    * Prefixes for various Accumulo entries.
    */
-  public static final String LABEL = "L";
-  public static final String IN_EDGE = "I";
-  public static final String OUT_EDGE = "O";
-  public static final String EXISTS = "E";
+  public static final String LABEL = "__LABEL__";
+  public static final String IN_EDGE = "__INEDGE__";
+  public static final String OUT_EDGE = "__OUTEDGE__";
+  public static final String EXISTS = "__EXISTS__";
 }

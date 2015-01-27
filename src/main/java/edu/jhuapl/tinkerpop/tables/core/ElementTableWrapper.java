@@ -90,20 +90,38 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
   }
 
   /**
-   * Read the given properties for the given element id.
-   * This may return an empty map for elements with no properties.
+   * Read all properties for the given element
+   * from the backing table.
+   * If the element has no properties, return an empty Map.
+   * If the element does not exist, return null.
+   * @param element
+   * @return
+   */
+  public Map<String, Object> readAllProperties(Element element) {
+    return readProperties(element, null);
+  }
+
+  /**
+   * Read the given properties for the given element.
+   * If propertyKeys is null, read all properties.
+   * If the element has no properties, return an empty Map.
    * If the element does not exist, return null.
    * @param id
    * @param propertyKeys
    * @return
    */
-  public Map<String, Object> readProperties(Element element, String... propertyKeys) {
+  public Map<String, Object> readProperties(Element element, String[] propertyKeys) {
     Scanner s = getScanner();
-    s.setRange(new Range(element.getId().toString()));
-    s.fetchColumnFamily(new Text(Constants.LABEL));
+    s.setRange(Range.exact((String) element.getId()));
 
-    for (String key : propertyKeys) {
-      s.fetchColumnFamily(new Text(key));
+    // If propertyKeys is null, we read everything.
+    // Otherwise, limit to the given attributes.
+    if (propertyKeys != null) {
+      s.fetchColumnFamily(new Text(Constants.LABEL));
+
+      for (String key : propertyKeys) {
+        s.fetchColumnFamily(new Text(key));
+      }
     }
 
     Map<String, Object> props = new PropertyParser().parse(s);

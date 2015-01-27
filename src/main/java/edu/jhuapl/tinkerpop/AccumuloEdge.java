@@ -15,9 +15,6 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.Map;
-import java.util.Set;
-
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.log4j.Logger;
 
 import com.tinkerpop.blueprints.Direction;
@@ -84,11 +81,8 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     }
 
     // Remove properties from key/value indexes.
-    Set<String> indexedKeys = globals.getIndexedKeysListWrapper()
-        .getIndexedKeys(Edge.class);
-
     Map<String, Object> props = globals.getEdgeWrapper()
-        .readProperties(this, indexedKeys.toArray(ArrayUtils.EMPTY_STRING_ARRAY));
+        .readAllProperties(this);
 
     for (String key : props.keySet()) {
       globals.getEdgeKeyIndexWrapper().removePropertyFromIndex(this,

@@ -50,7 +50,6 @@ import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
-import edu.jhuapl.tinkerpop.tables.keyindex.VertexKeyIndexTableWrapper;
 
 /**
  * This is an implementation of the TinkerPop Blueprints 2.6 API using
@@ -69,7 +68,7 @@ import edu.jhuapl.tinkerpop.tables.keyindex.VertexKeyIndexTableWrapper;
  */
 public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
-  private GlobalInstances globals;
+  private final GlobalInstances globals;
 
   /**
    * Factory method for {@link GraphFactory}.
@@ -106,20 +105,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
 
   /**
-   * @deprecated Move this somewhere appropriate
-   * @param type
+   * This is at package level for the {@link AutoIndexTest} unit test
+   * and probably should disappear.
    * @return
    */
-  @Deprecated
-  protected Scanner getElementScanner(Class<? extends Element> type) {
-    try {
-      String tableName = globals.getConfig().getEdgeTableName();
-      if (type.equals(Vertex.class))
-        tableName = globals.getConfig().getVertexTableName();
-      return globals.getConfig().getConnector().createScanner(tableName, globals.getConfig().getAuthorizations());
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
+  GlobalInstances getGlobals() {
+    return globals;
   }
 
   /**
@@ -128,7 +119,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @return
    */
   @Deprecated
-  protected Scanner getScanner(String tablename) {
+  private Scanner getScanner(String tablename) {
     try {
       return globals.getConfig().getConnector().createScanner(tablename,
           globals.getConfig().getAuthorizations());
@@ -145,17 +136,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   @Deprecated
   private Scanner getMetadataScanner() {
     return getScanner(globals.getConfig().getIndexNamesTableName());
-  }
-
-  /**
-   * @deprecated This is used in a unit test that
-   * needs to be updated to work with
-   * {@link VertexKeyIndexTableWrapper}.
-   * @return
-   */
-  @Deprecated
-  public Scanner getVertexIndexScanner() {
-    return getScanner(globals.getConfig().getVertexKeyIndexTableName());
   }
 
   /**
@@ -181,7 +161,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * @return
    */
   @Deprecated
-  public BatchWriter getWriter(String tablename) {
+  private BatchWriter getWriter(String tablename) {
     try {
       return globals.getMtbw().getBatchWriter(tablename);
     } catch (Exception e) {
@@ -221,17 +201,17 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       id = AccumuloGraphUtils.generateId();
     }
 
-    String myID = id.toString();
+    String idStr = id.toString();
 
     Vertex vert = null;
     if (!globals.getConfig().getSkipExistenceChecks()) {
-      vert = getVertex(myID);
+      vert = getVertex(idStr);
       if (vert != null) {
-        throw ExceptionFactory.vertexWithIdAlreadyExists(myID);
+        throw ExceptionFactory.vertexWithIdAlreadyExists(idStr);
       }
     }
 
-    vert = new AccumuloVertex(globals, myID);
+    vert = new AccumuloVertex(globals, idStr);
 
     globals.getVertexWrapper().writeVertex(vert);
     globals.checkedFlush();
@@ -329,14 +309,14 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (id == null) {
       throw ExceptionFactory.edgeIdCanNotBeNull();
     }
-    String myID = id.toString();
+    String idStr = id.toString();
 
-    Edge edge = globals.getCaches().retrieve(myID, Edge.class);
+    Edge edge = globals.getCaches().retrieve(idStr, Edge.class);
     if (edge != null) {
       return edge;
     }
 
-    edge = new AccumuloEdge(globals, myID);
+    edge = new AccumuloEdge(globals, idStr);
 
     if (!globals.getConfig().getSkipExistenceChecks()) {
       // In addition to just an "existence" check, we will also load
@@ -349,6 +329,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
       Map<String, Object> props = globals.getEdgeWrapper()
           .readProperties(edge, preload);
+      // This will be null if the element does not exist,
+      // in which case return null.
       if (props == null) {
         return null;
       }

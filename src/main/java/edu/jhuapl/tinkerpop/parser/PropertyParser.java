@@ -59,11 +59,8 @@ public class PropertyParser implements EntryParser<Map<String, Object>> {
    */
   private static boolean isMetaKey(Key key) {
     String cf = key.getColumnFamily().toString();
-    String cq = key.getColumnQualifier().toString();
-    return (Constants.LABEL.equals(cf) &&
-        Constants.EXISTS.equals(cq)) ||
+    return Constants.LABEL.equals(cf) ||
         Constants.IN_EDGE.equals(cf) ||
         Constants.OUT_EDGE.equals(cf);
   }
-
 }
