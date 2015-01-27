@@ -282,12 +282,12 @@ public final class AccumuloBulkIngester {
    */
   public final class PropertyBuilder {
 
-    Mutation mutation;
-    BatchWriter writer;
+    final String id;
+    final BatchWriter writer;
 
     PropertyBuilder(BatchWriter writer, String id) {
       this.writer = writer;
-      this.mutation = new Mutation(id);
+      this.id = id;
     }
 
     /**
@@ -299,7 +299,13 @@ public final class AccumuloBulkIngester {
      * @return
      */
     public PropertyBuilder add(String key, Object value) {
-      mutation.put(key.getBytes(), Constants.EMPTY, AccumuloByteSerializer.serialize(value));
+      for (Mutation m : new WritePropertyMutator(id, key, value).create()) {
+        try {
+          writer.addMutation(m);
+        } catch (MutationsRejectedException e) {
+          throw new AccumuloGraphException(e);
+        }
+      }
       return this;
     }
 
@@ -309,9 +315,7 @@ public final class AccumuloBulkIngester {
      * @throws MutationsRejectedException
      */
     public void finish() throws MutationsRejectedException {
-      if (mutation.size() > 0) {
-        writer.addMutation(mutation);
-      }
+      // No-op since Mutations are now added on the fly.
     }
 
     /**
@@ -320,7 +324,7 @@ public final class AccumuloBulkIngester {
      * @return
      */
     public String getId() {
-      return new String(mutation.getRow());
+      return id;
     }
   }
 }
