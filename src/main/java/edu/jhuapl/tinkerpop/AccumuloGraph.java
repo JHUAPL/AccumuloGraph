@@ -15,23 +15,16 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.accumulo.core.client.AccumuloException;
 import org.apache.accumulo.core.client.BatchDeleter;
-import org.apache.accumulo.core.client.BatchScanner;
-import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 
@@ -137,58 +130,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   private Scanner getMetadataScanner() {
     return getScanner(globals.getConfig().getIndexNamesTableName());
   }
-
-  /**
-   * @deprecated Move this somewhere appropriate
-   * @return
-   */
-  @Deprecated
-  private BatchWriter getVertexIndexWriter() {
-    return getWriter(globals.getConfig().getVertexKeyIndexTableName());
-  }
-
-  /**
-   * @deprecated Move this somewhere appropriate
-   * @return
-   */
-  @Deprecated
-  private BatchWriter getEdgeIndexWriter() {
-    return getWriter(globals.getConfig().getEdgeKeyIndexTableName());
-  }
-
-  /**
-   * @deprecated Move this somewhere appropriate
-   * @return
-   */
-  @Deprecated
-  private BatchWriter getWriter(String tablename) {
-    try {
-      return globals.getMtbw().getBatchWriter(tablename);
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
-  /**
-   * @deprecated Move this somewhere appropriate
-   * @return
-   */
-  @Deprecated
-  private BatchScanner getElementBatchScanner(Class<? extends Element> type) {
-    try {
-      String tableName = globals.getConfig().getVertexTableName();
-      if (type.equals(Edge.class))
-        tableName = globals.getConfig().getEdgeTableName();
-      BatchScanner x = globals.getConfig().getConnector().createBatchScanner(tableName,
-          globals.getConfig().getAuthorizations(), globals.getConfig().getQueryThreads());
-      x.setRanges(Collections.singletonList(new Range()));
-      return x;
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    }
-  }
-
-  // End Aliases
 
   @Override
   public Features getFeatures() {
@@ -367,18 +308,6 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     globals.getCaches().clear(Edge.class);
   }
 
-  /**
-   * @deprecated Move this somewhere appropriate
-   * @param type
-   * @return
-   */
-  @Deprecated
-  private BatchWriter getIndexBatchWriter(Class<? extends Element> type) {
-    if (type.equals(Edge.class))
-      return getEdgeIndexWriter();
-    return getVertexIndexWriter();
-  }
-
   @Override
   public String toString() {
     return AccumuloGraphConfiguration.ACCUMULO_GRAPH_CLASS.getSimpleName().toLowerCase();
@@ -492,33 +421,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
 
+    // Add key to indexed keys list.
     globals.getIndexedKeysListWrapper().writeKeyMetadataEntry(key, elementClass);
     globals.checkedFlush();
 
-    // Re Index Graph
-    BatchScanner scan = getElementBatchScanner(elementClass);
-    try {
-      scan.setRanges(Collections.singleton(new Range()));
-      scan.fetchColumnFamily(new Text(key));
-      Iterator<Entry<Key,Value>> iter = scan.iterator();
-
-      BatchWriter bw = getIndexBatchWriter(elementClass);
-      while (iter.hasNext()) {
-        Entry<Key,Value> entry = iter.next();
-        Key k = entry.getKey();
-        Value v = entry.getValue();
-        Mutation mu = new Mutation(v.get());
-        mu.put(k.getColumnFamily().getBytes(), k.getRow().getBytes(), Constants.EMPTY);
-        try {
-          bw.addMutation(mu);
-        } catch (MutationsRejectedException e) {
-          // TODO handle this better.
-          throw new AccumuloGraphException(e);
-        }
-      }
-    } finally {
-      scan.close();
-    }
+    // Reindex graph.
+    globals.getKeyIndexTableWrapper(elementClass).rebuildIndex(key, elementClass);
+    globals.getVertexKeyIndexWrapper().dump();
     globals.checkedFlush();
   }
 

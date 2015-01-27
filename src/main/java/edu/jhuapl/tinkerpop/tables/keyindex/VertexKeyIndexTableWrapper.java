@@ -31,12 +31,11 @@ import edu.jhuapl.tinkerpop.AccumuloVertex;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.parser.VertexIndexParser;
-import edu.jhuapl.tinkerpop.tables.BaseIndexValuesTableWrapper;
 
 /**
  * Wrapper around {@link Vertex} index table.
  */
-public class VertexKeyIndexTableWrapper extends BaseIndexValuesTableWrapper {
+public class VertexKeyIndexTableWrapper extends BaseKeyIndexTableWrapper {
 
   public VertexKeyIndexTableWrapper(GlobalInstances globals) {
     super(globals, Vertex.class, globals.getConfig()

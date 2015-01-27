@@ -103,12 +103,11 @@ public abstract class BaseIndexValuesTableWrapper extends BaseTableWrapper {
       BatchWriter writer = getWriter();
 
       Object oldValue = element.getProperty(key);
-      if (oldValue != null) {
+      if (oldValue != null && !oldValue.equals(value)) {
         Mutators.apply(writer, new IndexValueMutator.Delete(element, key, oldValue));
       }
 
       Mutators.apply(writer, new IndexValueMutator.Add(element, key, value));
-
       globals.checkedFlush();
     }
   }

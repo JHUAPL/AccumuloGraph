@@ -31,12 +31,11 @@ import edu.jhuapl.tinkerpop.AccumuloEdge;
 import edu.jhuapl.tinkerpop.GlobalInstances;
 import edu.jhuapl.tinkerpop.ScannerIterable;
 import edu.jhuapl.tinkerpop.parser.EdgeIndexParser;
-import edu.jhuapl.tinkerpop.tables.BaseIndexValuesTableWrapper;
 
 /**
  * Wrapper around {@link Edge} index table.
  */
-public class EdgeKeyIndexTableWrapper extends BaseIndexValuesTableWrapper {
+public class EdgeKeyIndexTableWrapper extends BaseKeyIndexTableWrapper {
 
   public EdgeKeyIndexTableWrapper(GlobalInstances globals) {
     super(globals, Edge.class, globals.getConfig()

@@ -26,6 +26,7 @@ import edu.jhuapl.tinkerpop.tables.BaseIndexValuesTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.VertexTableWrapper;
+import edu.jhuapl.tinkerpop.tables.keyindex.BaseKeyIndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.keyindex.EdgeKeyIndexTableWrapper;
 import edu.jhuapl.tinkerpop.tables.keyindex.IndexedKeysListTableWrapper;
 import edu.jhuapl.tinkerpop.tables.keyindex.VertexKeyIndexTableWrapper;
@@ -90,7 +91,7 @@ public class GlobalInstances {
     }
   }
 
-  public <T extends Element> BaseIndexValuesTableWrapper getIndexValuesWrapper(Class<T> clazz) {
+  public <T extends Element> BaseKeyIndexTableWrapper getKeyIndexTableWrapper(Class<T> clazz) {
     if (Vertex.class.equals(clazz)) {
       return getVertexKeyIndexWrapper();
     } else if (Edge.class.equals(clazz)) {
