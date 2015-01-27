@@ -183,7 +183,8 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * @param key
    */
   public void clearProperty(Element element, String key) {
-    Mutators.apply(getWriter(), new ClearPropertyMutator(element, key));
+    Mutators.apply(getWriter(),
+        new ClearPropertyMutator(element.getId().toString(), key));
     globals.checkedFlush();
   }
 
@@ -195,7 +196,8 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    */
   public void writeProperty(Element element, String key, Object value) {
     Mutators.apply(getWriter(),
-        new WritePropertyMutator(element, key, value));
+        new WritePropertyMutator(element.getId().toString(),
+            key, value));
     globals.checkedFlush();
   }
 

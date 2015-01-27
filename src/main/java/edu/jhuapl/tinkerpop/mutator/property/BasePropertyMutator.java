@@ -14,17 +14,15 @@
  */
 package edu.jhuapl.tinkerpop.mutator.property;
 
-import com.tinkerpop.blueprints.Element;
-
 import edu.jhuapl.tinkerpop.mutator.Mutator;
 
 public abstract class BasePropertyMutator implements Mutator {
 
-  protected Element element;
-  protected String key;
+  protected final String id;
+  protected final String key;
 
-  public BasePropertyMutator(Element element, String key) {
-    this.element = element;
+  public BasePropertyMutator(String id, String key) {
+    this.id = id;
     this.key = key;
   }
 }

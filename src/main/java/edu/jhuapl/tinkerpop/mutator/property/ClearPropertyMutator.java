@@ -17,19 +17,17 @@ package edu.jhuapl.tinkerpop.mutator.property;
 import org.apache.accumulo.core.data.Mutation;
 
 import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Element;
-
 import edu.jhuapl.tinkerpop.Constants;
 
 public class ClearPropertyMutator extends BasePropertyMutator {
 
-  public ClearPropertyMutator(Element element, String key) {
-    super(element, key);
+  public ClearPropertyMutator(String id, String key) {
+    super(id, key);
   }
 
   @Override
   public Iterable<Mutation> create() {
-    Mutation m = new Mutation(element.getId().toString());
+    Mutation m = new Mutation(id);
     m.putDelete(key.getBytes(), Constants.EMPTY);
     return Lists.newArrayList(m);
   }

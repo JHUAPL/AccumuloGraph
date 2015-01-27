@@ -33,6 +33,7 @@ import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
 import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
 
 
@@ -215,10 +216,7 @@ public final class AccumuloBulkIngester {
    * @throws MutationsRejectedException
    */
   private void addProperty(BatchWriter writer, String id, String key, Object value) throws MutationsRejectedException {
-    byte[] newByteVal = AccumuloByteSerializer.serialize(value);
-    Mutation m = new Mutation(id);
-    m.put(key.getBytes(), Constants.EMPTY, newByteVal);
-    writer.addMutation(m);
+    Mutators.apply(writer, new WritePropertyMutator(id, key, value));
   }
 
   /**
