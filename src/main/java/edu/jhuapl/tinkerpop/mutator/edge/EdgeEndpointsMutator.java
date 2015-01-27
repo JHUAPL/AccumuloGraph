@@ -17,7 +17,6 @@ package edu.jhuapl.tinkerpop.mutator.edge;
 import org.apache.accumulo.core.data.Mutation;
 
 import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.Constants;
@@ -33,20 +32,21 @@ public class EdgeEndpointsMutator {
       super(edge);
     }
 
+    public Add(String id, String outVertexId, String inVertexId, String label) {
+      super(id, outVertexId, inVertexId, label);
+    }
+
     @Override
     public Iterable<Mutation> create() {
-      String inVertexId = edge.getVertex(Direction.IN).getId().toString();
-      String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
-
       Mutation in = new Mutation(inVertexId);
       in.put(Constants.IN_EDGE.getBytes(),
-          (outVertexId + Constants.ID_DELIM + edge.getId()).getBytes(),
-          (Constants.ID_DELIM + edge.getLabel()).getBytes());
+          (outVertexId + Constants.ID_DELIM + id).getBytes(),
+          (Constants.ID_DELIM + label).getBytes());
 
       Mutation out = new Mutation(outVertexId);
       out.put(Constants.OUT_EDGE.getBytes(),
-          (inVertexId + Constants.ID_DELIM + edge.getId()).getBytes(),
-          (Constants.ID_DELIM + edge.getLabel()).getBytes());
+          (inVertexId + Constants.ID_DELIM + id).getBytes(),
+          (Constants.ID_DELIM + label).getBytes());
 
       return Lists.newArrayList(in, out);
     }
@@ -58,18 +58,19 @@ public class EdgeEndpointsMutator {
       super(edge);
     }
 
+    public Delete(String id, String outVertexId, String inVertexId, String label) {
+      super(id, outVertexId, inVertexId, label);
+    }
+
     @Override
     public Iterable<Mutation> create() {
-      String inVertexId = edge.getVertex(Direction.IN).getId().toString();
-      String outVertexId = edge.getVertex(Direction.OUT).getId().toString();
-
       Mutation in = new Mutation(inVertexId);
       in.putDelete(Constants.IN_EDGE.getBytes(),
-          (outVertexId + Constants.ID_DELIM + edge.getId()).getBytes());
+          (outVertexId + Constants.ID_DELIM + id).getBytes());
 
       Mutation out = new Mutation(outVertexId);
       out.putDelete(Constants.OUT_EDGE.getBytes(),
-          (inVertexId + Constants.ID_DELIM + edge.getId()).getBytes());
+          (inVertexId + Constants.ID_DELIM + id).getBytes());
 
       return Lists.newArrayList(in, out);
     }

@@ -14,15 +14,28 @@
  */
 package edu.jhuapl.tinkerpop.mutator.edge;
 
+import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.mutator.Mutator;
 
 public abstract class BaseEdgeMutator implements Mutator {
 
-  protected final Edge edge;
+  protected final String id;
+  protected final String outVertexId;
+  protected final String inVertexId;
+  protected final String label;
 
   public BaseEdgeMutator(Edge edge) {
-    this.edge = edge;
+    this(edge.getId().toString(),
+        edge.getVertex(Direction.OUT).getId().toString(),
+        edge.getVertex(Direction.IN).getId().toString(),
+        edge.getLabel());
+  }
+  public BaseEdgeMutator(String id, String outVertexId, String inVertexId, String label) {
+    this.id = id;
+    this.outVertexId = outVertexId;
+    this.inVertexId = inVertexId;
+    this.label = label;
   }
 }

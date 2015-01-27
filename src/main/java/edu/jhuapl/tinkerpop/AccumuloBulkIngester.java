@@ -33,6 +33,8 @@ import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.mutator.edge.EdgeEndpointsMutator;
+import edu.jhuapl.tinkerpop.mutator.edge.EdgeMutator;
 import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
 import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
 
@@ -150,8 +152,7 @@ public final class AccumuloBulkIngester {
    * @throws MutationsRejectedException
    */
   public PropertyBuilder addEdge(String src, String dest, String label) throws MutationsRejectedException {
-    String eid = UUID.randomUUID().toString();
-    return addEdge(eid, src, dest, label);
+    return addEdge(UUID.randomUUID().toString(), src, dest, label);
   }
 
   /**
@@ -170,20 +171,8 @@ public final class AccumuloBulkIngester {
    * @throws MutationsRejectedException
    */
   public PropertyBuilder addEdge(String id, String src, String dest, String label) throws MutationsRejectedException {
-    Mutation m = new Mutation(id);
-    m.put(Constants.LABEL.getBytes(), (dest + "_" + src).getBytes(), AccumuloByteSerializer.serialize(label));
-    edgeWriter.addMutation(m);
-
-    m = new Mutation(dest);
-    m.put(Constants.IN_EDGE.getBytes(),
-        (src + Constants.ID_DELIM + id).getBytes(),
-        (Constants.ID_DELIM + label).getBytes());
-    vertexWriter.addMutation(m);
-    m = new Mutation(src);
-    m.put(Constants.OUT_EDGE.getBytes(),
-        (dest + Constants.ID_DELIM + id).getBytes(),
-        (Constants.ID_DELIM + label).getBytes());
-    vertexWriter.addMutation(m);
+    Mutators.apply(edgeWriter, new EdgeMutator.Add(id, src, dest, label));
+    Mutators.apply(vertexWriter, new EdgeEndpointsMutator.Add(id, src, dest, label));
     return new PropertyBuilder(edgeWriter, id);
   }
 

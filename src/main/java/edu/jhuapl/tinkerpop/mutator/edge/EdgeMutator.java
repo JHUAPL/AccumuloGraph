@@ -17,7 +17,6 @@ package edu.jhuapl.tinkerpop.mutator.edge;
 import org.apache.accumulo.core.data.Mutation;
 
 import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
@@ -31,15 +30,16 @@ public final class EdgeMutator {
       super(edge);
     }
 
+    public Add(String id, String outVertexId, String inVertexId, String label) {
+      super(id, outVertexId, inVertexId, label);
+    }
+
     @Override
     public Iterable<Mutation> create() {
-      Object inVertexId = edge.getVertex(Direction.IN).getId();
-      Object outVertexId = edge.getVertex(Direction.OUT).getId();
-
-      Mutation m = new Mutation(edge.getId().toString());
+      Mutation m = new Mutation(id);
       m.put(Constants.LABEL.getBytes(),
           (inVertexId + Constants.ID_DELIM + outVertexId).getBytes(),
-          AccumuloByteSerializer.serialize(edge.getLabel()));
+          AccumuloByteSerializer.serialize(label));
 
       return Lists.newArrayList(m);
     }
@@ -51,12 +51,13 @@ public final class EdgeMutator {
       super(edge);
     }
 
+    public Delete(String id, String outVertexId, String inVertexId, String label) {
+      super(id, outVertexId, inVertexId, label);
+    }
+
     @Override
     public Iterable<Mutation> create() {
-      Object inVertexId = edge.getVertex(Direction.IN).getId();
-      Object outVertexId = edge.getVertex(Direction.OUT).getId();
-
-      Mutation m = new Mutation(edge.getId().toString());
+      Mutation m = new Mutation(id);
       m.putDelete(Constants.LABEL.getBytes(),
           (inVertexId + Constants.ID_DELIM + outVertexId).getBytes());
 
