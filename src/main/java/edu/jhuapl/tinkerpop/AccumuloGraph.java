@@ -96,9 +96,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     AccumuloGraphUtils.handleCreateAndClear(config);
 
     try {
-      globals = new GlobalInstances(this, config,
-          config.getConnector().createMultiTableBatchWriter(config
-              .getBatchWriterConfig()), new ElementCaches(config));
+      globals = new GlobalInstances(config, config.getConnector()
+          .createMultiTableBatchWriter(config.getBatchWriterConfig()),
+          new ElementCaches(config));
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
@@ -280,28 +280,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public Edge addEdge(Object id, Vertex outVertex, Vertex inVertex, String label) {
-    if (label == null) {
-      throw ExceptionFactory.edgeLabelCanNotBeNull();
-    }
-    if (id == null) {
-      id = AccumuloGraphUtils.generateId();
-    }
-
-    String myID = id.toString();
-
-    AccumuloEdge edge = new AccumuloEdge(globals, myID, inVertex, outVertex, label);
-
-    // TODO we arent suppose to make sure the given edge ID doesn't already
-    // exist?
-
-    globals.getEdgeWrapper().writeEdge(edge);
-    globals.getVertexWrapper().writeEdgeEndpoints(edge);
-
-    globals.checkedFlush();
-
-    globals.getCaches().cache(edge, Edge.class);
-
-    return edge;
+    return ((AccumuloVertex) outVertex).addEdge(id, label, inVertex);
   }
 
   @Override

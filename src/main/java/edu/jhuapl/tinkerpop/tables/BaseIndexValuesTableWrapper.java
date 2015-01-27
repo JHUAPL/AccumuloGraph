@@ -98,7 +98,8 @@ public abstract class BaseIndexValuesTableWrapper extends BaseTableWrapper {
       boolean force) {
     AccumuloGraphUtils.validateProperty(key, value);
     if (force || globals.getConfig().getAutoIndex() ||
-        globals.getGraph().getIndexedKeys(elementType).contains(key)) {
+        globals.getIndexedKeysListWrapper()
+        .getIndexedKeys(elementType).contains(key)) {
       BatchWriter writer = getWriter();
 
       Object oldValue = element.getProperty(key);

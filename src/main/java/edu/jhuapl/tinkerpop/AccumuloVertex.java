@@ -15,6 +15,7 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.Map;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -48,7 +49,40 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   @Override
   public Edge addEdge(String label, Vertex inVertex) {
-    return globals.getGraph().addEdge(null, this, inVertex, label);
+    return addEdge(null, label, inVertex);
+  }
+
+  /**
+   * Add an edge as with {@link #addEdge(String, Vertex)},
+   * but with a specified edge id.
+   * @param id
+   * @param label
+   * @param inVertex
+   * @return
+   */
+  public Edge addEdge(Object id, String label, Vertex inVertex) {
+    if (label == null) {
+      throw ExceptionFactory.edgeLabelCanNotBeNull();
+    }
+    if (id == null) {
+      id = AccumuloGraphUtils.generateId();
+    }
+
+    String myID = id.toString();
+
+    AccumuloEdge edge = new AccumuloEdge(globals, myID, inVertex, this, label);
+
+    // TODO we arent suppose to make sure the given edge ID doesn't already
+    // exist?
+
+    globals.getEdgeWrapper().writeEdge(edge);
+    globals.getVertexWrapper().writeEdgeEndpoints(edge);
+
+    globals.checkedFlush();
+
+    globals.getCaches().cache(edge, Edge.class);
+
+    return edge;
   }
 
   @Override

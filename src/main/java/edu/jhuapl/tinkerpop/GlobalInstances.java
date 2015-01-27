@@ -37,29 +37,15 @@ import edu.jhuapl.tinkerpop.tables.namedindex.NamedIndexListTableWrapper;
  */
 public class GlobalInstances {
 
-  /**
-   * This member should eventually disappear - users
-   * should be able to access everything through this class.
-   */
-  @Deprecated
-  private final AccumuloGraph graph;
-
   private final AccumuloGraphConfiguration config;
   private final MultiTableBatchWriter mtbw;
   private final ElementCaches caches;
 
-  public GlobalInstances(AccumuloGraph graph,
-      AccumuloGraphConfiguration config, MultiTableBatchWriter mtbw,
-      ElementCaches caches) {
-    this.graph = graph;
+  public GlobalInstances(AccumuloGraphConfiguration config,
+      MultiTableBatchWriter mtbw, ElementCaches caches) {
     this.config = config;
     this.mtbw = mtbw;
     this.caches = caches;
-  }
-
-  @Deprecated
-  public AccumuloGraph getGraph() {
-    return graph;
   }
 
   public AccumuloGraphConfiguration getConfig() {
