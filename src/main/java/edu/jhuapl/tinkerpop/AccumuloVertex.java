@@ -15,7 +15,9 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.Map;
+import java.util.Map.Entry;
 
+import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -100,15 +102,17 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
     Map<String, Object> props = globals.getVertexWrapper()
         .readAllProperties(this);
 
-    for (String key : props.keySet()) {
+    for (Entry<String,Object> ent : props.entrySet()) {
       globals.getVertexKeyIndexWrapper().removePropertyFromIndex(this,
-          key, props.get(key));
+          ent.getKey(), ent.getValue());
     }
 
     // Remove edges incident to this vertex.
-    for (Edge edge : getEdges(Direction.BOTH)) {
+    CloseableIterable<Edge> iter = (CloseableIterable<Edge>)getEdges(Direction.BOTH);
+    for (Edge edge : iter) {
       edge.remove();
     }
+    iter.close();
 
     globals.checkedFlush();
 

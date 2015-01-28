@@ -16,6 +16,7 @@ package edu.jhuapl.tinkerpop.cache;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
@@ -53,12 +54,13 @@ public class PropertyCache {
       return;
     }
     values.put(key, new TimedValue(value,
-        timeout != null ? System.currentTimeMillis() + timeout : null));
+        System.currentTimeMillis() + timeout));
   }
 
   public void putAll(Map<String, Object> entries) {
-    for (String key : entries.keySet()) {
-      put(key, entries.get(key));
+    if(entries==null)return;
+    for (Entry<String,Object> ent : entries.entrySet()) {
+      put(ent.getKey(), ent.getValue());
     }
   }
 

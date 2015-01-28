@@ -31,6 +31,7 @@ import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
+import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -107,7 +108,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
     globals.checkedFlush();
   }
 
-  public Iterable<Edge> getEdges(Vertex vertex, Direction direction,
+  public CloseableIterable<Edge> getEdges(Vertex vertex, Direction direction,
       String... labels) {
     Scanner scan = getScanner();
     scan.setRange(new Range(vertex.getId().toString()));
@@ -188,7 +189,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
     };
   }
 
-  public Iterable<Vertex> getVertices() {
+  public CloseableIterable<Vertex> getVertices() {
     Scanner scan = getScanner();
     scan.fetchColumnFamily(new Text(Constants.LABEL));
 
