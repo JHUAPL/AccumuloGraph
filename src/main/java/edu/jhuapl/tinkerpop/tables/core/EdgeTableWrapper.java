@@ -30,6 +30,7 @@ import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
+import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
@@ -73,7 +74,7 @@ public class EdgeTableWrapper extends ElementTableWrapper {
     globals.checkedFlush();
   }
 
-  public Iterable<Edge> getEdges() {
+  public CloseableIterable<Edge> getEdges() {
     Scanner scan = getScanner();
     scan.fetchColumnFamily(new Text(Constants.LABEL));
 

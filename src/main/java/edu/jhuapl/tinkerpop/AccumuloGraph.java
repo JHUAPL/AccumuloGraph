@@ -16,6 +16,7 @@ package edu.jhuapl.tinkerpop;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedSet;
 
@@ -163,8 +164,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         return null;
       }
 
-      for (String key : props.keySet()) {
-        ((AccumuloElement) vertex).setPropertyInMemory(key, props.get(key));
+      for (Entry<String, Object> ents : props.entrySet()) {
+        ((AccumuloElement) vertex).setPropertyInMemory(ents.getKey(), ents.getValue());
       }
     }
 
@@ -229,8 +230,8 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
         return null;
       }
 
-      for (String key : props.keySet()) {
-        ((AccumuloElement) edge).setPropertyInMemory(key, props.get(key));
+      for (Entry<String, Object> ents : props.entrySet()) {
+        ((AccumuloElement) edge).setPropertyInMemory(ents.getKey(), ents.getValue());
       }
     }
 

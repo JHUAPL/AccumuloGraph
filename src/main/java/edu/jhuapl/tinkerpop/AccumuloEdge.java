@@ -15,6 +15,8 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.Map;
+import java.util.Map.Entry;
+
 import org.apache.log4j.Logger;
 
 import com.tinkerpop.blueprints.Direction;
@@ -84,9 +86,9 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
     Map<String, Object> props = globals.getEdgeWrapper()
         .readAllProperties(this);
 
-    for (String key : props.keySet()) {
+    for (Entry<String,Object> ents : props.entrySet()) {
       globals.getEdgeKeyIndexWrapper().removePropertyFromIndex(this,
-          key, props.get(key));
+          ents.getKey(), ents.getValue());
     }
 
     // Get rid of the endpoints and edge themselves.

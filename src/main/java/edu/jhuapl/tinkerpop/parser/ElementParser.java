@@ -57,8 +57,9 @@ public abstract class ElementParser<T extends AccumuloElement> implements EntryP
    */
   protected void setInMemoryProperties(T element, Iterable<Entry<Key, Value>> entries) {
     Map<String, Object> props = new PropertyParser().parse(entries);
-    for (String key : props.keySet()) {
-      element.setPropertyInMemory(key, props.get(key));
+    if(props == null) return;
+    for (Entry<String, Object> ent : props.entrySet()) {
+      element.setPropertyInMemory(ent.getKey(), ent.getValue());
     }
   }
 }

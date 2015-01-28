@@ -14,6 +14,7 @@
  */
 package edu.jhuapl.tinkerpop.tables.keyindex;
 
+import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Vertex;
@@ -43,14 +44,18 @@ public class BaseKeyIndexTableWrapper extends BaseIndexValuesTableWrapper {
   public void rebuildIndex(String key, Class<? extends Element> elementClass) {
     ElementTableWrapper wrapper = globals.getElementWrapper(elementClass);
     if (wrapper instanceof VertexTableWrapper) {
-      for (Vertex v : ((VertexTableWrapper) wrapper).getVertices()) {
+      CloseableIterable<Vertex> iter = ((VertexTableWrapper) wrapper).getVertices();
+      for (Vertex v : iter) {
         rebuild(wrapper, v, key);
       }
+      iter.close();
     }
     else if (wrapper instanceof EdgeTableWrapper) {
-      for (Edge e : ((EdgeTableWrapper) wrapper).getEdges()) {
+      CloseableIterable<Edge> iter = ((EdgeTableWrapper) wrapper).getEdges();
+      for (Edge e : iter) {
         rebuild(wrapper, e, key);
       }
+      iter.close();
     }
     else {
       throw new AccumuloGraphException("Unexpected table wrapper: "+wrapper.getClass());
