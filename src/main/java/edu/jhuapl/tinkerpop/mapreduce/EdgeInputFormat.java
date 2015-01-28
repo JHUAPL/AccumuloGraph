@@ -24,6 +24,7 @@ import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
+import edu.jhuapl.tinkerpop.Constants;
 
 public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
 
@@ -84,10 +85,10 @@ public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
           String eid = currentKey.getRow().toString();
           String colf = currentKey.getColumnFamily().toString();
           switch (colf) {
-            case AccumuloGraph.SLABEL:
+            case Constants.LABEL:
               currentK.set(eid);
               edge.prepareId(eid);
-              String[] ids = currentKey.getColumnQualifier().toString().split(parent.IDDELIM);
+              String[] ids = currentKey.getColumnQualifier().toString().split(Constants.ID_DELIM);
               edge.setSourceId(ids[1]);
               edge.setDestId(ids[0]);
               edge.setLabel(AccumuloByteSerializer.deserialize(entry.getValue().get()).toString());
@@ -109,7 +110,7 @@ public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
   public static void setAccumuloGraphConfiguration(Job job, AccumuloGraphConfiguration cfg) throws AccumuloSecurityException {
 
     EdgeInputFormat.setConnectorInfo(job, cfg.getUser(), new PasswordToken(cfg.getPassword()));
-    EdgeInputFormat.setInputTableName(job, cfg.getEdgeTable());
+    EdgeInputFormat.setInputTableName(job, cfg.getEdgeTableName());
     if (cfg.getInstanceType().equals(InstanceType.Mock)) {
       EdgeInputFormat.setMockInstance(job, cfg.getInstanceName());
     } else {

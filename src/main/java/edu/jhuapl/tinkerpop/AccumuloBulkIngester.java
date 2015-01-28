@@ -32,6 +32,12 @@ import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
+import edu.jhuapl.tinkerpop.mutator.Mutators;
+import edu.jhuapl.tinkerpop.mutator.edge.EdgeEndpointsMutator;
+import edu.jhuapl.tinkerpop.mutator.edge.EdgeMutator;
+import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
+import edu.jhuapl.tinkerpop.mutator.vertex.AddVertexMutator;
+
 
 /**
  * This class provides high-speed ingest into an {@link AccumuloGraph} instance
@@ -91,8 +97,8 @@ public final class AccumuloBulkIngester {
     AccumuloGraphUtils.handleCreateAndClear(config);
 
     mtbw = connector.createMultiTableBatchWriter(config.getBatchWriterConfig());
-    vertexWriter = mtbw.getBatchWriter(config.getVertexTable());
-    edgeWriter = mtbw.getBatchWriter(config.getEdgeTable());
+    vertexWriter = mtbw.getBatchWriter(config.getVertexTableName());
+    edgeWriter = mtbw.getBatchWriter(config.getEdgeTableName());
   }
 
   /**
@@ -108,9 +114,7 @@ public final class AccumuloBulkIngester {
    * @throws MutationsRejectedException
    */
   public PropertyBuilder addVertex(String id) throws MutationsRejectedException {
-    Mutation m = new Mutation(id);
-    m.put(AccumuloGraph.LABEL, AccumuloGraph.EXISTS, AccumuloGraph.EMPTY);
-    vertexWriter.addMutation(m);
+    Mutators.apply(vertexWriter, new AddVertexMutator(id));
     return new PropertyBuilder(vertexWriter, id);
   }
 
@@ -148,8 +152,7 @@ public final class AccumuloBulkIngester {
    * @throws MutationsRejectedException
    */
   public PropertyBuilder addEdge(String src, String dest, String label) throws MutationsRejectedException {
-    String eid = UUID.randomUUID().toString();
-    return addEdge(eid, src, dest, label);
+    return addEdge(UUID.randomUUID().toString(), src, dest, label);
   }
 
   /**
@@ -168,16 +171,8 @@ public final class AccumuloBulkIngester {
    * @throws MutationsRejectedException
    */
   public PropertyBuilder addEdge(String id, String src, String dest, String label) throws MutationsRejectedException {
-    Mutation m = new Mutation(id);
-    m.put(AccumuloGraph.LABEL, (dest + "_" + src).getBytes(), AccumuloByteSerializer.serialize(label));
-    edgeWriter.addMutation(m);
-
-    m = new Mutation(dest);
-    m.put(AccumuloGraph.INEDGE, (src + AccumuloGraph.IDDELIM + id).getBytes(), (AccumuloGraph.IDDELIM + label).getBytes());
-    vertexWriter.addMutation(m);
-    m = new Mutation(src);
-    m.put(AccumuloGraph.OUTEDGE, (dest + AccumuloGraph.IDDELIM + id).getBytes(), (AccumuloGraph.IDDELIM + label).getBytes());
-    vertexWriter.addMutation(m);
+    Mutators.apply(edgeWriter, new EdgeMutator.Add(id, src, dest, label));
+    Mutators.apply(vertexWriter, new EdgeEndpointsMutator.Add(id, src, dest, label));
     return new PropertyBuilder(edgeWriter, id);
   }
 
@@ -210,10 +205,7 @@ public final class AccumuloBulkIngester {
    * @throws MutationsRejectedException
    */
   private void addProperty(BatchWriter writer, String id, String key, Object value) throws MutationsRejectedException {
-    byte[] newByteVal = AccumuloByteSerializer.serialize(value);
-    Mutation m = new Mutation(id);
-    m.put(key.getBytes(), AccumuloGraph.EMPTY, newByteVal);
-    writer.addMutation(m);
+    Mutators.apply(writer, new WritePropertyMutator(id, key, value));
   }
 
   /**
@@ -279,12 +271,12 @@ public final class AccumuloBulkIngester {
    */
   public final class PropertyBuilder {
 
-    Mutation mutation;
-    BatchWriter writer;
+    final String id;
+    final BatchWriter writer;
 
     PropertyBuilder(BatchWriter writer, String id) {
       this.writer = writer;
-      this.mutation = new Mutation(id);
+      this.id = id;
     }
 
     /**
@@ -296,7 +288,13 @@ public final class AccumuloBulkIngester {
      * @return
      */
     public PropertyBuilder add(String key, Object value) {
-      mutation.put(key.getBytes(), AccumuloGraph.EMPTY, AccumuloByteSerializer.serialize(value));
+      for (Mutation m : new WritePropertyMutator(id, key, value).create()) {
+        try {
+          writer.addMutation(m);
+        } catch (MutationsRejectedException e) {
+          throw new AccumuloGraphException(e);
+        }
+      }
       return this;
     }
 
@@ -306,9 +304,7 @@ public final class AccumuloBulkIngester {
      * @throws MutationsRejectedException
      */
     public void finish() throws MutationsRejectedException {
-      if (mutation.size() > 0) {
-        writer.addMutation(mutation);
-      }
+      // No-op since Mutations are now added on the fly.
     }
 
     /**
@@ -317,7 +313,7 @@ public final class AccumuloBulkIngester {
      * @return
      */
     public String getId() {
-      return new String(mutation.getRow());
+      return id;
     }
   }
 }

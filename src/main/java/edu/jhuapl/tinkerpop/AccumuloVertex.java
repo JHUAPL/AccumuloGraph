@@ -14,26 +14,32 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Map;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
 import com.tinkerpop.blueprints.VertexQuery;
 import com.tinkerpop.blueprints.util.DefaultVertexQuery;
+import com.tinkerpop.blueprints.util.ExceptionFactory;
 
+/**
+ * TODO
+ */
 public class AccumuloVertex extends AccumuloElement implements Vertex {
 
-  AccumuloVertex(AccumuloGraph parent, String id) {
-    super(parent, id, Vertex.class);
+  public AccumuloVertex(GlobalInstances globals, String id) {
+    super(globals, id, Vertex.class);
   }
 
   @Override
   public Iterable<Edge> getEdges(Direction direction, String... labels) {
-    return parent.getEdges(id, direction, labels);
+    return globals.getVertexWrapper().getEdges(this, direction, labels);
   }
 
   @Override
   public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-    return parent.getVertices(id, direction, labels);
+    return globals.getVertexWrapper().getVertices(this, direction, labels);
   }
 
   @Override
@@ -43,12 +49,72 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   @Override
   public Edge addEdge(String label, Vertex inVertex) {
-    return parent.addEdge(null, this, inVertex, label);
+    return addEdge(null, label, inVertex);
+  }
+
+  /**
+   * Add an edge as with {@link #addEdge(String, Vertex)},
+   * but with a specified edge id.
+   * @param id
+   * @param label
+   * @param inVertex
+   * @return
+   */
+  public Edge addEdge(Object id, String label, Vertex inVertex) {
+    if (label == null) {
+      throw ExceptionFactory.edgeLabelCanNotBeNull();
+    }
+    if (id == null) {
+      id = AccumuloGraphUtils.generateId();
+    }
+
+    String myID = id.toString();
+
+    AccumuloEdge edge = new AccumuloEdge(globals, myID, inVertex, this, label);
+
+    // TODO we arent suppose to make sure the given edge ID doesn't already
+    // exist?
+
+    globals.getEdgeWrapper().writeEdge(edge);
+    globals.getVertexWrapper().writeEdgeEndpoints(edge);
+
+    globals.checkedFlush();
+
+    globals.getCaches().cache(edge, Edge.class);
+
+    return edge;
   }
 
   @Override
   public void remove() {
-    parent.removeVertex(this);
+    globals.getCaches().remove(getId(), Vertex.class);
+
+    super.removeElementFromNamedIndexes();
+
+    // Throw exception if the element does not exist.
+    if (!globals.getVertexWrapper().elementExists(id)) {
+      throw ExceptionFactory.vertexWithIdDoesNotExist(getId());
+    }
+
+    // Remove properties from key/value indexes.
+    Map<String, Object> props = globals.getVertexWrapper()
+        .readAllProperties(this);
+
+    for (String key : props.keySet()) {
+      globals.getVertexKeyIndexWrapper().removePropertyFromIndex(this,
+          key, props.get(key));
+    }
+
+    // Remove edges incident to this vertex.
+    for (Edge edge : getEdges(Direction.BOTH)) {
+      edge.remove();
+    }
+
+    globals.checkedFlush();
+
+    // Get rid of the vertex.
+    globals.getVertexWrapper().deleteVertex(this);
+    globals.checkedFlush();
   }
 
   @Override

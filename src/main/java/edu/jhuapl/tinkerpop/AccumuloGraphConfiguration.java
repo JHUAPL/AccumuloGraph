@@ -43,6 +43,7 @@ import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.hadoop.io.Text;
 
+import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.IndexableGraph;
 import com.tinkerpop.blueprints.KeyIndexableGraph;
 
@@ -70,13 +71,18 @@ implements Serializable {
 
 
   /**
+   * The {@link AccumuloGraph} class.
+   */
+  public static final Class<? extends Graph> ACCUMULO_GRAPH_CLASS = AccumuloGraph.class;
+
+  /**
    * The fully-qualified class name of the class that implements
    * the TinkerPop Graph interface.
    * This is used in a configuration object to tell the GraphFactory
    * which type to instantiate.
    */
   public static final String ACCUMULO_GRAPH_CLASSNAME =
-      AccumuloGraph.class.getCanonicalName();
+      ACCUMULO_GRAPH_CLASS.getCanonicalName();
 
   /**
    * An enumeration used by {@link AccumuloGraphConfiguration#setInstanceType(InstanceType)}
@@ -922,42 +928,71 @@ implements Serializable {
     return this;
   }
 
-  public String getVertexTable() {
+  /**
+   * Name of vertex table (keyed by vertex id).
+   * @return
+   */
+  public String getVertexTableName() {
     return getGraphName() + "_vertex";
   }
 
-  public String getEdgeTable() {
+  /**
+   * Name of edge table (keyed by edge id).
+   * @return
+   */
+  public String getEdgeTableName() {
     return getGraphName() + "_edge";
   }
 
-  public String getKeyMetadataTable() {
-    return getMetadataTable() + "KEY";
+  /**
+   * Name of vertex key index table (keyed on
+   * vertex property keys).
+   * @return
+   */
+  public String getVertexKeyIndexTableName() {
+    return getGraphName() + "_vertex_key_index";
   }
 
-  String getVertexIndexTable() {
-    return getGraphName() + "_vertex_index";
+  /**
+   * Name of edge key index table (keyed on
+   * edge property keys).
+   * @return
+   */
+  public String getEdgeKeyIndexTableName() {
+    return getGraphName() + "_edge_key_index";
   }
 
-  String getEdgeIndexTable() {
-    return getGraphName() + "_edge_index";
+  /**
+   * Table of the index with given name (keyed
+   * on property keys of the given element type).
+   * @param indexName
+   * @return
+   */
+  public String getNamedIndexTableName(String indexName) {
+    return getGraphName() + "_index_" + indexName;
   }
 
-  String getMetadataTable() {
-    return getGraphName() + "_meta";
+  /**
+   * Table listing the key-indexed properties
+   * of elements.
+   * @return
+   */
+  public String getIndexedKeysTableName() {
+    return getGraphName() + "_indexed_keys";
   }
 
-  String getKeyVertexIndexTable() {
-    return getGraphName() + "_vertex_index_key";
-  }
-
-  String getKeyEdgeIndexTable() {
-    return getGraphName() + "_edge_index_key";
+  /**
+   * Table of existing named indexes.
+   * @return
+   */
+  public String getIndexNamesTableName() {
+    return getGraphName() + "_index_names";
   }
 
   List<String> getTableNames() {
-    return Arrays.asList(getVertexTable(),
-        getEdgeTable(), getVertexIndexTable(), getEdgeIndexTable(),
-        getMetadataTable(), getKeyMetadataTable());
+    return Arrays.asList(getVertexTableName(),
+        getEdgeTableName(), getVertexKeyIndexTableName(), getEdgeKeyIndexTableName(),
+        getIndexNamesTableName(), getIndexedKeysTableName());
   }
 
   /**

@@ -16,71 +16,153 @@ package edu.jhuapl.tinkerpop;
 
 import java.util.Set;
 
-import org.apache.accumulo.core.util.Pair;
-
 import com.tinkerpop.blueprints.Element;
+import com.tinkerpop.blueprints.Index;
+import com.tinkerpop.blueprints.util.StringFactory;
 
+import edu.jhuapl.tinkerpop.cache.PropertyCache;
+
+/**
+ * TODO
+ */
 public abstract class AccumuloElement implements Element {
 
-  protected AccumuloGraph parent;
+  protected GlobalInstances globals;
   protected String id;
 
   private Class<? extends Element> type;
 
   private PropertyCache propertyCache;
 
-  protected AccumuloElement(AccumuloGraph parent, String id, Class<? extends Element> type) {
-    this.parent = parent;
+  protected AccumuloElement(GlobalInstances globals,
+      String id, Class<? extends Element> type) {
+    this.globals = globals;
     this.id = id;
     this.type = type;
   }
 
-  @Override
-  public <T> T getProperty(String key) {
+  /**
+   * Create properties cache if it doesn't exist,
+   * and preload any properties.
+   */
+  private void makeCache() {
     if (propertyCache == null) {
-      // Lazily create the properties cache.
-      // We will create it here just in case the parent does not actually
-      // pre-load any data. Note it also may be created in the
-      // cacheProperty method, as well, in the event a class pre-loads
-      // data before a call is made to obtain it.
-      propertyCache = new PropertyCache(parent.config);
+      propertyCache = new PropertyCache(globals.getConfig());
 
-      parent.preloadProperties(this, type);
-    }
-
-    T val = propertyCache.get(key);
-    if (val != null) {
-      return val;
-    } else {
-      Pair<Integer, T> pair = parent.getProperty(type, id, key);
-      if (pair.getFirst() != null) {
-        cacheProperty(key, pair.getSecond());
+      // Preload any keys, if needed.
+      String[] preloadKeys = globals.getConfig().getPreloadedProperties();
+      if (preloadKeys != null) {
+        propertyCache.putAll(globals.getElementWrapper(type)
+            .readProperties(this, preloadKeys));
       }
-      return pair.getSecond();
     }
   }
 
+  @Override
+  public <T> T getProperty(String key) {
+    makeCache();
+
+    // Get from property cache.
+    T value = propertyCache.get(key);
+
+    // If not cached, get it from the backing table.
+    if (value == null) {
+      value = globals.getElementWrapper(type).readProperty(this, key);
+    }
+
+    // Cache the new value.
+    if (value != null) {
+      propertyCache.put(key, value);
+    }
+
+    return value;
+  }
+
+  @Override
   public Set<String> getPropertyKeys() {
-    return parent.getPropertyKeys(type, id);
+    return globals.getElementWrapper(type).readPropertyKeys(this);
   }
 
   @Override
   public void setProperty(String key, Object value) {
-    parent.setProperty(type, id, key, value);
-    cacheProperty(key, value);
+    makeCache();
+    globals.getKeyIndexTableWrapper(type).setPropertyForIndex(this, key, value);
+    // MDL 31 Dec 2014:  The above calls getProperty, so this
+    //   order is important (for now).
+    globals.getElementWrapper(type).writeProperty(this, key, value);
+    globals.checkedFlush();
+    setPropertyInMemory(key, value);
+  }
+
+  /**
+   * Set a property but only in the instantiated object,
+   * not in the backing store.
+   * @param key
+   * @param value
+   */
+  public void setPropertyInMemory(String key, Object value) {
+    makeCache();
+    propertyCache.put(key, value);
   }
 
   @Override
   public <T> T removeProperty(String key) {
-    if (propertyCache != null) {
-      // we have the cached value but we still need to pass this on to the
-      // parent so it can actually remove the data from the backing store.
-      // Since we have to do that anyway, we will use the parent's value
-      // instead of the cache value to to be as up-to-date as possible.
-      // Of course we still need to clear out the cached value...
-      propertyCache.remove(key);
+    if (StringFactory.LABEL.equals(key) ||
+        Constants.LABEL.equals(key)) {
+      throw new AccumuloGraphException("Cannot remove the " + StringFactory.LABEL + " property.");
     }
-    return parent.removeProperty(type, id, key);
+
+    makeCache();
+    T value = getProperty(key);
+    if (value != null) {
+      globals.getElementWrapper(type).clearProperty(this, key);
+      globals.checkedFlush();
+    }
+    globals.getKeyIndexTableWrapper(type).removePropertyFromIndex(this, key, value);
+    // MDL 31 Dec 2014:  AccumuloGraph.removeProperty
+    //   calls getProperty which populates the cache.
+    //   So the order here is important (for now).
+    removePropertyInMemory(key);
+    return value;
+  }
+
+  /**
+   * Remove element from all named indexes.
+   * @param element
+   */
+  protected void removeElementFromNamedIndexes() {
+    for (Index<? extends Element> index : globals.getNamedIndexListWrapper().getIndices()) {
+      ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(this);
+    }
+  }
+
+  /**
+   * Remove a property but only in the instantiated
+   * object, not the backing store.
+   * @param key
+   */
+  public void removePropertyInMemory(String key) {
+    makeCache();
+    propertyCache.remove(key);
+  }
+
+  /**
+   * Return the properties currently cached in memory.
+   * @return
+   */
+  public Iterable<String> getPropertyKeysInMemory() {
+    makeCache();
+    return propertyCache.keySet();
+  }
+
+  /**
+   * Retrieve a property from memory.
+   * @param key
+   * @return
+   */
+  public Object getPropertyInMemory(String key) {
+    makeCache();
+    return propertyCache.get(key);
   }
 
   @Override
@@ -97,19 +179,20 @@ public abstract class AccumuloElement implements Element {
     } else if (!obj.getClass().equals(getClass())) {
       return false;
     } else {
-      return this.id.equals(((AccumuloElement) obj).id);
+      return id.equals(((AccumuloElement) obj).id);
     }
   }
 
+  @Override
   public int hashCode() {
     return getClass().hashCode() ^ id.hashCode();
   }
 
-  void cacheProperty(String key, Object value) {
-    if (propertyCache == null) {
-      propertyCache = new PropertyCache(parent.config);
-    }
-    propertyCache.put(key, value);
+  /**
+   * Internal method for unit tests.
+   * @return
+   */
+  PropertyCache getPropertyCache() {
+    return propertyCache;
   }
-
 }

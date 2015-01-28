@@ -24,6 +24,8 @@ import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
+import edu.jhuapl.tinkerpop.cache.ElementCache;
+
 public class ElementCacheTest {
 
   @Test
