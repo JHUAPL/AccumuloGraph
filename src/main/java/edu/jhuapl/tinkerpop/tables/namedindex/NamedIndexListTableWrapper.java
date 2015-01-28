@@ -95,7 +95,9 @@ public class NamedIndexListTableWrapper extends BaseIndexedItemsListTableWrapper
       return null;
 
     } finally {
-      scan.close();
+      if (scan != null) {
+        scan.close();
+      }
     }
   }
   

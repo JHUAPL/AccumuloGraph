@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -1046,9 +1047,10 @@ implements Serializable {
   }
 
   private File createTempDir() throws IOException {
-    File temp = File.createTempFile(AccumuloGraphConfiguration.class.getSimpleName(), ".mini.tmp");
-    temp.delete();
-    temp.mkdir();
+    File temp = File.createTempFile(AccumuloGraphConfiguration
+        .class.getSimpleName(), ".mini.tmp");
+    Files.delete(temp.toPath());
+    Files.createDirectory(temp.toPath());
     return temp;
   }
 

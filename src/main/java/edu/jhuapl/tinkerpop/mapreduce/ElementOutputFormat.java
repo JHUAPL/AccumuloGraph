@@ -69,7 +69,7 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
     return new NullOutputFormat<Text,Mutation>().getOutputCommitter(context);
   }
 
-  class ElementRecordWriter extends RecordWriter<NullWritable,Element> {
+  static class ElementRecordWriter extends RecordWriter<NullWritable,Element> {
     AccumuloGraphConfiguration config;
 
     protected ElementRecordWriter(TaskAttemptContext context) {

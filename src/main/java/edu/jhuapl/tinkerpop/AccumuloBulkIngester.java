@@ -269,7 +269,7 @@ public final class AccumuloBulkIngester {
    * builder.finish();
    * </PRE>
    */
-  public final class PropertyBuilder {
+  public static final class PropertyBuilder {
 
     final String id;
     final BatchWriter writer;
