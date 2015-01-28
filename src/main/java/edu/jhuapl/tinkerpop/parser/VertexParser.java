@@ -12,29 +12,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop;
+package edu.jhuapl.tinkerpop.parser;
 
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 
-public enum EntryLocation {
+import edu.jhuapl.tinkerpop.AccumuloVertex;
+import edu.jhuapl.tinkerpop.GlobalInstances;
 
-  Row, ColF, ColQ, Value;
+/**
+ * TODO
+ */
+public class VertexParser extends ElementParser<AccumuloVertex> {
 
-  public String extract(Entry<Key,Value> entry) {
-    switch (this) {
-      case Row:
-        return entry.getKey().getRow().toString();
-      case ColF:
-        return entry.getKey().getColumnFamily().toString();
-      case ColQ:
-        return entry.getKey().getColumnQualifier().toString();
-      case Value:
-        return new String(entry.getValue().get());
-      default:
-        throw new AccumuloGraphException("Unexpected type: " + this);
-    }
+  public VertexParser(GlobalInstances globals) {
+    super(globals);
+  }
+
+  @Override
+  public AccumuloVertex parse(String id, Iterable<Entry<Key,Value>> entries) {
+    AccumuloVertex vertex = new AccumuloVertex(globals, id);
+    setInMemoryProperties(vertex, entries);
+    return vertex;
   }
 }

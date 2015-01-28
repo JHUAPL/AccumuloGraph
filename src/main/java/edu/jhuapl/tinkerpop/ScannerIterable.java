@@ -14,7 +14,6 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.io.Closeable;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -23,15 +22,17 @@ import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.util.PeekingIterator;
 
+import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Element;
 
-public abstract class ScannerIterable<T extends Element> implements Iterable<T>, Closeable {
+/**
+ * TODO
+ */
+public abstract class ScannerIterable<T extends Element> implements CloseableIterable<T> {
 
-  AccumuloGraph parent;
-  ScannerBase scanner;
+  private ScannerBase scanner;
 
-  ScannerIterable(AccumuloGraph parent, ScannerBase scanner) {
-    this.parent = parent;
+  public ScannerIterable(ScannerBase scanner) {
     this.scanner = scanner;
   }
 
@@ -55,10 +56,10 @@ public abstract class ScannerIterable<T extends Element> implements Iterable<T>,
     close();
   }
 
-  class ScannerIterator implements Iterator<T> {
-    PeekingIterator<Entry<Key,Value>> iterator;
+  private class ScannerIterator implements Iterator<T> {
+    private PeekingIterator<Entry<Key,Value>> iterator;
 
-    ScannerIterator(PeekingIterator<Entry<Key,Value>> iterator) {
+    private ScannerIterator(PeekingIterator<Entry<Key,Value>> iterator) {
       this.iterator = iterator;
     }
 
@@ -76,7 +77,5 @@ public abstract class ScannerIterable<T extends Element> implements Iterable<T>,
     public void remove() {
       throw new UnsupportedOperationException();
     }
-
   }
-
 }

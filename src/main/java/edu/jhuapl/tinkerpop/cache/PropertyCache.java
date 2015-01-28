@@ -12,10 +12,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop;
+package edu.jhuapl.tinkerpop.cache;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 
 /**
  * Cache for storing element properties.
@@ -34,6 +37,14 @@ public class PropertyCache {
     this.values = new HashMap<String, TimedValue>();
   }
 
+  public boolean containsKey(String key) {
+    return values.containsKey(key);
+  }
+
+  public Set<String> keySet() {
+    return values.keySet();
+  }
+
   public void put(String key, Object value) {
     Integer timeout = getTimeout(key);
 
@@ -45,6 +56,13 @@ public class PropertyCache {
         timeout != null ? System.currentTimeMillis() + timeout : null));
   }
 
+  public void putAll(Map<String, Object> entries) {
+    for (String key : entries.keySet()) {
+      put(key, entries.get(key));
+    }
+  }
+
+  @SuppressWarnings("unchecked")
   public <T> T get(String key) {
     long now = System.currentTimeMillis();
 
@@ -69,6 +87,11 @@ public class PropertyCache {
 
   public void clear() {
     values.clear();
+  }
+
+  @Override
+  public String toString() {
+    return values.toString();
   }
 
   /**
@@ -105,6 +128,11 @@ public class PropertyCache {
 
     public Long getExpiry() {
       return expiry;
+    }
+
+    @Override
+    public String toString() {
+      return "[" + value + ", " + expiry + "]";
     }
   }
 }

@@ -15,82 +15,76 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.Iterator;
-import java.util.Map.Entry;
-
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.ScannerBase;
-import org.apache.accumulo.core.data.Key;
-import org.apache.accumulo.core.data.Mutation;
-import org.apache.accumulo.core.data.Range;
-import org.apache.accumulo.core.data.Value;
-import org.apache.accumulo.core.util.PeekingIterator;
-import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.CloseableIterable;
-import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
+import com.tinkerpop.blueprints.IndexableGraph;
 
+import edu.jhuapl.tinkerpop.tables.namedindex.NamedIndexTableWrapper;
 
+/**
+ * Accumulo-based implementation for {@link IndexableGraph}.
+ * @param <T>
+ */
 public class AccumuloIndex<T extends Element> implements Index<T> {
-  Class<T> indexedType;
-  AccumuloGraph parent;
-  String indexName;
-  String tableName;
+  private final GlobalInstances globals;
+  private final Class<T> indexedType;
+  private final String indexName;
+  private final NamedIndexTableWrapper indexWrapper;
 
-  public AccumuloIndex(Class<T> t, AccumuloGraph parent, String indexName) {
-    this.indexedType = t;
-    this.parent = parent;
+  public AccumuloIndex(GlobalInstances globals, String indexName, Class<T> indexedType) {
+    this.globals = globals;
     this.indexName = indexName;
-    tableName = parent.config.getGraphName() + "_index_" + indexName;// + "_" +
-    // t;
+    this.indexedType = indexedType;
 
     try {
-      if (!parent.config.getConnector().tableOperations().exists(tableName)) {
-        parent.config.getConnector().tableOperations().create(tableName);
+      if (!globals.getConfig().getConnector()
+          .tableOperations().exists(getTableName())) {
+        globals.getConfig().getConnector()
+        .tableOperations().create(getTableName());
       }
     } catch (Exception e) {
-      throw new RuntimeException(e);
+      throw new AccumuloGraphException(e);
     }
 
+    indexWrapper = new NamedIndexTableWrapper(globals, indexedType, indexName);
   }
 
+  @Override
   public String getIndexName() {
     return indexName;
   }
 
+  public String getTableName() {
+    return globals.getConfig().getNamedIndexTableName(indexName);
+  }
 
+  public NamedIndexTableWrapper getWrapper() {
+    return indexWrapper;
+  }
 
+  @Override
+  public Class<T> getIndexClass() {
+    return indexedType;
+  }
+
+  @Override
   public void put(String key, Object value, Element element) {
-    element.setProperty(key, value);
-    Mutation m = new Mutation(AccumuloByteSerializer.serialize(value));
-    m.put(key.getBytes(), element.getId().toString().getBytes(), "".getBytes());
-    BatchWriter w = getWriter();
-    try {
-      w.addMutation(m);
-      w.flush();
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-    }
-
+    indexWrapper.setPropertyForIndex(element, key, value, true);
   }
 
+  @Override
   public CloseableIterable<T> get(String key, Object value) {
-    Scanner scan = getScanner();
-    byte[] id = AccumuloByteSerializer.serialize(value);
-    scan.setRange(new Range(new Text(id), new Text(id)));
-    scan.fetchColumnFamily(new Text(key));
-
-    return new IndexIterable(parent, scan, indexedType);
+    return indexWrapper.readElementsFromIndex(key, value);
   }
 
+  @Override
   public CloseableIterable<T> query(String key, Object query) {
     throw new UnsupportedOperationException();
-
   }
 
+  @Override
   public long count(String key, Object value) {
     CloseableIterable<T> iterable = get(key, value);
     Iterator<T> iter = iterable.iterator();
@@ -103,75 +97,8 @@ public class AccumuloIndex<T extends Element> implements Index<T> {
     return count;
   }
 
-  public void remove(String key, Object value, Element element) {
-    Mutation m = new Mutation(AccumuloByteSerializer.serialize(value));
-    m.putDelete(key.getBytes(), element.getId().toString().getBytes());
-    BatchWriter w = getWriter();
-    try {
-      w.addMutation(m);
-      w.flush();
-    } catch (MutationsRejectedException e) {
-      e.printStackTrace();
-    }
-
-  }
-
-  private BatchWriter getWriter() {
-    return parent.getWriter(tableName);
-  }
-
-  private Scanner getScanner() {
-    return parent.getScanner(tableName);
-  }
-
-  public class IndexIterable implements CloseableIterable<T> {
-    AccumuloGraph parent;
-    ScannerBase scan;
-    boolean isClosed;
-    Class<T> indexedType;
-
-    IndexIterable(AccumuloGraph parent, ScannerBase scan, Class<T> t) {
-      this.scan = scan;
-      this.parent = parent;
-      isClosed = false;
-      indexedType = t;
-    }
-
-    public Iterator<T> iterator() {
-      if (!isClosed) {
-        return new ScannerIterable<T>(parent, scan) {
-
-          @Override
-          public T next(PeekingIterator<Entry<Key, Value>> iterator) {
-            String id = iterator.next()
-                .getKey().getColumnQualifier().toString();
-            // TODO better use of information readily
-            // available...
-            if (indexedType.equals(Edge.class)) {
-              return (T) new AccumuloEdge(parent, id);
-            }
-            else {
-              return (T) new AccumuloVertex(parent, id);
-            }
-          }
-        }.iterator();
-      }
-      else {
-        return null;
-      }
-    }
-
-    public void close() {
-      if (!isClosed) {
-        scan.close();
-        isClosed = true;
-      }
-    }
-
-  }
-
   @Override
-  public Class<T> getIndexClass() {
-    return indexedType;
+  public void remove(String key, Object value, Element element) {
+    indexWrapper.removePropertyFromIndex(element, key, value);
   }
 }

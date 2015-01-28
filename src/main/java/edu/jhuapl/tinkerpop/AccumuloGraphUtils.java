@@ -15,11 +15,15 @@
 package edu.jhuapl.tinkerpop;
 
 import java.util.SortedSet;
+import java.util.UUID;
 
 import org.apache.accumulo.core.client.admin.TableOperations;
 import org.apache.hadoop.io.Text;
 
-final class AccumuloGraphUtils {
+import com.tinkerpop.blueprints.util.ExceptionFactory;
+import com.tinkerpop.blueprints.util.StringFactory;
+
+public final class AccumuloGraphUtils {
 
   /**
    * Create and/or clear existing graph tables for the given configuration.
@@ -74,6 +78,47 @@ final class AccumuloGraphUtils {
 
     } catch (Exception e) {
       throw new IllegalArgumentException(e);
+    }
+  }
+
+  /**
+   * Generate an element id.
+   * @return
+   */
+  public static String generateId() {
+    return UUID.randomUUID().toString();
+  }
+
+  /**
+   * Ensure that the given key/value don't conflict with
+   * Blueprints reserved words.
+   * @param key
+   * @param value
+   */
+  public static void validateProperty(String key, Object value) {
+    nullCheckProperty(key, value);
+    if (key.equals(StringFactory.ID)) {
+      throw ExceptionFactory.propertyKeyIdIsReserved();
+    } else if (key.equals(StringFactory.LABEL)) {
+      throw ExceptionFactory.propertyKeyLabelIsReservedForEdges();
+    } else if (value == null) {
+      throw ExceptionFactory.propertyValueCanNotBeNull();
+    }
+  }
+
+  /**
+   * Disallow null keys/values and throw appropriate
+   * Blueprints exceptions.
+   * @param key
+   * @param value
+   */
+  public static void nullCheckProperty(String key, Object value) {
+    if (key == null) {
+      throw ExceptionFactory.propertyKeyCanNotBeNull();
+    } else if (value == null) {
+      throw ExceptionFactory.propertyValueCanNotBeNull();
+    } else if (key.trim().equals(StringFactory.EMPTY_STRING)) {
+      throw ExceptionFactory.propertyKeyCanNotBeEmpty();
     }
   }
 }

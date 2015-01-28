@@ -88,6 +88,7 @@ public class AccumuloGraphTest extends GraphTest {
     printTestPerformance("GraphSONReaderTestSuite", this.stopWatch());
   }
 
+  @Override
   public void doTestSuite(final TestSuite testSuite) throws Exception {
     String doTest = System.getProperty("testTinkerGraph");
     if (doTest == null || doTest.equals("true")) {
@@ -112,12 +113,21 @@ public class AccumuloGraphTest extends GraphTest {
     new AccumuloGraphTest().generateGraph();
   }
 
+  @Override
   public void dropGraph(final String graphDirectoryName) {
     if (graphDirectoryName != null) {
-      ((AccumuloGraph) generateGraph(graphDirectoryName)).clear();
+      AccumuloGraphConfiguration cfg = AccumuloGraphTestUtils.generateGraphConfig(graphDirectoryName);
+      try {
+        for (String table : cfg.getConnector().tableOperations().list()) {
+          cfg.getConnector().tableOperations().delete(table);
+        }
+      } catch (Exception e) {
+        throw new AccumuloGraphException(e);
+      }
     }
   }
 
+  @Override
   public Object convertId(final Object id) {
     return id.toString();
   }

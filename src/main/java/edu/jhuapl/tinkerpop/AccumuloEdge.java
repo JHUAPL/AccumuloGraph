@@ -14,70 +14,50 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Map;
+import org.apache.log4j.Logger;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.ExceptionFactory;
 import com.tinkerpop.blueprints.util.StringFactory;
 
+/**
+ * TODO
+ */
 public class AccumuloEdge extends AccumuloElement implements Edge {
 
-  String label;
-  String inId;
-  String outId;
-  Vertex inVertex;
-  Vertex outVertex;
+  private static final Logger log = Logger.getLogger(AccumuloEdge.class);
 
-  AccumuloEdge(AccumuloGraph parent, String id) {
-    this(parent, id, null);
+  private String label;
+  private Vertex inVertex;
+  private Vertex outVertex;
+
+  public AccumuloEdge(GlobalInstances globals, String id) {
+    this(globals, id, null, null, null);
   }
 
-  AccumuloEdge(AccumuloGraph parent, String id, String label) {
-    this(parent, id, label, (Vertex) null, (Vertex) null);
-  }
-
-  AccumuloEdge(AccumuloGraph parent, String id, String label, Vertex inVertex, Vertex outVertex) {
-    super(parent, id, Edge.class);
+  public AccumuloEdge(GlobalInstances globals, String id,
+      Vertex inVertex, Vertex outVertex, String label) {
+    super(globals, id, Edge.class);
     this.label = label;
     this.inVertex = inVertex;
     this.outVertex = outVertex;
   }
 
-  AccumuloEdge(AccumuloGraph parent, String id, String label, String inVertex, String outVertex) {
-    super(parent, id, Edge.class);
-    this.label = label;
-    this.inId = inVertex;
-    this.outId = outVertex;
-  }
-
   @Override
   public Vertex getVertex(Direction direction) throws IllegalArgumentException {
-    switch (direction) {
-      case IN:
-        if (inVertex == null) {
-          if (inId == null) {
-            inVertex = parent.getEdgeVertex(id, direction);
-            inId = inVertex.getId().toString();
-          } else {
-            inVertex = parent.getVertex(inId);
-          }
-        }
-        return inVertex;
-      case OUT:
-        if (outVertex == null) {
-          if (outId == null) {
-            outVertex = parent.getEdgeVertex(id, direction);
-            outId = outVertex.getId().toString();
-          } else {
-            outVertex = parent.getVertex(outId);
-          }
-        }
-        return outVertex;
-      case BOTH:
-        throw ExceptionFactory.bothIsNotSupported();
-      default:
-        throw new RuntimeException("Unexpected direction: " + direction);
+    if (!Direction.IN.equals(direction) && !Direction.OUT.equals(direction)) {
+      throw new IllegalArgumentException("Invalid direction: "+direction);
     }
+
+    // The vertex information needs to be loaded.
+    if (inVertex == null || outVertex == null || label == null) {
+      log.debug("Loading information for edge: "+this);
+      globals.getEdgeWrapper().loadEndpointsAndLabel(this);
+    }
+
+    return Direction.IN.equals(direction) ? inVertex : outVertex;
   }
 
   @Override
@@ -91,31 +71,45 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
 
   @Override
   public void remove() {
-    parent.removeEdge(this);
+    // Remove from named indexes.
+    super.removeElementFromNamedIndexes();
+
+    // If edge was removed already, forget it.
+    // This may happen due to self-loops...
+    if (!globals.getEdgeWrapper().elementExists(id)) {
+      return;
+    }
+
+    // Remove properties from key/value indexes.
+    Map<String, Object> props = globals.getEdgeWrapper()
+        .readAllProperties(this);
+
+    for (String key : props.keySet()) {
+      globals.getEdgeKeyIndexWrapper().removePropertyFromIndex(this,
+          key, props.get(key));
+    }
+
+    // Get rid of the endpoints and edge themselves.
+    globals.getVertexWrapper().deleteEdgeEndpoints(this);
+    globals.getEdgeWrapper().deleteEdge(this);
+
+    // Remove element from cache.
+    globals.getCaches().remove(id, Edge.class);
+
+    globals.checkedFlush();
   }
 
-  public String getInId() {
-    return inId;
+  public void setVertices(AccumuloVertex inVertex, AccumuloVertex outVertex) {
+    this.inVertex = inVertex;
+    this.outVertex = outVertex;
   }
 
-  public String getOutId() {
-    return outId;
-  }
-  
-  protected void setInId(String id){
-    inId = id;
-  }
-  
-  protected void setOutId(String id){
-    outId = id;
-  }
-  
-  protected void setLabel(String label){
+  public void setLabel(String label) {
     this.label = label;
   }
 
   @Override
   public String toString() {
-    return "[" + getId() + ":" + getVertex(Direction.OUT) + " -> " + getLabel() + " -> " + getVertex(Direction.IN) + "]";
+    return "[" + getId() + ":" + inVertex + " -> " + label + " -> " + outVertex + "]";
   }
 }
