@@ -25,6 +25,7 @@ import com.tinkerpop.blueprints.Element;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 
 public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
@@ -105,9 +106,7 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
 
         bw.addMutation(mut);
       } catch (TableNotFoundException | AccumuloException | AccumuloSecurityException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
-        throw new RuntimeException(e);
+        throw new AccumuloGraphException(e);
       }
     }
 
@@ -117,7 +116,7 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
         try {
           bw.close();
         } catch (MutationsRejectedException e) {
-          e.printStackTrace();
+          throw new AccumuloGraphException(e);
         }
       }
     }

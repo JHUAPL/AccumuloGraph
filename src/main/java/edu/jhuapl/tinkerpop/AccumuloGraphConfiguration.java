@@ -882,8 +882,7 @@ implements Serializable {
         try {
           accumuloMiniCluster.start();
         } catch (Exception ex) {
-          ex.printStackTrace();
-          System.out.println("");
+          throw new AccumuloGraphException(ex);
         }
         inst = new ZooKeeperInstance(accumuloMiniCluster.getInstanceName(), accumuloMiniCluster.getZooKeepers());
         throw new UnsupportedOperationException("TODO");
