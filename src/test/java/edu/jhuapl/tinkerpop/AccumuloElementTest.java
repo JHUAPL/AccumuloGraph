@@ -68,6 +68,34 @@ public class AccumuloElementTest {
     graph.shutdown();
   }
 
+  @Test
+  public void testGetVerticesInRange() {
+    AccumuloGraph graph = (AccumuloGraph) AccumuloGraphTestUtils
+        .makeGraph("testGetVerticesInRange");
+
+    assertEquals(0, count(graph.getVerticesInRange(null, null)));
+    for (int i = 0; i < 10; i++) {
+      graph.addVertex(id(i));
+    }
+
+    assertEquals(10, count(graph.getVerticesInRange(null, null)));
+    assertEquals(0, count(graph.getVerticesInRange(id(20), null)));
+    assertEquals(10, count(graph.getVerticesInRange(null, id(20))));
+    assertEquals(0, count(graph.getVerticesInRange(id(20), id(20))));
+
+    for (int i = 0; i < 10; i++) {
+      assertEquals(i+1, count(graph.getVerticesInRange(null, id(i))));
+      assertEquals(10-i, count(graph.getVerticesInRange(id(i), null)));
+      assertEquals(1, count(graph.getVerticesInRange(id(i), id(i))));
+    }
+
+    graph.shutdown();
+  }
+
+  private static String id(int idNum) {
+    return String.format("%08d", idNum);
+  }
+
   private static int count(Iterable<?> iter) {
     int count = 0;
     for (@SuppressWarnings("unused") Object obj : iter) {

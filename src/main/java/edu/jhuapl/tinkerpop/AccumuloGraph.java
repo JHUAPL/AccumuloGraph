@@ -184,6 +184,17 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return globals.getVertexWrapper().getVertices();
   }
 
+  /**
+   * Retrieve vertices with ids within the given range,
+   * inclusive. The range is calculated using the string
+   * representations of the given ids. If fromId or
+   * toId is null, use negative infinity and positive
+   * infinity, respectively.
+   * <p/>Note: This does not use indexes.
+   * @param fromId
+   * @param toId
+   * @return
+   */
   public Iterable<Vertex> getVerticesInRange(Object fromId, Object toId) {
     return globals.getVertexWrapper().getVerticesInRange(fromId, toId);
   }
