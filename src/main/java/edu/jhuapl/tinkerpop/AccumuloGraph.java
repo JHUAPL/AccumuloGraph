@@ -184,6 +184,10 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return globals.getVertexWrapper().getVertices();
   }
 
+  public Iterable<Vertex> getVerticesInRange(Object fromId, Object toId) {
+    return globals.getVertexWrapper().getVerticesInRange(fromId, toId);
+  }
+
   @Override
   public Iterable<Vertex> getVertices(String key, Object value) {
     AccumuloGraphUtils.validateProperty(key, value);
