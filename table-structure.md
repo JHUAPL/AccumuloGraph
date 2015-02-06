@@ -23,18 +23,31 @@ Elements and properties
 Vertex and edge information, along with their properties, are stored
 in the *graphname*\_vertex and *graphname*\_edge tables respectively.
 
+First, an entry declares the existence of a vertex in the vertex table.
+
 | R | CF | CQ | V |
 |---|----|----|---|
 | *vertex_id* | `_LABEL_` | `_EXISTS_`| *[empty]* |
+
+A similar entry declares the existence of an edge in the edge table.
 
 | R | CF | CQ | V |
 |---|----|----|---|
 | *edge_id* | `_LABEL_` | *in_vertex_id*`_DELIM_`*out_vertex_id* | *edge_label* |
 
+When adding an edge, additional entries are stored in the
+vertex table for each endpoint of the edge. These facilitate the
+`Vertex.getEdge` and `Vertex.getVertex` operations.
+
 | R | CF | CQ | V |
 |---|----|----|---|
 | *in_vertex_id* | `_IN_EDGE_` | *out_vertex_id*`_DELIM_`*edge_id* | *edge_label* |
 | *out_vertex_id* | `_OUT_EDGE_` | *in_vertex_id*`_DELIM_`*edge_id* | *edge_label* |
+
+Finally, vertex and edge properties are stored in their respective
+tables. Entry formats are the same for both vertices and edges.
+Note that property values are serialized such that their type
+can be deduced when deserializing.
 
 | R | CF | CQ | V |
 |---|----|----|---|
@@ -43,21 +56,39 @@ in the *graphname*\_vertex and *graphname*\_edge tables respectively.
 Indexes
 -------
 
-Relevant table names:
+Several tables store index-related information,
+including index value tables that store index
+property keys and values, and index metadata tables
+that store information about what indexes exist
+and what properties are indexed.
 
-1. *graphname*\_vertex\_key\_index - Vertex property key index
-2. *graphname*\_edge\_key\_index - Edge property key index
-3. *graphname*\_indexed\_keys - List of indexed keys
-4. *graphname*\_index\_names - List of named index names
-5. *graphname*\_index\_*indexname* - Named index
+For `KeyIndexableGraph`, index value tables
+include *graphname*\_vertex\_key\_index
+and *graphname*\_edge\_key\_index for vertex
+and edge properties, respectively.
+For `IndexableGraph`, index value tables are
+named *graphname*\_index\_*indexname*,
+where *indexname* is the index name.
+The entry formats in all these tables are the same:
 
 | R | CF | CQ | V |
 |---|----|----|---|
 | *property_value* | *property_key* | *element_id* | *[empty]* |
 
+Property values are serialized in the same way as above.
+
+Two index metadata tables store index information.
+For `KeyIndexableGraph`, *graphname*\_indexed\_keys
+enumerates the property keys that are indexed
+in *graphname*\_vertex\_key\_index and
+*graphname*\_edge\_key\_index.
+
 | R | CF | CQ | V |
 |---|----|----|---|
 | *property_key* | *element_class* | *[empty]* | *[empty]* |
+
+For `IndexableGraph`, *graphname*\_index\_names
+lists the existing indexes.
 
 | R | CF | CQ | V |
 |---|----|----|---|
