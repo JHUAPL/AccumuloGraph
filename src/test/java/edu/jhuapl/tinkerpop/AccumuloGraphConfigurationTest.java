@@ -257,4 +257,16 @@ public class AccumuloGraphConfigurationTest {
       } catch (Exception e) { }
     }
   }
+
+  @Test
+  public void testPreloadedProperties() {
+    // Don't allow "all" and "some" preloaded properties.
+    AccumuloGraphConfiguration conf = new AccumuloGraphConfiguration();
+    conf.setPreloadAllProperties(true);
+    conf.setPreloadedProperties(new String[]{"one", "two", "three"});
+    try {
+      conf.validate();
+      fail();
+    } catch (Exception e) { }
+  }
 }
