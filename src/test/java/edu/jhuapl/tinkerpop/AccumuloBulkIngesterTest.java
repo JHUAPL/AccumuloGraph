@@ -43,8 +43,7 @@ public class AccumuloBulkIngesterTest {
     ingester.addEdge("A", "B", "edge").add("P3", "V3").finish();
     ingester.shutdown(true);
 
-    cfg.setClear(false);
-    AccumuloGraph graph = new AccumuloGraph(cfg);
+    AccumuloGraph graph = new AccumuloGraph(cfg.clone().setClear(false));
     Vertex v1 = graph.getVertex("A");
     assertNotNull(v1);
 
