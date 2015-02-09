@@ -24,7 +24,8 @@ import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.GraphFactory;
 
 /**
- * Tests related to {@link Element}-based property caching.
+ * Tests related to {@link Element}-based property
+ * loading and caching.
  */
 public class ElementPropertyCachingTest {
 
@@ -216,6 +217,26 @@ public class ElementPropertyCachingTest {
     assertEquals(Sets.newHashSet(), a.getPropertyCache().keySet());
     assertEquals(Sets.newHashSet(), b.getPropertyCache().keySet());
     assertEquals(Sets.newHashSet(), c.getPropertyCache().keySet());
+
+    graph.shutdown();
+  }
+
+  @Test
+  public void testPreloadSomeProperties() {
+    AccumuloGraphConfiguration cfg =
+        AccumuloGraphTestUtils.generateGraphConfig("preloadSomeProperties");
+    cfg.setPropertyCacheTimeout(null, TIMEOUT);
+    cfg.setPreloadedProperties(new String[]{CACHED});
+
+    Graph graph = open(cfg);
+
+    AccumuloVertex v = (AccumuloVertex) graph.addVertex("V");
+    v.setProperty(NON_CACHED, true);
+    v.setProperty(CACHED, true);
+
+    v = (AccumuloVertex) graph.getVertex("V");
+    assertEquals(null, v.getPropertyInMemory(NON_CACHED));
+    assertEquals(true, v.getPropertyInMemory(CACHED));
 
     graph.shutdown();
   }
