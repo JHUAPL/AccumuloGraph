@@ -73,7 +73,7 @@ public class IndexedItemsListParser implements EntryParser<List<IndexedItem>> {
       Class<? extends Element> clazz;
       try {
         clazz = (Class<? extends Element>) Class.forName(entry.getKey()
-            .getColumnFamily().toString());
+            .getColumnQualifier().toString());
       } catch (ClassNotFoundException e) {
         throw new AccumuloGraphException(e);
       }

@@ -12,13 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables.namedindex;
+package edu.jhuapl.tinkerpop.tables.index;
 
 import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.IndexableGraph;
 
 import edu.jhuapl.tinkerpop.GlobalInstances;
-import edu.jhuapl.tinkerpop.tables.BaseIndexValuesTableWrapper;
 
 /**
  * Wrapper around a named index table (for {@link IndexableGraph}).

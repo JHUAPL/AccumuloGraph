@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables;
+package edu.jhuapl.tinkerpop.tables.index;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,6 +46,7 @@ import edu.jhuapl.tinkerpop.mutator.index.IndexValueMutator;
 import edu.jhuapl.tinkerpop.parser.EdgeIndexParser;
 import edu.jhuapl.tinkerpop.parser.ElementIndexParser;
 import edu.jhuapl.tinkerpop.parser.VertexIndexParser;
+import edu.jhuapl.tinkerpop.tables.BaseTableWrapper;
 
 /**
  * Wrapper around index tables containing properties
@@ -98,7 +99,7 @@ public abstract class BaseIndexValuesTableWrapper extends BaseTableWrapper {
       boolean force) {
     AccumuloGraphUtils.validateProperty(key, value);
     if (force || globals.getConfig().getAutoIndex() ||
-        globals.getIndexedKeysListWrapper()
+        globals.getIndexMetadataWrapper()
         .getIndexedKeys(elementType).contains(key)) {
       BatchWriter writer = getWriter();
 
