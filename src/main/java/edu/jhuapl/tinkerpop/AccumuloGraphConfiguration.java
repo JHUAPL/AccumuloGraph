@@ -973,26 +973,17 @@ implements Serializable {
   }
 
   /**
-   * Table listing the key-indexed properties
-   * of elements.
+   * Table containing index metadata.
    * @return
    */
-  public String getIndexedKeysTableName() {
-    return getGraphName() + "_indexed_keys";
-  }
-
-  /**
-   * Table of existing named indexes.
-   * @return
-   */
-  public String getIndexNamesTableName() {
-    return getGraphName() + "_index_names";
+  public String getIndexMetadataTableName() {
+    return getGraphName() + "_index_metadata";
   }
 
   List<String> getTableNames() {
     return Arrays.asList(getVertexTableName(),
         getEdgeTableName(), getVertexKeyIndexTableName(), getEdgeKeyIndexTableName(),
-        getIndexNamesTableName(), getIndexedKeysTableName());
+        getIndexMetadataTableName());
   }
 
   /**

@@ -77,19 +77,17 @@ The entry formats in all these tables are the same:
 
 Property values are serialized in the same way as above.
 
-Two index metadata tables store index information.
-For `KeyIndexableGraph`, *graphname*\_indexed\_keys
-enumerates the property keys that are indexed
-in *graphname*\_vertex\_key\_index and
-*graphname*\_edge\_key\_index.
+In addition to the index value tables, an index metadata table,
+*graphname*\_index\_metadata, stores index information. For
+`KeyIndexableGraph`, records in this table enumerate the property keys
+that are indexed.
 
 | R | CF | CQ | V |
 |---|----|----|---|
-| *property_key* | *element_class* | *[empty]* | *[empty]* |
+| *property_key* | `_INDEX_KEY_` | *element_class* | *[empty]* |
 
-For `IndexableGraph`, *graphname*\_index\_names
-lists the existing indexes.
+For `IndexableGraph`, records enumerate the existing indexes.
 
 | R | CF | CQ | V |
 |---|----|----|---|
-| *index_name* | *element_class* | *[empty]* | *[empty]* |
+| *index_name* | `_INDEX_NAME_` | *element_class* | *[empty]* |

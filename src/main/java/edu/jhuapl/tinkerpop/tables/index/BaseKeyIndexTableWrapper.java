@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables.keyindex;
+package edu.jhuapl.tinkerpop.tables.index;
 
 import com.tinkerpop.blueprints.CloseableIterable;
 import com.tinkerpop.blueprints.Edge;
@@ -21,7 +21,6 @@ import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.GlobalInstances;
-import edu.jhuapl.tinkerpop.tables.BaseIndexValuesTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.VertexTableWrapper;
@@ -29,7 +28,7 @@ import edu.jhuapl.tinkerpop.tables.core.VertexTableWrapper;
 /**
  * Base class for key index tables.
  */
-public class BaseKeyIndexTableWrapper extends BaseIndexValuesTableWrapper {
+public abstract class BaseKeyIndexTableWrapper extends BaseIndexValuesTableWrapper {
 
   protected BaseKeyIndexTableWrapper(GlobalInstances globals,
       Class<? extends Element> elementType, String tableName) {

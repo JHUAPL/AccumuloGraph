@@ -131,7 +131,7 @@ public abstract class AccumuloElement implements Element {
    * @param element
    */
   protected void removeElementFromNamedIndexes() {
-    for (Index<? extends Element> index : globals.getNamedIndexListWrapper().getIndices()) {
+    for (Index<? extends Element> index : globals.getIndexMetadataWrapper().getIndices()) {
       ((AccumuloIndex<? extends Element>) index).getWrapper().removeElementFromIndex(this);
     }
   }

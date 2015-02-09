@@ -25,11 +25,10 @@ import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.tables.core.EdgeTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.ElementTableWrapper;
 import edu.jhuapl.tinkerpop.tables.core.VertexTableWrapper;
-import edu.jhuapl.tinkerpop.tables.keyindex.BaseKeyIndexTableWrapper;
-import edu.jhuapl.tinkerpop.tables.keyindex.EdgeKeyIndexTableWrapper;
-import edu.jhuapl.tinkerpop.tables.keyindex.IndexedKeysListTableWrapper;
-import edu.jhuapl.tinkerpop.tables.keyindex.VertexKeyIndexTableWrapper;
-import edu.jhuapl.tinkerpop.tables.namedindex.NamedIndexListTableWrapper;
+import edu.jhuapl.tinkerpop.tables.index.BaseKeyIndexTableWrapper;
+import edu.jhuapl.tinkerpop.tables.index.EdgeKeyIndexTableWrapper;
+import edu.jhuapl.tinkerpop.tables.index.IndexMetadataTableWrapper;
+import edu.jhuapl.tinkerpop.tables.index.VertexKeyIndexTableWrapper;
 
 /**
  * Internal class gathering together instances of
@@ -72,12 +71,8 @@ public class GlobalInstances {
     return new EdgeKeyIndexTableWrapper(this);
   }
 
-  public IndexedKeysListTableWrapper getIndexedKeysListWrapper() {
-    return new IndexedKeysListTableWrapper(this);
-  }
-
-  public NamedIndexListTableWrapper getNamedIndexListWrapper() {
-    return new NamedIndexListTableWrapper(this);
+  public IndexMetadataTableWrapper getIndexMetadataWrapper() {
+    return new IndexMetadataTableWrapper(this);
   }
 
   public <T extends Element> ElementTableWrapper getElementWrapper(Class<T> clazz) {

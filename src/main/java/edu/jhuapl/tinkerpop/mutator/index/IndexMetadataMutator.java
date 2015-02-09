@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import com.tinkerpop.blueprints.Element;
 
 import edu.jhuapl.tinkerpop.Constants;
+import edu.jhuapl.tinkerpop.Constants.IndexMetadataEntryType;
 import edu.jhuapl.tinkerpop.mutator.Mutator;
 
 /**
@@ -32,18 +33,21 @@ public class IndexMetadataMutator {
   public static class Add implements Mutator {
 
     private final String key;
-    private final Class<? extends Element> clazz;
+    private final Class<? extends Element> elementClass;
+    private final IndexMetadataEntryType entryType;
 
-    public Add(String key, Class<? extends Element> clazz) {
+    public Add(String key, Class<? extends Element> elementClass,
+        IndexMetadataEntryType entryType) {
       this.key = key;
-      this.clazz = clazz;
+      this.elementClass = elementClass;
+      this.entryType = entryType;
     }
 
     @Override
     public Iterable<Mutation> create() {
       Mutation m = new Mutation(key);
-      m.put(clazz.getName().getBytes(),
-          Constants.EMPTY, Constants.EMPTY);
+      m.put(entryType.name().getBytes(),
+          elementClass.getName().getBytes(), Constants.EMPTY);
       return Lists.newArrayList(m);
     }
   }
@@ -51,17 +55,21 @@ public class IndexMetadataMutator {
   public static class Delete implements Mutator {
 
     private final String key;
-    private final Class<? extends Element> clazz;
+    private final Class<? extends Element> elementClass;
+    private final IndexMetadataEntryType entryType;
 
-    public Delete(String indexName, Class<? extends Element> clazz) {
+    public Delete(String indexName, Class<? extends Element> elementClass,
+        IndexMetadataEntryType entryType) {
       this.key = indexName;
-      this.clazz = clazz;
+      this.elementClass = elementClass;
+      this.entryType = entryType;
     }
 
     @Override
     public Iterable<Mutation> create() {
       Mutation m = new Mutation(key);
-      m.putDelete(clazz.getName().getBytes(), Constants.EMPTY);
+      m.putDelete(entryType.name().getBytes(),
+          elementClass.getName().getBytes());
       return Lists.newArrayList(m);
     }
   }

@@ -23,6 +23,9 @@ public class Constants {
 
   private Constants() { }
 
+  /**
+   * Separate element ids in Accumulo entries.
+   */
   public static final String ID_DELIM = "__DELIM__";
 
   public static final byte[] EMPTY = new byte[0];
@@ -31,7 +34,13 @@ public class Constants {
    * Prefixes for various Accumulo entries.
    */
   public static final String LABEL = "__LABEL__";
-  public static final String IN_EDGE = "__INEDGE__";
-  public static final String OUT_EDGE = "__OUTEDGE__";
+  public static final String IN_EDGE = "__IN_EDGE__";
+  public static final String OUT_EDGE = "__OUT_EDGE__";
   public static final String EXISTS = "__EXISTS__";
+
+  /**
+   * Type of metadata to distinguish between
+   * entries in the metadata table.
+   */
+  public static enum IndexMetadataEntryType {__INDEX_KEY__, __INDEX_NAME__};
 }
