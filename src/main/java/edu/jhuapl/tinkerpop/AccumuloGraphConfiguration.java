@@ -1036,17 +1036,17 @@ implements Serializable {
       }
     }
 
-    if (timeout <= 0 && conf.getProperty(Keys.PRELOADED_PROPERTIES) != null) {
-      throw new IllegalArgumentException("You cannot preload properties "
-          + "without first setting #propertyCacheTimeout(String property, int millis) "
-          + "to a positive value.");
-    }
-
     if (getPreloadAllProperties() && getPreloadedProperties() != null) {
       throw new IllegalArgumentException("Cannot preload all properties"
           + " and specified properties simultaneously");
     }
-  }
+
+    if (timeout <= 0 && (getPreloadedProperties() != null || getPreloadAllProperties())) {
+      throw new IllegalArgumentException("You cannot preload properties "
+          + "without first setting #propertyCacheTimeout(String property, int millis) "
+          + "to a positive value.");
+    }
+}
 
   private void checkPropertyValue(String prop, String val, boolean canBeEmpty) {
     if (val == null) {

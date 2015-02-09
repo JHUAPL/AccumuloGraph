@@ -222,6 +222,26 @@ public class ElementPropertyCachingTest {
   }
 
   @Test
+  public void testPreloadAllProperties() {
+    AccumuloGraphConfiguration cfg =
+        AccumuloGraphTestUtils.generateGraphConfig("preloadAllProperties");
+    cfg.setPropertyCacheTimeout(null, TIMEOUT);
+    cfg.setPreloadAllProperties(true);
+
+    Graph graph = open(cfg);
+
+    AccumuloVertex v = (AccumuloVertex) graph.addVertex("V");
+    v.setProperty(NON_CACHED, true);
+    v.setProperty(CACHED, true);
+
+    v = (AccumuloVertex) graph.getVertex("V");
+    assertEquals(true, v.getPropertyInMemory(NON_CACHED));
+    assertEquals(true, v.getPropertyInMemory(CACHED));
+
+    graph.shutdown();
+  }
+
+  @Test
   public void testPreloadSomeProperties() {
     AccumuloGraphConfiguration cfg =
         AccumuloGraphTestUtils.generateGraphConfig("preloadSomeProperties");
