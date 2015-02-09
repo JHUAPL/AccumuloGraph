@@ -119,7 +119,8 @@ implements Serializable {
     public static final String SPLITS = "blueprints.accumulo.splits";
     public static final String COLVIS = "blueprints.accumulo.columnVisibility";
     public static final String SKIP_CHECKS = "blueprints.accumulo.skipExistenceChecks";
-    public static final String PRELOAD_PROPERTIES = "blueprints.accumulo.property.preload";
+    public static final String PRELOADED_PROPERTIES = "blueprints.accumulo.property.preload";
+    public static final String PRELOAD_ALL_PROPERTIES = "blueprints.accumulo.property.preload.all";
     public static final String PROPERTY_CACHE_TIMEOUT = "blueprints.accumulo.propertyCacheTimeout";
     public static final String EDGE_CACHE_SIZE = "blueprints.accumulo.edgeCacheSize";
     public static final String EDGE_CACHE_TIMEOUT = "blueprints.accumulo.edgeCacheTimeout";
@@ -177,6 +178,7 @@ implements Serializable {
     setInstanceType(InstanceType.Distributed);
     setAuthorizations(Constants.NO_AUTHS);
     setSkipExistenceChecks(false);
+    setPreloadAllProperties(false);
   }
 
   /**
@@ -715,11 +717,26 @@ implements Serializable {
     return name.matches("^[A-Za-z0-9_]+$");
   }
 
+  public boolean getPreloadAllProperties() {
+    return conf.getBoolean(Keys.PRELOAD_ALL_PROPERTIES);
+  }
+
+  /**
+   * If true, retrieve all properties for elements when
+   * retrieving them from Accumulo. This can be used
+   * in lieu of {@link #setPreloadedProperties(String[])}
+   * when all properties are needed. Defaults to false.
+   * @param preload
+   * @return
+   */
+  public AccumuloGraphConfiguration setPreloadAllProperties(boolean preload) {
+    conf.setProperty(Keys.PRELOAD_ALL_PROPERTIES, preload);
+    return this;
+  }
+
   public String[] getPreloadedProperties() {
-    if (conf.containsKey(Keys.PRELOAD_PROPERTIES)) {
-      return conf.getStringArray(Keys.PRELOAD_PROPERTIES);
-    }
-    return null;
+    return conf.containsKey(Keys.PRELOADED_PROPERTIES) ?
+      conf.getStringArray(Keys.PRELOADED_PROPERTIES) : null;
   }
 
   /**
@@ -749,15 +766,13 @@ implements Serializable {
       throw new NullPointerException("Property keys cannot be null.");
     }
 
-    conf.setProperty(Keys.PRELOAD_PROPERTIES, propertyKeys);
+    conf.setProperty(Keys.PRELOADED_PROPERTIES, propertyKeys);
     return this;
   }
 
   public String[] getPreloadedEdgeLabels() {
-    if (conf.containsKey(Keys.PRELOAD_EDGES)) {
-      return conf.getStringArray(Keys.PRELOAD_EDGES);
-    }
-    return null;
+    return conf.containsKey(Keys.PRELOAD_EDGES) ?
+        conf.getStringArray(Keys.PRELOAD_EDGES) : null;
   }
 
   /**
@@ -1012,7 +1027,7 @@ implements Serializable {
     int timeout = getPropertyCacheTimeout(null);
 
     if (timeout <= 0) {
-      String[] props = conf.getStringArray(Keys.PRELOAD_PROPERTIES);
+      String[] props = conf.getStringArray(Keys.PRELOADED_PROPERTIES);
       for (int i = 0; i < props.length; i++) {
         timeout = getPropertyCacheTimeout(props[i]);
         if (timeout <= 0) {
@@ -1021,11 +1036,17 @@ implements Serializable {
       }
     }
 
-    if (timeout <= 0 && conf.getProperty(Keys.PRELOAD_PROPERTIES) != null) {
-      throw new IllegalArgumentException("You cannot preload properties "
-          + "without first setting #propertyCacheTimeout(String property, int millis) " + "to a positive value.");
+    if (getPreloadAllProperties() && getPreloadedProperties() != null) {
+      throw new IllegalArgumentException("Cannot preload all properties"
+          + " and specified properties simultaneously");
     }
-  }
+
+    if (timeout <= 0 && (getPreloadedProperties() != null || getPreloadAllProperties())) {
+      throw new IllegalArgumentException("You cannot preload properties "
+          + "without first setting #propertyCacheTimeout(String property, int millis) "
+          + "to a positive value.");
+    }
+}
 
   private void checkPropertyValue(String prop, String val, boolean canBeEmpty) {
     if (val == null) {

@@ -155,11 +155,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       // any "preloaded" properties now, which saves us a round-trip
       // to Accumulo later.
       String[] preload = globals.getConfig().getPreloadedProperties();
-      if (preload == null) {
+      if (preload == null && !globals.getConfig().getPreloadAllProperties()) {
         preload = new String[]{};
       }
 
-      Map<String, Object> props = globals.getVertexWrapper().readProperties(vertex, preload);
+      Map<String, Object> props = globals.getVertexWrapper()
+          .readProperties(vertex, preload);
       if (props == null) {
         return null;
       }
