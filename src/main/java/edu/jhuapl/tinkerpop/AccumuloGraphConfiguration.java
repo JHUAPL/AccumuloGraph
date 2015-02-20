@@ -256,6 +256,7 @@ implements Serializable {
         InstanceType.Mini.equals(type)) {
       setUser("root");
       setPassword("");
+      setInstanceName("");
       setCreate(true);
     }
 
@@ -897,15 +898,6 @@ implements Serializable {
     if (connector == null) {
       Instance inst = null;
       switch (getInstanceType()) {
-        case Distributed:
-          if (getInstanceName() == null) {
-            throw new IllegalArgumentException("Must specify instance name for distributed mode");
-          } else if (getZooKeeperHosts() == null) {
-            throw new IllegalArgumentException("Must specify ZooKeeper hosts for distributed mode");
-          }
-          inst = new ZooKeeperInstance(getInstanceName(), getZooKeeperHosts());
-          break;
-
         case Mini:
           if (miniClusterTempDir == null) {
             miniClusterTempDir = Files.createTempDirectory("accumulo-mini").toFile();
@@ -916,9 +908,19 @@ implements Serializable {
           } catch (Exception ex) {
             throw new AccumuloGraphException(ex);
           }
-          connector = new ZooKeeperInstance(accumuloMiniCluster.getInstanceName(),
-              accumuloMiniCluster.getZooKeepers()).getConnector("root", new PasswordToken(""));
+          this.setInstanceName(accumuloMiniCluster.getInstanceName());
+          this.setPassword("");
+          
+        case Distributed:
+          if (getInstanceName() == null) {
+            throw new IllegalArgumentException("Must specify instance name for distributed mode");
+          } else if (getZooKeeperHosts() == null) {
+            throw new IllegalArgumentException("Must specify ZooKeeper hosts for distributed mode");
+          }
+          inst = new ZooKeeperInstance(getInstanceName(), getZooKeeperHosts());
           break;
+
+     
         case Mock:
           inst = new MockInstance(getInstanceName());
           break;
