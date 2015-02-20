@@ -909,6 +909,7 @@ implements Serializable {
             throw new AccumuloGraphException(ex);
           }
           this.setInstanceName(accumuloMiniCluster.getInstanceName());
+          this.setZooKeeperHosts(accumuloMiniCluster.getZooKeepers());
           this.setPassword("");
           
         case Distributed:
