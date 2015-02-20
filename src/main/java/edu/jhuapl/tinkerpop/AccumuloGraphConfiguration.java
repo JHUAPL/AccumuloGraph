@@ -1045,8 +1045,8 @@ implements Serializable {
         checkPropertyValue(Keys.PASSWORD, getPassword(), false);
         // no break intentional
       case Mini:
-        checkPropertyValue(Keys.INSTANCE, getInstanceName(), false);
-        checkPropertyValue(Keys.PASSWORD, getPassword(), true);
+//        checkPropertyValue(Keys.INSTANCE, getInstanceName(), false);
+  //      checkPropertyValue(Keys.PASSWORD, getPassword(), true);
         // no break intentional
       case Mock:
         checkPropertyValue(Keys.GRAPH_NAME, getGraphName(), false);
