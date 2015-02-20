@@ -1,0 +1,6 @@
+[2.1]
+Change Log started
+ --109,103 Merged Metadata tables
+ --97 Added range queries
+ --95 Table structure documentation
+ --79 All flag for preloading
