@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <title>Accumulograph by JHUAPL</title>
+  </head>
+
+  <body>
+    <header>
+      <div class="inner">
+        <h1>Accumulograph</h1>
+        <h2>An implementation of TinkerPop Blueprints using Accumulo</h2>
+        <a href="https://github.com/JHUAPL/AccumuloGraph" class="button"><small>View project on</small> GitHub</a>
+      </div>
+    </header>
+
+    <div id="content-wrapper">
+      <div class="inner clearfix">
+        <section id="main-content">
+          <h1>
+<a id="accumulograph" class="anchor" href="#accumulograph" aria-hidden="true"><span class="octicon octicon-link"></span></a>AccumuloGraph</h1>
+
+<p><a href="https://travis-ci.org/JHUAPL/AccumuloGraph"><img src="https://travis-ci.org/JHUAPL/AccumuloGraph.svg?branch=master" alt="Build Status"></a></p>
+
+<p>This is an implementation of the <a href="http://tinkerpop.com">TinkerPop Blueprints</a>
+2.6 API using <a href="http://apache.accumulo.com">Apache Accumulo</a> as the backend.
+This combines the many benefits and flexibility of Blueprints
+with the scalability and performance of Accumulo.</p>
+
+<p>In addition to the basic Blueprints functionality, we provide a number
+of enhanced features, including:</p>
+
+<ul>
+<li>Indexing implementations via <code>IndexableGraph</code> and <code>KeyIndexableGraph</code>
+</li>
+<li>Support for mock, mini, and distributed instances of Accumulo</li>
+<li>Numerous performance tweaks and configuration parameters</li>
+<li>Support for high speed ingest</li>
+<li>Hadoop integration</li>
+</ul>
+
+<p>Feel free to contact us with bugs, suggestions, pull requests,
+or simply how you are leveraging AccumuloGraph in your own work.</p>
+
+<h2>
+<a id="getting-started" class="anchor" href="#getting-started" aria-hidden="true"><span class="octicon octicon-link"></span></a>Getting Started</h2>
+
+<p>First, include AccumuloGraph as a Maven dependency. Releases are deployed
+to Maven Central.</p>
+
+<div class="highlight highlight-xml"><pre>&lt;<span class="pl-ent">dependency</span>&gt;
+    &lt;<span class="pl-ent">groupId</span>&gt;edu.jhuapl.tinkerpop&lt;/<span class="pl-ent">groupId</span>&gt;
+    &lt;<span class="pl-ent">artifactId</span>&gt;blueprints-accumulo-graph&lt;/<span class="pl-ent">artifactId</span>&gt;
+    &lt;<span class="pl-ent">version</span>&gt;0.2.1&lt;/<span class="pl-ent">version</span>&gt;
+&lt;/<span class="pl-ent">dependency</span>&gt;</pre></div>
+
+<p>For non-Maven users, the binary jars can be found in the releases section in this
+GitHub repository, or you can get them from Maven Central.</p>
+
+<p>Creating an <code>AccumuloGraph</code> involves setting a few parameters in an
+<code>AccumuloGraphConfiguration</code> object, and opening the graph.
+The defaults are sensible for using an Accumulo cluster.
+We provide some simple examples below. Javadocs for
+<code>AccumuloGraphConfiguration</code> explain all the other parameters
+in more detail.</p>
+
+<p>First, to instantiate an in-memory graph:</p>
+
+<div class="highlight highlight-java"><pre><span class="pl-stj">Configuration</span> cfg <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">AccumuloGraphConfiguration</span>()
+  .setInstanceType(<span class="pl-stj">InstanceType</span><span class="pl-k">.</span><span class="pl-stj">Mock</span>)
+  .setGraphName(<span class="pl-s1"><span class="pl-pds">"</span>graph<span class="pl-pds">"</span></span>);
+<span class="pl-k">return</span> <span class="pl-stj">GraphFactory</span><span class="pl-k">.</span>open(cfg);</pre></div>
+
+<p>This creates a "Mock" instance which holds the graph in memory.
+You can now use all the Blueprints and AccumuloGraph-specific functionality
+with this in-memory graph. This is useful for getting familiar
+with AccumuloGraph's functionality, or for testing or prototyping
+purposes.</p>
+
+<p>To use an actual Accumulo cluster, use the following:</p>
+
+<div class="highlight highlight-java"><pre><span class="pl-stj">Configuration</span> cfg <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">AccumuloGraphConfiguration</span>()
+  .setInstanceType(<span class="pl-stj">InstanceType</span><span class="pl-k">.</span><span class="pl-stj">Distributed</span>)
+  .setZooKeeperHosts(<span class="pl-s1"><span class="pl-pds">"</span>zookeeper-host<span class="pl-pds">"</span></span>)
+  .setInstanceName(<span class="pl-s1"><span class="pl-pds">"</span>instance-name<span class="pl-pds">"</span></span>)
+  .setUser(<span class="pl-s1"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>setPassword(<span class="pl-s1"><span class="pl-pds">"</span>password<span class="pl-pds">"</span></span>)
+  .setGraphName(<span class="pl-s1"><span class="pl-pds">"</span>graph<span class="pl-pds">"</span></span>)
+  .setCreate(<span class="pl-c1">true</span>);
+<span class="pl-k">return</span> <span class="pl-stj">GraphFactory</span><span class="pl-k">.</span>open(cfg);</pre></div>
+
+<p>This directs AccumuloGraph to use a "Distributed" Accumulo
+instance, and sets the appropriate ZooKeeper parameters,
+instance name, and authentication information, which correspond
+to the usual Accumulo connection settings. The graph name is
+used to create several backing tables in Accumulo, and the
+<code>setCreate</code> option tells AccumuloGraph to create the backing
+tables if they don't already exist.</p>
+
+<p>AccumuloGraph also has limited support for a "Mini" instance
+of Accumulo.</p>
+
+<h2>
+<a id="improving-performance" class="anchor" href="#improving-performance" aria-hidden="true"><span class="octicon octicon-link"></span></a>Improving Performance</h2>
+
+<p>This section describes various configuration parameters that
+greatly enhance AccumuloGraph's performance.  Brief descriptions
+of each option are provided here, but refer to the
+<code>AccumuloGraphConfiguration</code> Javadoc for fuller explanations.</p>
+
+<h3>
+<a id="disable-consistency-checks" class="anchor" href="#disable-consistency-checks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Disable consistency checks</h3>
+
+<p>The Blueprints API specifies a number of consistency checks for
+various operations, and requires errors if they fail. Some examples
+of invalid operations include adding a vertex with the same id as an
+existing vertex, adding edges between nonexistent vertices,
+and setting properties on nonexistent elements.
+Unfortunately, checking the above constraints for an
+Accumulo installation entails significant performance issues,
+since these require extra traffic to Accumulo using inefficient
+non-batched access patterns.</p>
+
+<p>To remedy these performance issues, AccumuloGraph exposes
+several options to disable various of the above checks.
+These include:</p>
+
+<ul>
+<li>
+<code>setAutoFlush</code> - to disable automatically flushing
+changes to the backing Accumulo tables</li>
+<li>
+<code>setSkipExistenceChecks</code> - to disable element
+existence checks, avoiding trips to the Accumulo cluster</li>
+<li>
+<code>setIndexableGraphDisabled</code> - to disable
+indexing functionality, which improves performance
+of element removal</li>
+</ul>
+
+<h3>
+<a id="tweak-accumulo-performance-parameters" class="anchor" href="#tweak-accumulo-performance-parameters" aria-hidden="true"><span class="octicon octicon-link"></span></a>Tweak Accumulo performance parameters</h3>
+
+<p>Accumulo itself features a number of performance-related parameters,
+and we allow configuration of these. Generally, these relate to
+write buffer sizes, multithreading, etc. The settings include:</p>
+
+<ul>
+<li>
+<code>setMaxWriteLatency</code> - max time prior to flushing
+element write buffer</li>
+<li>
+<code>setMaxWriteMemory</code> - max size for element write buffer</li>
+<li>
+<code>setMaxWriteThreads</code> - max threads used for element writing</li>
+<li>
+<code>setMaxWriteTimeout</code> - max time to wait before failing
+element buffer writes</li>
+<li>
+<code>setQueryThreads</code> - number of query threads to use
+for fetching elements, properties etc.</li>
+</ul>
+
+<h3>
+<a id="enable-edge-and-property-preloading" class="anchor" href="#enable-edge-and-property-preloading" aria-hidden="true"><span class="octicon octicon-link"></span></a>Enable edge and property preloading</h3>
+
+<p>As a performance tweak, AccumuloGraph performs lazy loading of
+properties and edges. This means that an operation such as
+<code>getVertex</code> does not by default populate the returned
+vertex object with the associated vertex's properties
+and edges. Instead, they are initialized only when requested via
+<code>getProperty</code>, <code>getEdges</code>, etc.  These are useful
+for use cases where you won't be accessing many of these
+properties.  However, if certain properties or edges will
+be accessed frequently, you can set options for preloading
+these specific properties and edges, which will be more
+efficient than on-the-fly loading. These options include:</p>
+
+<ul>
+<li>
+<code>setPreloadedProperties</code> - set property keys
+to be preloaded</li>
+<li>
+<code>setPreloadedEdgeLabels</code> - set edges to be
+preloaded based on their labels</li>
+</ul>
+
+<h3>
+<a id="enable-caching" class="anchor" href="#enable-caching" aria-hidden="true"><span class="octicon octicon-link"></span></a>Enable caching</h3>
+
+<p>AccumuloGraph contains a number of caching options
+that mitigate the need for Accumulo traffic for recently-accessed
+elements. The following options control caching:</p>
+
+<ul>
+<li>
+<code>setVertexCacheParams</code> - size and expiry for vertex cache</li>
+<li>
+<code>setEdgeCacheParams</code> - size and expiry for edge cache</li>
+<li>
+<code>setPropertyCacheTimeout</code> - property expiry time,
+which can be specified globally and/or for individual properties</li>
+</ul>
+
+<h2>
+<a id="high-speed-ingest" class="anchor" href="#high-speed-ingest" aria-hidden="true"><span class="octicon octicon-link"></span></a>High Speed Ingest</h2>
+
+<p>One of Accumulo's key advantages is its ability for high-speed ingest
+of huge amounts of data.  To leverage this ability, we provide
+an additional <code>AccumuloBulkIngester</code> class that
+exchanges consistency guarantees for high speed ingest.</p>
+
+<p>The following is an example of how to use the bulk ingester to
+ingest a simple graph:</p>
+
+<div class="highlight highlight-java"><pre><span class="pl-stj">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
+<span class="pl-stj">AccumuloBulkIngester</span> ingester <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">AccumuloBulkIngester</span>(cfg);
+<span class="pl-c">// Add a vertex.</span>
+ingester<span class="pl-k">.</span>addVertex(<span class="pl-s1"><span class="pl-pds">"</span>A<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>finish();
+<span class="pl-c">// Add another vertex with properties.</span>
+ingester<span class="pl-k">.</span>addVertex(<span class="pl-s1"><span class="pl-pds">"</span>B<span class="pl-pds">"</span></span>)
+  .add(<span class="pl-s1"><span class="pl-pds">"</span>P1<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>V1<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>add(<span class="pl-s1"><span class="pl-pds">"</span>P2<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>V2<span class="pl-pds">"</span></span>)
+  .finish();
+<span class="pl-c">// Add an edge.</span>
+ingester<span class="pl-k">.</span>addEdge(<span class="pl-s1"><span class="pl-pds">"</span>A<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>B<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>edge<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>finish();
+<span class="pl-c">// Shutdown and compact tables.</span>
+ingester<span class="pl-k">.</span>shutdown(<span class="pl-c1">true</span>);</pre></div>
+
+<p>See the Javadocs for more details.
+Note that you are responsible for ensuring that data is entered
+in a consistent way, or the resulting graph will
+have undefined behavior.</p>
+
+<h2>
+<a id="hadoop-integration" class="anchor" href="#hadoop-integration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Hadoop Integration</h2>
+
+<p>AccumuloGraph features Hadoop integration via custom input and output
+format implementations. <code>VertexInputFormat</code> and <code>EdgeInputFormat</code>
+allow vertex and edge inputs to mappers, respectively. Use as follows:</p>
+
+<div class="highlight highlight-java"><pre><span class="pl-stj">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
+
+<span class="pl-c">// For vertices:</span>
+<span class="pl-stj">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">Job</span>();
+j<span class="pl-k">.</span>setInputFormatClass(<span class="pl-stj">VertexInputFormat</span><span class="pl-k">.</span>class);
+<span class="pl-stj">VertexInputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);
+
+<span class="pl-c">// For edges:</span>
+<span class="pl-stj">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">Job</span>();
+j<span class="pl-k">.</span>setInputFormatClass(<span class="pl-stj">EdgeInputFormat</span><span class="pl-k">.</span>class);
+<span class="pl-stj">EdgeInputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);</pre></div>
+
+<p><code>ElementOutputFormat</code> allows writing to an AccumuloGraph from
+reducers. Use as follows:</p>
+
+<div class="highlight highlight-java"><pre><span class="pl-stj">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
+
+<span class="pl-stj">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">Job</span>();
+j<span class="pl-k">.</span>setOutputFormatClass(<span class="pl-stj">ElementOutputFormat</span><span class="pl-k">.</span>class);
+<span class="pl-stj">ElementOutputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);</pre></div>
+        </section>
+
+        <aside id="sidebar">
+          <a href="https://github.com/JHUAPL/AccumuloGraph/zipball/master" class="button">
+            <small>Download</small>
+            .zip file
+          </a>
+          <a href="https://github.com/JHUAPL/AccumuloGraph/tarball/master" class="button">
+            <small>Download</small>
+            .tar.gz file
+          </a>
+
+          <p class="repo-owner"><a href="https://github.com/JHUAPL/AccumuloGraph"></a> is maintained by <a href="https://github.com/JHUAPL">JHUAPL</a>.</p>
+
+          <p>This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the Architect theme by <a href="https://twitter.com/jasonlong">Jason Long</a>.</p>
+        </aside>
+      </div>
+    </div>
+
+  
+  </body>
+</html>
