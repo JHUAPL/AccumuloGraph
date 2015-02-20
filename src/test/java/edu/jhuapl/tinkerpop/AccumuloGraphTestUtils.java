@@ -22,7 +22,7 @@ import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 public class AccumuloGraphTestUtils {
 
   public static AccumuloGraphConfiguration generateGraphConfig(String graphDirectoryName) {
-    return new AccumuloGraphConfiguration().setInstanceType(InstanceType.Mock)
+    return new AccumuloGraphConfiguration().setInstanceType(InstanceType.Mini)
         .setGraphName(graphDirectoryName).setCreate(true);
   }
 

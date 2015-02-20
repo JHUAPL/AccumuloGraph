@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileAttribute;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -75,7 +77,7 @@ implements Serializable {
   /**
    * Temp directory used by getInstance when a Mini InstanceType is used.
    */
-  private String miniClusterTempDir;
+  private File miniClusterTempDir;
   private MiniAccumuloCluster accumuloMiniCluster;
 
 
@@ -905,23 +907,18 @@ implements Serializable {
           break;
 
         case Mini:
-          File dir = null;
           if (miniClusterTempDir == null) {
-            dir = createTempDir();
-            dir.deleteOnExit();
-          } else {
-            // already set by setMiniClusterTempDir(), It should be cleaned up outside of this class.
-            dir = new File(miniClusterTempDir);
-          }
-          accumuloMiniCluster = new MiniAccumuloCluster(dir, ""); // conf.getString(PASSWORD)
+            miniClusterTempDir = Files.createTempDirectory("accumulo-mini").toFile();
+          } 
+          accumuloMiniCluster = new MiniAccumuloCluster(miniClusterTempDir, ""); // conf.getString(PASSWORD)
           try {
             accumuloMiniCluster.start();
           } catch (Exception ex) {
             throw new AccumuloGraphException(ex);
           }
-          inst = new ZooKeeperInstance(accumuloMiniCluster.getInstanceName(), accumuloMiniCluster.getZooKeepers());
-          throw new UnsupportedOperationException("TODO");
-
+          connector = new ZooKeeperInstance(accumuloMiniCluster.getInstanceName(),
+              accumuloMiniCluster.getZooKeepers()).getConnector("root", new PasswordToken(""));
+          break;
         case Mock:
           inst = new MockInstance(getInstanceName());
           break;
@@ -971,7 +968,7 @@ implements Serializable {
    * @param miniClusterTempDir
    */
   public AccumuloGraphConfiguration setMiniClusterTempDir(String miniClusterTempDir) {
-    this.miniClusterTempDir = miniClusterTempDir;
+    this.miniClusterTempDir = new File(miniClusterTempDir);
     return this;
   }
 
@@ -1089,13 +1086,6 @@ implements Serializable {
     }
   }
 
-  private File createTempDir() throws IOException {
-    File temp = File.createTempFile(AccumuloGraphConfiguration
-        .class.getSimpleName(), ".mini.tmp");
-    Files.delete(temp.toPath());
-    Files.createDirectory(temp.toPath());
-    return temp;
-  }
 
   /**
    * Print out this configuration.
