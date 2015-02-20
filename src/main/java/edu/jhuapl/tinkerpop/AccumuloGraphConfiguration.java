@@ -17,6 +17,7 @@ package edu.jhuapl.tinkerpop;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.Cloneable;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.util.Arrays;
@@ -57,7 +58,7 @@ import com.tinkerpop.blueprints.KeyIndexableGraph;
  * ease chained setting of parameters.
  */
 public class AccumuloGraphConfiguration extends AbstractConfiguration
-implements Serializable {
+implements Serializable, Cloneable {
 
   private static final long serialVersionUID = 7024072260167873696L;
 
