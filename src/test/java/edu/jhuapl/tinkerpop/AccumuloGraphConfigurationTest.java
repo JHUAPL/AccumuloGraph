@@ -29,6 +29,8 @@ import org.junit.Test;
 import com.tinkerpop.blueprints.GraphFactory;
 import com.tinkerpop.blueprints.Vertex;
 
+import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
+
 public class AccumuloGraphConfigurationTest {
 
   @Test
@@ -149,14 +151,14 @@ public class AccumuloGraphConfigurationTest {
     }
     graph.shutdown();
 
-    graph = new AccumuloGraph(cfg.setCreate(false));
+    graph = new AccumuloGraph(cfg.clone().setCreate(false));
     assertTrue(graph.isEmpty());
     graph.addVertex("A");
     graph.addVertex("B");
     assertFalse(graph.isEmpty());
     graph.shutdown();
 
-    graph = new AccumuloGraph(cfg.setClear(true));
+    graph = new AccumuloGraph(cfg.clone().setClear(true));
     assertTrue(graph.isEmpty());
     graph.shutdown();
   }
@@ -256,5 +258,39 @@ public class AccumuloGraphConfigurationTest {
         fail();
       } catch (Exception e) { }
     }
+  }
+
+  @Test
+  public void testPreloadedProperties() {
+    // Don't allow "all" and "some" preloaded properties.
+    AccumuloGraphConfiguration conf = new AccumuloGraphConfiguration();
+    conf.setPreloadAllProperties(true);
+    conf.setPreloadedProperties(new String[]{"one", "two", "three"});
+    try {
+      conf.validate();
+      fail();
+    } catch (Exception e) { }
+  }
+
+  @Test
+  public void testImmutableConnector() throws Exception {
+    AccumuloGraphConfiguration cfg = new AccumuloGraphConfiguration().setInstanceType(
+        InstanceType.Mock).setGraphName("immutableConnector")
+        .setCreate(true).setAutoFlush(false);
+
+    cfg.getConnector();
+
+    try {
+      cfg.setCreate(false);
+      fail();
+    } catch (Exception e) { }
+
+    try {
+      cfg.setAutoFlush(true);
+      fail();
+    } catch (Exception e) { }
+
+    assertTrue(cfg.getCreate());
+    assertFalse(cfg.getAutoFlush());
   }
 }

@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package edu.jhuapl.tinkerpop.tables.keyindex;
+package edu.jhuapl.tinkerpop.tables.index;
 
 import java.util.Arrays;
 import java.util.Map.Entry;

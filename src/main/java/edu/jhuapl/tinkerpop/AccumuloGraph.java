@@ -155,11 +155,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       // any "preloaded" properties now, which saves us a round-trip
       // to Accumulo later.
       String[] preload = globals.getConfig().getPreloadedProperties();
-      if (preload == null) {
+      if (preload == null && !globals.getConfig().getPreloadAllProperties()) {
         preload = new String[]{};
       }
 
-      Map<String, Object> props = globals.getVertexWrapper().readProperties(vertex, preload);
+      Map<String, Object> props = globals.getVertexWrapper()
+          .readProperties(vertex, preload);
       if (props == null) {
         return null;
       }
@@ -183,6 +184,21 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   @Override
   public Iterable<Vertex> getVertices() {
     return globals.getVertexWrapper().getVertices();
+  }
+
+  /**
+   * Retrieve vertices with ids within the given range,
+   * inclusive. The range is calculated using the string
+   * representations of the given ids. If fromId or
+   * toId is null, use negative infinity and positive
+   * infinity, respectively.
+   * <p/>Note: This does not use indexes.
+   * @param fromId
+   * @param toId
+   * @return
+   */
+  public Iterable<Vertex> getVerticesInRange(Object fromId, Object toId) {
+    return globals.getVertexWrapper().getVerticesInRange(fromId, toId);
   }
 
   @Override
@@ -300,13 +316,13 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     }
 
-    for (Index<?> index : globals.getNamedIndexListWrapper().getIndices()) {
+    for (Index<?> index : globals.getIndexMetadataWrapper().getIndices()) {
       if (index.getIndexName().equals(indexName)) {
         throw ExceptionFactory.indexAlreadyExists(indexName);
       }
     }
 
-    return globals.getNamedIndexListWrapper().createIndex(indexName, indexClass);
+    return globals.getIndexMetadataWrapper().createIndex(indexName, indexClass);
   }
 
   @Override
@@ -318,7 +334,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     }
 
-    return globals.getNamedIndexListWrapper().getIndex(indexName, indexClass);
+    return globals.getIndexMetadataWrapper().getIndex(indexName, indexClass);
   }
 
   @Override
@@ -326,7 +342,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     if (globals.getConfig().getIndexableGraphDisabled()) {
       throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
     }
-    return globals.getNamedIndexListWrapper().getIndices();
+    return globals.getIndexMetadataWrapper().getIndices();
   }
 
   @Override
@@ -336,7 +352,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     for (Index<? extends Element> index : getIndices()) {
       if (index.getIndexName().equals(indexName)) {
-        globals.getNamedIndexListWrapper().clearIndexNameEntry(indexName, index.getIndexClass());
+        globals.getIndexMetadataWrapper().clearIndexNameEntry(indexName, index.getIndexClass());
 
         try {
           globals.getConfig().getConnector().tableOperations().delete(globals.getConfig()
@@ -359,7 +375,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
       throw ExceptionFactory.classForElementCannotBeNull();
     }
 
-    globals.getIndexedKeysListWrapper().clearKeyMetadataEntry(key, elementClass);
+    globals.getIndexMetadataWrapper().clearKeyMetadataEntry(key, elementClass);
 
     String table = null;
     if (elementClass.equals(Vertex.class)) {
@@ -392,7 +408,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     }
 
     // Add key to indexed keys list.
-    globals.getIndexedKeysListWrapper().writeKeyMetadataEntry(key, elementClass);
+    globals.getIndexMetadataWrapper().writeKeyMetadataEntry(key, elementClass);
     globals.checkedFlush();
 
     // Reindex graph.
@@ -403,7 +419,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
   @Override
   public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
-    return globals.getIndexedKeysListWrapper().getIndexedKeys(elementClass);
+    return globals.getIndexMetadataWrapper().getIndexedKeys(elementClass);
   }
 
   /**

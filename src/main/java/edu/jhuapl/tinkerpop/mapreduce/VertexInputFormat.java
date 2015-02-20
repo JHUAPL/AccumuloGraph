@@ -23,6 +23,7 @@ import com.tinkerpop.blueprints.Vertex;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
 import edu.jhuapl.tinkerpop.Constants;
 
@@ -66,10 +67,8 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
 
         parent = AccumuloGraph.open(conf.getConfiguration());
       } catch (AccumuloException e) {
-        // TODO Auto-generated catch block
-        e.printStackTrace();
+        throw new AccumuloGraphException(e);
       }
-
     }
 
     @Override

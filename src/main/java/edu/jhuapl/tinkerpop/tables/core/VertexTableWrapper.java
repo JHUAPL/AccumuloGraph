@@ -190,7 +190,13 @@ public class VertexTableWrapper extends ElementTableWrapper {
   }
 
   public CloseableIterable<Vertex> getVertices() {
+    return getVerticesInRange(null, null);
+  }
+
+  public CloseableIterable<Vertex> getVerticesInRange(Object fromId, Object toId) {
     Scanner scan = getScanner();
+    scan.setRange(new Range(fromId != null ? fromId.toString() : null,
+        toId != null ? toId.toString() : null));
     scan.fetchColumnFamily(new Text(Constants.LABEL));
 
     if (globals.getConfig().getPreloadedProperties() != null) {

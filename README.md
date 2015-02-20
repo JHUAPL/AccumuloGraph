@@ -28,7 +28,7 @@ to Maven Central.
 <dependency>
 	<groupId>edu.jhuapl.tinkerpop</groupId>
 	<artifactId>blueprints-accumulo-graph</artifactId>
-	<version>0.2.0</version>
+	<version>0.2.1</version>
 </dependency>
 ```
 

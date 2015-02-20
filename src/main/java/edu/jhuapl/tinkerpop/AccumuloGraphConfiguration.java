@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +42,8 @@ import org.apache.accumulo.minicluster.MiniAccumuloCluster;
 import org.apache.commons.configuration.AbstractConfiguration;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.event.ConfigurationEvent;
+import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.hadoop.io.Text;
 
 import com.tinkerpop.blueprints.Graph;
@@ -61,7 +64,13 @@ implements Serializable {
   /**
    * Backing configuration object.
    */
-  private Configuration conf;
+  private PropertiesConfiguration conf;
+
+  /**
+   * Maintain a connector instance that will be
+   * reused for {@link #getConnector()}.
+   */
+  private Connector connector;
 
   /**
    * Temp directory used by getInstance when a Mini InstanceType is used.
@@ -118,7 +127,8 @@ implements Serializable {
     public static final String SPLITS = "blueprints.accumulo.splits";
     public static final String COLVIS = "blueprints.accumulo.columnVisibility";
     public static final String SKIP_CHECKS = "blueprints.accumulo.skipExistenceChecks";
-    public static final String PRELOAD_PROPERTIES = "blueprints.accumulo.property.preload";
+    public static final String PRELOADED_PROPERTIES = "blueprints.accumulo.property.preload";
+    public static final String PRELOAD_ALL_PROPERTIES = "blueprints.accumulo.property.preload.all";
     public static final String PROPERTY_CACHE_TIMEOUT = "blueprints.accumulo.propertyCacheTimeout";
     public static final String EDGE_CACHE_SIZE = "blueprints.accumulo.edgeCacheSize";
     public static final String EDGE_CACHE_TIMEOUT = "blueprints.accumulo.edgeCacheTimeout";
@@ -176,6 +186,7 @@ implements Serializable {
     setInstanceType(InstanceType.Distributed);
     setAuthorizations(Constants.NO_AUTHS);
     setSkipExistenceChecks(false);
+    setPreloadAllProperties(false);
   }
 
   /**
@@ -184,6 +195,15 @@ implements Serializable {
    */
   public Configuration getConfiguration() {
     return conf;
+  }
+
+  /**
+   * Create a copy of this configuration.
+   * This is needed to change config parameters
+   * if {@link #getConnector()} has been used.
+   */
+  public AccumuloGraphConfiguration clone() {
+    return new AccumuloGraphConfiguration(this);
   }
 
   public boolean getCreate() {
@@ -714,11 +734,26 @@ implements Serializable {
     return name.matches("^[A-Za-z0-9_]+$");
   }
 
+  public boolean getPreloadAllProperties() {
+    return conf.getBoolean(Keys.PRELOAD_ALL_PROPERTIES);
+  }
+
+  /**
+   * If true, retrieve all properties for elements when
+   * retrieving them from Accumulo. This can be used
+   * in lieu of {@link #setPreloadedProperties(String[])}
+   * when all properties are needed. Defaults to false.
+   * @param preload
+   * @return
+   */
+  public AccumuloGraphConfiguration setPreloadAllProperties(boolean preload) {
+    conf.setProperty(Keys.PRELOAD_ALL_PROPERTIES, preload);
+    return this;
+  }
+
   public String[] getPreloadedProperties() {
-    if (conf.containsKey(Keys.PRELOAD_PROPERTIES)) {
-      return conf.getStringArray(Keys.PRELOAD_PROPERTIES);
-    }
-    return null;
+    return conf.containsKey(Keys.PRELOADED_PROPERTIES) ?
+        conf.getStringArray(Keys.PRELOADED_PROPERTIES) : null;
   }
 
   /**
@@ -748,15 +783,13 @@ implements Serializable {
       throw new NullPointerException("Property keys cannot be null.");
     }
 
-    conf.setProperty(Keys.PRELOAD_PROPERTIES, propertyKeys);
+    conf.setProperty(Keys.PRELOADED_PROPERTIES, propertyKeys);
     return this;
   }
 
   public String[] getPreloadedEdgeLabels() {
-    if (conf.containsKey(Keys.PRELOAD_EDGES)) {
-      return conf.getStringArray(Keys.PRELOAD_EDGES);
-    }
-    return null;
+    return conf.containsKey(Keys.PRELOAD_EDGES) ?
+        conf.getStringArray(Keys.PRELOAD_EDGES) : null;
   }
 
   /**
@@ -850,6 +883,7 @@ implements Serializable {
 
   /**
    * Create a {@link Connector} from this configuration.
+   * <p/>Note: Once this is called, the configuration may not be modified.
    * @return
    * @throws AccumuloException
    * @throws AccumuloSecurityException
@@ -858,43 +892,56 @@ implements Serializable {
    */
   public Connector getConnector() throws AccumuloException, AccumuloSecurityException,
   IOException, InterruptedException {
-    Instance inst = null;
-    switch (getInstanceType()) {
-      case Distributed:
-        if (getInstanceName() == null) {
-          throw new IllegalArgumentException("Must specify instance name for distributed mode");
-        } else if (getZooKeeperHosts() == null) {
-          throw new IllegalArgumentException("Must specify ZooKeeper hosts for distributed mode");
+    if (connector == null) {
+      Instance inst = null;
+      switch (getInstanceType()) {
+        case Distributed:
+          if (getInstanceName() == null) {
+            throw new IllegalArgumentException("Must specify instance name for distributed mode");
+          } else if (getZooKeeperHosts() == null) {
+            throw new IllegalArgumentException("Must specify ZooKeeper hosts for distributed mode");
+          }
+          inst = new ZooKeeperInstance(getInstanceName(), getZooKeeperHosts());
+          break;
+
+        case Mini:
+          File dir = null;
+          if (miniClusterTempDir == null) {
+            dir = createTempDir();
+            dir.deleteOnExit();
+          } else {
+            // already set by setMiniClusterTempDir(), It should be cleaned up outside of this class.
+            dir = new File(miniClusterTempDir);
+          }
+          accumuloMiniCluster = new MiniAccumuloCluster(dir, ""); // conf.getString(PASSWORD)
+          try {
+            accumuloMiniCluster.start();
+          } catch (Exception ex) {
+            throw new AccumuloGraphException(ex);
+          }
+          inst = new ZooKeeperInstance(accumuloMiniCluster.getInstanceName(), accumuloMiniCluster.getZooKeepers());
+          throw new UnsupportedOperationException("TODO");
+
+        case Mock:
+          inst = new MockInstance(getInstanceName());
+          break;
+
+        default:
+          throw new AccumuloGraphException("Unexpected instance type: " + inst);
+      }
+
+      connector = inst.getConnector(getUser(), new PasswordToken(getPassword()));
+
+      // Make the configuration immutable.
+      conf.addConfigurationListener(new ConfigurationListener() {
+        @Override
+        public void configurationChanged(ConfigurationEvent event) {
+          throw new AccumuloGraphException("You may not modify the configuration after calling getConnector()");
         }
-        inst = new ZooKeeperInstance(getInstanceName(), getZooKeeperHosts());
-        break;
-      case Mini:
-        File dir = null;
-        if (miniClusterTempDir == null) {
-          dir = createTempDir();
-          dir.deleteOnExit();
-        } else {
-          // already set by setMiniClusterTempDir(), It should be cleaned up outside of this class.
-          dir = new File(miniClusterTempDir);
-        }
-        accumuloMiniCluster = new MiniAccumuloCluster(dir, ""); // conf.getString(PASSWORD)
-        try {
-          accumuloMiniCluster.start();
-        } catch (Exception ex) {
-          ex.printStackTrace();
-          System.out.println("");
-        }
-        inst = new ZooKeeperInstance(accumuloMiniCluster.getInstanceName(), accumuloMiniCluster.getZooKeepers());
-        throw new UnsupportedOperationException("TODO");
-      case Mock:
-        inst = new MockInstance(getInstanceName());
-        break;
-      default:
-        throw new RuntimeException("Unexpected instance type: " + inst);
+      });
     }
 
-    Connector c = inst.getConnector(getUser(), new PasswordToken(getPassword()));
-    return c;
+    return connector;
   }
 
   /**
@@ -973,26 +1020,17 @@ implements Serializable {
   }
 
   /**
-   * Table listing the key-indexed properties
-   * of elements.
+   * Table containing index metadata.
    * @return
    */
-  public String getIndexedKeysTableName() {
-    return getGraphName() + "_indexed_keys";
-  }
-
-  /**
-   * Table of existing named indexes.
-   * @return
-   */
-  public String getIndexNamesTableName() {
-    return getGraphName() + "_index_names";
+  public String getIndexMetadataTableName() {
+    return getGraphName() + "_index_metadata";
   }
 
   List<String> getTableNames() {
     return Arrays.asList(getVertexTableName(),
         getEdgeTableName(), getVertexKeyIndexTableName(), getEdgeKeyIndexTableName(),
-        getIndexNamesTableName(), getIndexedKeysTableName());
+        getIndexMetadataTableName());
   }
 
   /**
@@ -1015,13 +1053,13 @@ implements Serializable {
         checkPropertyValue(Keys.GRAPH_NAME, getGraphName(), false);
         break;
       default:
-        throw new RuntimeException("Unexpected instance type: " + getInstanceType());
+        throw new AccumuloGraphException("Unexpected instance type: " + getInstanceType());
     }
 
     int timeout = getPropertyCacheTimeout(null);
 
     if (timeout <= 0) {
-      String[] props = conf.getStringArray(Keys.PRELOAD_PROPERTIES);
+      String[] props = conf.getStringArray(Keys.PRELOADED_PROPERTIES);
       for (int i = 0; i < props.length; i++) {
         timeout = getPropertyCacheTimeout(props[i]);
         if (timeout <= 0) {
@@ -1030,9 +1068,15 @@ implements Serializable {
       }
     }
 
-    if (timeout <= 0 && conf.getProperty(Keys.PRELOAD_PROPERTIES) != null) {
+    if (getPreloadAllProperties() && getPreloadedProperties() != null) {
+      throw new IllegalArgumentException("Cannot preload all properties"
+          + " and specified properties simultaneously");
+    }
+
+    if (timeout <= 0 && (getPreloadedProperties() != null || getPreloadAllProperties())) {
       throw new IllegalArgumentException("You cannot preload properties "
-          + "without first setting #propertyCacheTimeout(String property, int millis) " + "to a positive value.");
+          + "without first setting #propertyCacheTimeout(String property, int millis) "
+          + "to a positive value.");
     }
   }
 
@@ -1046,9 +1090,10 @@ implements Serializable {
   }
 
   private File createTempDir() throws IOException {
-    File temp = File.createTempFile(AccumuloGraphConfiguration.class.getSimpleName(), ".mini.tmp");
-    temp.delete();
-    temp.mkdir();
+    File temp = File.createTempFile(AccumuloGraphConfiguration
+        .class.getSimpleName(), ".mini.tmp");
+    Files.delete(temp.toPath());
+    Files.createDirectory(temp.toPath());
     return temp;
   }
 
@@ -1078,7 +1123,7 @@ implements Serializable {
       try {
         keys.add((String) field.get(null));
       } catch (Exception e) {
-        throw new RuntimeException(e);
+        throw new AccumuloGraphException(e);
       }
     }
 
@@ -1092,6 +1137,7 @@ implements Serializable {
    * @param zookeeperHosts
    * @return
    */
+  @Deprecated
   public AccumuloGraphConfiguration setZookeeperHosts(String zookeeperHosts) {
     return setZooKeeperHosts(zookeeperHosts);
   }
@@ -1101,6 +1147,7 @@ implements Serializable {
    * @param skip
    * @return
    */
+  @Deprecated
   public AccumuloGraphConfiguration skipExistenceChecks(boolean skip) {
     return setSkipExistenceChecks(skip);
   }
@@ -1109,6 +1156,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getAutoIndex()}.
    * @return
    */
+  @Deprecated
   public boolean isAutoIndex() {
     return getAutoIndex();
   }
@@ -1117,6 +1165,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getIndexableGraphDisabled()}.
    * @return
    */
+  @Deprecated
   public boolean isIndexableGraphDisabled() {
     return getIndexableGraphDisabled();
   }
@@ -1125,6 +1174,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getCreate()}.
    * @return
    */
+  @Deprecated
   public boolean isCreate() {
     return getCreate();
   }
@@ -1133,6 +1183,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getClear()}.
    * @return
    */
+  @Deprecated
   public boolean isClear() {
     return getClear();
   }
@@ -1141,6 +1192,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getInstanceName()}.
    * @return
    */
+  @Deprecated
   public String getInstance() {
     return getInstanceName();
   }
@@ -1149,6 +1201,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getAutoFlush()}.
    * @return
    */
+  @Deprecated
   public boolean isAutoFlush() {
     return getAutoFlush();
   }
@@ -1157,6 +1210,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getPropertyCacheTimeout(String)}.
    * @return
    */
+  @Deprecated
   public Integer getPropertyCacheTimeoutMillis(String property) {
     return getPropertyCacheTimeout(property);
   }
@@ -1165,6 +1219,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getEdgeCacheTimeout()}.
    * @return
    */
+  @Deprecated
   public Integer getEdgeCacheTimeoutMillis() {
     return getEdgeCacheTimeout();
   }
@@ -1173,6 +1228,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getVertexCacheTimeout()}.
    * @return
    */
+  @Deprecated
   public Integer getVertexCacheTimeoutMillis() {
     return getVertexCacheTimeout();
   }
@@ -1181,6 +1237,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getSkipExistenceChecks()}.
    * @return
    */
+  @Deprecated
   public boolean skipExistenceChecks() {
     return getSkipExistenceChecks();
   }
@@ -1189,6 +1246,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getGraphName()}.
    * @return
    */
+  @Deprecated
   public String getName() {
     return getGraphName();
   }
@@ -1197,6 +1255,7 @@ implements Serializable {
    * @deprecated This is an old method name. Use {@link #getPreloadedEdgeLabels()}.
    * @return
    */
+  @Deprecated
   public String[] getPreloadedEdges() {
     return getPreloadedEdgeLabels();
   }
