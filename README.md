@@ -211,3 +211,23 @@ Job j = new Job();
 j.setOutputFormatClass(ElementOutputFormat.class);
 ElementOutputFormat.setAccumuloGraphConfiguration(j, cfg);
 ```
+
+## Rexster Configuration
+Below is a snippet to show an example of AccumuloGraph integration with Rexster. For a complete list of options for configuration, see [`AccumuloGraphConfiguration$Keys`](https://github.com/JHUAPL/AccumuloGraph/blob/master/src/main/java/edu/jhuapl/tinkerpop/AccumuloGraphConfiguration.java#L110) 
+
+```xml
+<graph>
+	<graph-enabled>true</graph-enabled>
+	<graph-name>myGraph</graph-name>
+	<graph-type>edu.jhuapl.tinkerpop.AccumuloRexsterGraphConfiguration</graph-type>
+	<properties>
+		<blueprints.accumulo.instance.type>Distributed</blueprints.accumulo.instance.type>
+		<blueprints.accumulo.instance>accumulo</blueprints.accumulo.instance>
+		<blueprints.accumulo.zkhosts>zk1,zk2,zk3</blueprints.accumulo.zkhosts>
+		<blueprints.accumulo.user>user</blueprints.accumulo.user>
+		<blueprints.accumulo.password>password</blueprints.accumulo.password>
+	</properties>
+	<extensions>
+	</extensions>
+</graph>
+```
