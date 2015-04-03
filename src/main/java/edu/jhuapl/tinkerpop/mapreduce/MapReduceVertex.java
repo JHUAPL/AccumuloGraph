@@ -17,6 +17,7 @@ package edu.jhuapl.tinkerpop.mapreduce;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -33,13 +34,19 @@ import com.tinkerpop.blueprints.util.DefaultVertexQuery;
 
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 
-public class MapReduceVertex extends MapReduceElement implements Vertex {
+public class MapReduceVertex extends MapReduceElement implements Vertex, Serializable {
 
   List<Edge> inEdges;
   List<Edge> outEdges;
 
   MapReduceVertex(AccumuloGraph parent) {
     super(parent);
+    inEdges = new LinkedList<Edge>();
+    outEdges = new LinkedList<Edge>();
+  }
+  
+  MapReduceVertex(){
+    super();
     inEdges = new LinkedList<Edge>();
     outEdges = new LinkedList<Edge>();
   }

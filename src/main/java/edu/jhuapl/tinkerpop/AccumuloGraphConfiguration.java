@@ -256,6 +256,9 @@ implements Serializable {
       setPassword("");
       setCreate(true);
     }
+    if(InstanceType.Mock.equals(type)){
+      setInstanceName("mock-instance");
+    }
 
     return this;
   }

@@ -14,6 +14,8 @@
  */
 package edu.jhuapl.tinkerpop.mapreduce;
 
+import java.io.Serializable;
+
 import com.tinkerpop.blueprints.Direction;
 import com.tinkerpop.blueprints.Edge;
 import com.tinkerpop.blueprints.Vertex;
@@ -21,7 +23,7 @@ import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 
-public class MapReduceEdge extends MapReduceElement implements Edge {
+public class MapReduceEdge extends MapReduceElement implements Edge, Serializable {
 
   String sourceId;
   String label;
@@ -30,6 +32,8 @@ public class MapReduceEdge extends MapReduceElement implements Edge {
   MapReduceEdge(AccumuloGraph parent) {
     super(parent);
   }
+  
+  MapReduceEdge() { super(); }
 
   void setSourceId(String id) {
     sourceId = id;
