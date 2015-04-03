@@ -42,7 +42,11 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
   AccumuloGraph parent;
 
   MapReduceElement(AccumuloGraph parent) {
+    this();
     this.parent = parent;
+  }
+  
+  MapReduceElement(){
     properties = new HashMap<String,Object>();
     newProperties = new HashMap<String,Object>();
   }

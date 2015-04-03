@@ -14,7 +14,11 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +26,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.accumulo.core.client.Instance;
+import org.apache.accumulo.core.client.mock.MockInstance;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
 import org.junit.Test;
@@ -292,5 +298,12 @@ public class AccumuloGraphConfigurationTest {
 
     assertTrue(cfg.getCreate());
     assertFalse(cfg.getAutoFlush());
+  }
+  
+  @Test
+  public void testMockInstanceValue(){
+    AccumuloGraphConfiguration conf = new AccumuloGraphConfiguration().setInstanceType(InstanceType.Mock);
+    assertNotNull(conf.getInstanceName());
+    assertEquals("mock-instance", conf.getInstanceName());
   }
 }
