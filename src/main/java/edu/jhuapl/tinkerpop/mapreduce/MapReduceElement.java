@@ -17,6 +17,7 @@ package edu.jhuapl.tinkerpop.mapreduce;
 import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -31,7 +32,7 @@ import com.tinkerpop.blueprints.Graph;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 
-public abstract class MapReduceElement implements Element, WritableComparable<MapReduceElement> {
+public abstract class MapReduceElement implements Serializable, Element, WritableComparable<MapReduceElement> {
 
   protected String id;
 
@@ -39,7 +40,7 @@ public abstract class MapReduceElement implements Element, WritableComparable<Ma
 
   protected Map<String,Object> newProperties;
 
-  AccumuloGraph parent;
+  transient AccumuloGraph parent;
 
   MapReduceElement(AccumuloGraph parent) {
     this();

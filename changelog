@@ -1,6 +1,7 @@
 [2.2]
  -- 113 Applied instance name when mock instance is used
- -- 114 Made map reduce elements serialiable
+ -- 114 Made map reduce elements serializable
+ -- 116 Made MapReduceElement serializable with a tranisent graph
 [2.1]
 Change Log started
  --109,103 Merged Metadata tables
