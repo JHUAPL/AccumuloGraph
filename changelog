@@ -1,4 +1,4 @@
-[2.2]
+[2.2 Snapshot]
  -- 113 Applied instance name when mock instance is used
  -- 114 Made map reduce elements serializable
  -- 116 Made MapReduceElement serializable with a tranisent graph
