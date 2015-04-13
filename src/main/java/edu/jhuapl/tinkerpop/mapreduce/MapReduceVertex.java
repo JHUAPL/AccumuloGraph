@@ -46,7 +46,7 @@ public class MapReduceVertex extends MapReduceElement implements Vertex, Seriali
   }
   
   MapReduceVertex(){
-    super();
+    //super();
     inEdges = new LinkedList<Edge>();
     outEdges = new LinkedList<Edge>();
   }

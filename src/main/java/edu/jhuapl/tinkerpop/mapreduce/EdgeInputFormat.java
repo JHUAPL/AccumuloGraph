@@ -1,5 +1,7 @@
 package edu.jhuapl.tinkerpop.mapreduce;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -59,7 +61,7 @@ public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
         conf.setZooKeeperHosts(EdgeInputFormat.getInstance(attempt).getZooKeepers());
         conf.setInstanceName(EdgeInputFormat.getInstance(attempt).getInstanceName());
         conf.setUser(EdgeInputFormat.getPrincipal(attempt));
-        conf.setPassword(EdgeInputFormat.getToken(attempt));
+        conf.setTokenWithFallback(EdgeInputFormat.getToken(attempt));
         conf.setGraphName(attempt.getConfiguration().get(GRAPH_NAME));
         if (EdgeInputFormat.getInstance(attempt) instanceof MockInstance) {
           conf.setInstanceType(InstanceType.Mock);
@@ -70,7 +72,7 @@ public class EdgeInputFormat extends InputFormatBase<Text,Edge> {
       }
 
     }
-
+  
     @Override
     public boolean nextKeyValue() throws IOException, InterruptedException {
       if (rowIterator.hasNext()) {

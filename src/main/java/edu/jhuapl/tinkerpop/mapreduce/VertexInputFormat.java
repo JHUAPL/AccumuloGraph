@@ -1,5 +1,7 @@
 package edu.jhuapl.tinkerpop.mapreduce;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
@@ -23,8 +25,8 @@ import com.tinkerpop.blueprints.Vertex;
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloGraph;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
-import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration.InstanceType;
+import edu.jhuapl.tinkerpop.AccumuloGraphException;
 import edu.jhuapl.tinkerpop.Constants;
 
 public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
@@ -59,7 +61,7 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
         conf.setZooKeeperHosts(VertexInputFormat.getInstance(attempt).getZooKeepers());
         conf.setInstanceName(VertexInputFormat.getInstance(attempt).getInstanceName());
         conf.setUser(VertexInputFormat.getPrincipal(attempt));
-        conf.setPassword(VertexInputFormat.getToken(attempt));
+        conf.setTokenWithFallback(VertexInputFormat.getToken(attempt));
         conf.setGraphName(attempt.getConfiguration().get(GRAPH_NAME));
         if (VertexInputFormat.getInstance(attempt) instanceof MockInstance) {
           conf.setInstanceType(InstanceType.Mock);
@@ -70,6 +72,8 @@ public class VertexInputFormat extends InputFormatBase<Text,Vertex> {
         throw new AccumuloGraphException(e);
       }
     }
+    
+    
 
     @Override
     public boolean nextKeyValue() throws IOException, InterruptedException {
