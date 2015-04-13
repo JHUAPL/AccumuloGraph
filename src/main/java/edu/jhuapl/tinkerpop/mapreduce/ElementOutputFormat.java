@@ -1,6 +1,7 @@
 package edu.jhuapl.tinkerpop.mapreduce;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map.Entry;
 
 import org.apache.accumulo.core.client.AccumuloException;
@@ -70,10 +71,10 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
     return new NullOutputFormat<Text,Mutation>().getOutputCommitter(context);
   }
 
-  static class ElementRecordWriter extends RecordWriter<NullWritable,Element> {
+  static class ElementRecordWriter extends RecordWriter<NullWritable,Element> implements Serializable{
     AccumuloGraphConfiguration config;
 
-    protected ElementRecordWriter(TaskAttemptContext context) {
+    public ElementRecordWriter(TaskAttemptContext context) {
       config = new AccumuloGraphConfiguration();
       Configuration jobconf = context.getConfiguration();
       config.setUser(jobconf.get(USER));
@@ -85,7 +86,7 @@ public class ElementOutputFormat extends OutputFormat<NullWritable,Element> {
 
     }
 
-    BatchWriter bw;
+    transient BatchWriter bw;
 
     @Override
     public void write(NullWritable key, Element value) throws IOException, InterruptedException {

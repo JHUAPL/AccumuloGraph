@@ -14,6 +14,8 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
@@ -329,6 +331,42 @@ implements Serializable {
     return this;
   }
 
+  
+  public AccumuloGraphConfiguration setTokenWithFallback(byte[] token){
+    try{
+      setToken(token);
+    }catch(IllegalArgumentException e){
+      setPassword(token);
+    }
+    return this;
+  }
+  
+  protected AccumuloGraphConfiguration setToken(byte[] token){
+    conf.setProperty(Keys.PASSWORD, new String(deserailize(token).getPassword()));
+    return this;
+  }
+  
+  private  PasswordToken deserailize(byte[] tokenBytes){
+    PasswordToken type = null;
+    try {
+      type = PasswordToken.class.newInstance();
+    } catch (Exception e) {
+      throw new IllegalArgumentException("Cannot instantiate " + PasswordToken.class.getName(), e);
+    }
+    ByteArrayInputStream bais = new ByteArrayInputStream(tokenBytes);
+    DataInputStream in = new DataInputStream(bais);
+    try {
+      type.readFields(in);
+    } catch (IOException e) {
+      throw new IllegalArgumentException("Cannot deserialize provided byte array as class " + PasswordToken.class.getName(), e);
+    }
+    try {
+      in.close();
+    } catch (IOException e) {
+      throw new IllegalStateException("Shouldn't happen", e);
+    }
+    return type;
+  }
   public Authorizations getAuthorizations() {
     return conf.containsKey(Keys.AUTHORIZATIONS) ?
         new Authorizations(conf.getString(Keys.AUTHORIZATIONS).getBytes()) : null;
@@ -932,7 +970,7 @@ implements Serializable {
         default:
           throw new AccumuloGraphException("Unexpected instance type: " + inst);
       }
-
+      
       connector = inst.getConnector(getUser(), new PasswordToken(getPassword()));
 
       // Make the configuration immutable.
