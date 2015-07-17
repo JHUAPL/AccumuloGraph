@@ -15,9 +15,9 @@
 package edu.jhuapl.tinkerpop.mutator.index;
 
 import org.apache.accumulo.core.data.Mutation;
+import org.apache.tinkerpop.gremlin.structure.Element;
 
 import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Element;
 
 import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.Constants.IndexMetadataEntryType;

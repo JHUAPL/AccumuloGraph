@@ -16,9 +16,10 @@ package edu.jhuapl.tinkerpop.cache;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.tinkerpop.gremlin.structure.Element;
+
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
-import com.tinkerpop.blueprints.Element;
 
 /**
  * Simple cache for retrieved graph elements,
@@ -36,7 +37,7 @@ public class ElementCache<T extends Element> {
   }
 
   public void cache(T element) {
-    cache.put(element.getId(), element);
+    cache.put(element.id(), element);
   }
 
   public T retrieve(Object id) {

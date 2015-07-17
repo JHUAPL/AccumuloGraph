@@ -14,16 +14,20 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.tinkerpop.blueprints.CloseableIterable;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.VertexQuery;
-import com.tinkerpop.blueprints.util.DefaultVertexQuery;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Property;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty;
+import org.apache.tinkerpop.gremlin.structure.VertexProperty.Cardinality;
+import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
+
 import com.tinkerpop.blueprints.util.ExceptionFactory;
+
 
 /**
  * TODO
@@ -34,22 +38,14 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
     super(globals, id, Vertex.class);
   }
 
-  @Override
-  public Iterable<Edge> getEdges(Direction direction, String... labels) {
-    return globals.getVertexWrapper().getEdges(this, direction, labels);
+  //TODO
+  public <V> VertexProperty<V> property(String key, V value){
+    return null;
   }
 
-  @Override
-  public Iterable<Vertex> getVertices(Direction direction, String... labels) {
-    return globals.getVertexWrapper().getVertices(this, direction, labels);
-  }
 
-  @Override
-  public VertexQuery query() {
-    return new DefaultVertexQuery(this);
-  }
 
-  @Override
+ // @Override
   public Edge addEdge(String label, Vertex inVertex) {
     return addEdge(null, label, inVertex);
   }
@@ -89,13 +85,13 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   @Override
   public void remove() {
-    globals.getCaches().remove(getId(), Vertex.class);
+    globals.getCaches().remove(id(), Vertex.class);
 
     super.removeElementFromNamedIndexes();
 
     // Throw exception if the element does not exist.
     if (!globals.getVertexWrapper().elementExists(id)) {
-      throw ExceptionFactory.vertexWithIdDoesNotExist(getId());
+      throw ExceptionFactory.vertexWithIdDoesNotExist(id());
     }
 
     // Remove properties from key/value indexes.
@@ -108,11 +104,11 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
     }
 
     // Remove edges incident to this vertex.
-    CloseableIterable<Edge> iter = (CloseableIterable<Edge>)getEdges(Direction.BOTH);
-    for (Edge edge : iter) {
-      edge.remove();
+    Iterator<Edge> iter = edges(Direction.BOTH);
+    while (iter.hasNext()) {
+      iter.next().remove();
     }
-    iter.close();
+    //iter.close();
 
     globals.checkedFlush();
 
@@ -123,7 +119,43 @@ public class AccumuloVertex extends AccumuloElement implements Vertex {
 
   @Override
   public String toString() {
-    return "[" + getId() + "]";
+    return StringFactory.vertexString(this);
+  }
+
+  @Override
+  public String label() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+
+  @Override
+  public Edge addEdge(String label, Vertex inVertex, Object... keyValues) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public <V> VertexProperty<V> property(Cardinality cardinality, String key, V value, Object... keyValues) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Iterator<Edge> edges(Direction direction, String... edgeLabels) {
+    return globals.getVertexWrapper().getEdges(this, direction, edgeLabels).iterator();
+  }
+
+  @Override
+  public Iterator<Vertex> vertices(Direction direction, String... edgeLabels) {
+    return globals.getVertexWrapper().getVertices(this, direction, edgeLabels).iterator();
+  }
+
+  @Override
+  public <V> Iterator<VertexProperty<V>> properties(String... propertyKeys) {
+    // TODO Auto-generated method stub
+    return null;
   }
 
 }

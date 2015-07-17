@@ -17,8 +17,8 @@ package edu.jhuapl.tinkerpop.tables.core;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.accumulo.core.client.BatchWriter;
 import org.apache.accumulo.core.client.IteratorSetting;
@@ -28,16 +28,16 @@ import org.apache.accumulo.core.data.Range;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.hadoop.io.Text;
+import org.apache.tinkerpop.gremlin.structure.Element;
 
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.util.StringFactory;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.Constants;
 import edu.jhuapl.tinkerpop.GlobalInstances;
+import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.mutator.property.ClearPropertyMutator;
 import edu.jhuapl.tinkerpop.mutator.property.WritePropertyMutator;
-import edu.jhuapl.tinkerpop.mutator.Mutators;
 import edu.jhuapl.tinkerpop.parser.PropertyParser;
 import edu.jhuapl.tinkerpop.tables.BaseTableWrapper;
 
@@ -72,7 +72,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
   public <V> V readProperty(Element element, String key) {
     Scanner s = getScanner();
 
-    s.setRange(new Range(element.getId().toString()));
+    s.setRange(new Range(element.id().toString()));
 
     Text colf = StringFactory.LABEL.equals(key)
         ? new Text(Constants.LABEL) : new Text(key);
@@ -112,7 +112,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    */
   public Map<String, Object> readProperties(Element element, String[] propertyKeys) {
     Scanner s = getScanner();
-    s.setRange(Range.exact((String) element.getId()));
+    s.setRange(Range.exact((String) element.id()));
 
     // If propertyKeys is null, we read everything.
     // Otherwise, limit to the given attributes.
@@ -158,7 +158,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
   public Set<String> readPropertyKeys(Element element) {
     Scanner s = getScanner();
 
-    s.setRange(new Range(element.getId().toString()));
+    s.setRange(new Range(element.id().toString()));
 
     Set<String> keys = new HashSet<String>();
 
@@ -184,7 +184,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    */
   public void clearProperty(Element element, String key) {
     Mutators.apply(getWriter(),
-        new ClearPropertyMutator(element.getId().toString(), key));
+        new ClearPropertyMutator(element.id().toString(), key));
     globals.checkedFlush();
   }
 
@@ -196,7 +196,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    */
   public void writeProperty(Element element, String key, Object value) {
     Mutators.apply(getWriter(),
-        new WritePropertyMutator(element.getId().toString(),
+        new WritePropertyMutator(element.id().toString(),
             key, value));
     globals.checkedFlush();
   }

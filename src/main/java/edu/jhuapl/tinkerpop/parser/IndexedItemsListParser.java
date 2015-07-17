@@ -20,12 +20,12 @@ import java.util.Map.Entry;
 
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.IndexableGraph;
 import com.tinkerpop.blueprints.KeyIndexableGraph;
-import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloGraphException;
 

@@ -17,9 +17,12 @@ package edu.jhuapl.tinkerpop;
 import org.apache.accumulo.core.client.MultiTableBatchWriter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
-import com.tinkerpop.blueprints.Vertex;
+
+
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
 import edu.jhuapl.tinkerpop.tables.core.EdgeTableWrapper;
@@ -39,14 +42,21 @@ public class GlobalInstances {
   private final AccumuloGraphConfiguration config;
   private final MultiTableBatchWriter mtbw;
   private final ElementCaches caches;
-
+  private final Graph graph;
   public GlobalInstances(AccumuloGraphConfiguration config,
-      MultiTableBatchWriter mtbw, ElementCaches caches) {
+      MultiTableBatchWriter mtbw, ElementCaches caches, AccumuloGraph g) {
     this.config = config;
     this.mtbw = mtbw;
     this.caches = caches;
+    graph=g;
   }
-
+  
+  
+  public Graph getGraph(){
+    return graph;
+  }
+  
+  
   public AccumuloGraphConfiguration getConfig() {
     return config;
   }

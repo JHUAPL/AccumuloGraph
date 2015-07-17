@@ -14,15 +14,21 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Logger;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Property;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.util.StringFactory;
 
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.StringFactory;
+
 
 /**
  * TODO
@@ -48,10 +54,7 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
   }
 
   @Override
-  public Vertex getVertex(Direction direction) throws IllegalArgumentException {
-    if (!Direction.IN.equals(direction) && !Direction.OUT.equals(direction)) {
-      throw new IllegalArgumentException("Invalid direction: "+direction);
-    }
+  public Iterator<Vertex> vertices(Direction direction) {
 
     // The vertex information needs to be loaded.
     if (inVertex == null || outVertex == null || label == null) {
@@ -59,17 +62,17 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
       globals.getEdgeWrapper().loadEndpointsAndLabel(this);
     }
 
-    return Direction.IN.equals(direction) ? inVertex : outVertex;
+    List<Vertex> verts = new ArrayList<Vertex>(2);
+    if(Direction.IN.equals(direction) || Direction.BOTH.equals(direction)){
+      verts.add(inVertex);
+    }
+    if(Direction.OUT.equals(direction) || Direction.BOTH.equals(direction)){
+      verts.add(outVertex);
+    }
+    return verts.iterator();
   }
 
-  @Override
-  public String getLabel() {
-    // TODO less special treatment for "LABEL" property...
-    if (label != null) {
-      return label;
-    }
-    return getProperty(StringFactory.LABEL);
-  }
+
 
   @Override
   public void remove() {
@@ -112,6 +115,24 @@ public class AccumuloEdge extends AccumuloElement implements Edge {
 
   @Override
   public String toString() {
-    return "[" + getId() + ":" + inVertex + " -> " + label + " -> " + outVertex + "]";
+    return StringFactory.edgeString(this);
   }
+
+  @Override
+  public String label() {
+    // TODO less special treatment for "LABEL" property...
+    if (label != null) {
+      return label;
+    }return "";
+   // return getProperty(StringFactory.LABEL);
+  }
+
+
+
+  @Override
+  public <V> Iterator<Property<V>> properties(String... propertyKeys) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
 }

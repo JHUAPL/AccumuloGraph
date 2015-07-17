@@ -29,11 +29,11 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import com.tinkerpop.blueprints.CloseableIterable;
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.IndexableGraph;
-import com.tinkerpop.blueprints.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloElement;
@@ -103,7 +103,7 @@ public abstract class BaseIndexValuesTableWrapper extends BaseTableWrapper {
         .getIndexedKeys(elementType).contains(key)) {
       BatchWriter writer = getWriter();
 
-      Object oldValue = element.getProperty(key);
+      Object oldValue = element.property(key);
       if (oldValue != null && !oldValue.equals(value)) {
         Mutators.apply(writer, new IndexValueMutator.Delete(element, key, oldValue));
       }
@@ -164,7 +164,7 @@ public abstract class BaseIndexValuesTableWrapper extends BaseTableWrapper {
 
       IteratorSetting is = new IteratorSetting(10, "getEdgeFilter", RegExFilter.class);
       RegExFilter.setRegexs(is, null, null,
-          "^"+Pattern.quote(element.getId().toString())+"$", null, false);
+          "^"+Pattern.quote(element.id().toString())+"$", null, false);
       deleter.addScanIterator(is);
       deleter.delete();
       deleter.close();

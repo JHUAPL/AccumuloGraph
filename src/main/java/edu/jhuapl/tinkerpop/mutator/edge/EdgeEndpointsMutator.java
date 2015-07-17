@@ -15,9 +15,9 @@
 package edu.jhuapl.tinkerpop.mutator.edge;
 
 import org.apache.accumulo.core.data.Mutation;
+import org.apache.tinkerpop.gremlin.structure.Edge;
 
 import com.google.common.collect.Lists;
-import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.Constants;
 

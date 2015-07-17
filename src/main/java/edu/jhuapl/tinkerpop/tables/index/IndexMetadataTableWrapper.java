@@ -21,8 +21,8 @@ import java.util.Set;
 
 import org.apache.accumulo.core.client.Scanner;
 import org.apache.hadoop.io.Text;
+import org.apache.tinkerpop.gremlin.structure.Element;
 
-import com.tinkerpop.blueprints.Element;
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.IndexableGraph;
 import com.tinkerpop.blueprints.KeyIndexableGraph;

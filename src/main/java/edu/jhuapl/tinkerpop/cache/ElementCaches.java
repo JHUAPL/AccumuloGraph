@@ -14,9 +14,11 @@
  */
 package edu.jhuapl.tinkerpop.cache;
 
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
-import com.tinkerpop.blueprints.Vertex;
+
+
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import edu.jhuapl.tinkerpop.AccumuloGraphConfiguration;
 import edu.jhuapl.tinkerpop.AccumuloGraphException;

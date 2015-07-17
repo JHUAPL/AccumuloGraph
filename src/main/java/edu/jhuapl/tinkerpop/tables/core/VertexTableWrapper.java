@@ -30,11 +30,15 @@ import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
+import org.apache.tinkerpop.gremlin.structure.Direction;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
 
 import com.tinkerpop.blueprints.CloseableIterable;
-import com.tinkerpop.blueprints.Direction;
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Vertex;
+
+
+
+
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;
@@ -67,7 +71,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
    * @param vertex
    */
   public void writeVertex(Vertex vertex) {
-    Mutators.apply(getWriter(), new AddVertexMutator(vertex.getId().toString()));
+    Mutators.apply(getWriter(), new AddVertexMutator(vertex.id().toString()));
     globals.checkedFlush();
   }
 
@@ -82,7 +86,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
     try {
       deleter = getDeleter();
-      deleter.setRanges(Arrays.asList(Range.exact((String) vertex.getId())));
+      deleter.setRanges(Arrays.asList(Range.exact((String) vertex.id())));
       deleter.delete();
 
     } catch (Exception e) {
@@ -111,7 +115,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
   public CloseableIterable<Edge> getEdges(Vertex vertex, Direction direction,
       String... labels) {
     Scanner scan = getScanner();
-    scan.setRange(new Range(vertex.getId().toString()));
+    scan.setRange(new Range(vertex.id().toString()));
     if (direction.equals(Direction.IN)) {
       scan.fetchColumnFamily(new Text(Constants.IN_EDGE));
     } else if (direction.equals(Direction.OUT)) {
@@ -157,7 +161,7 @@ public class VertexTableWrapper extends ElementTableWrapper {
 
   public Iterable<Vertex> getVertices(Vertex vertex, Direction direction, String... labels) {
     Scanner scan = getScanner();
-    scan.setRange(new Range(vertex.getId().toString()));
+    scan.setRange(new Range(vertex.id().toString()));
     if (direction.equals(Direction.IN)) {
       scan.fetchColumnFamily(new Text(Constants.IN_EDGE));
     } else if (direction.equals(Direction.OUT)) {

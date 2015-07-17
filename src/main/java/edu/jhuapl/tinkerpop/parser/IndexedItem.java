@@ -14,7 +14,8 @@
  */
 package edu.jhuapl.tinkerpop.parser;
 
-import com.tinkerpop.blueprints.Element;
+import org.apache.tinkerpop.gremlin.structure.Element;
+
 import com.tinkerpop.blueprints.IndexableGraph;
 import com.tinkerpop.blueprints.KeyIndexableGraph;
 

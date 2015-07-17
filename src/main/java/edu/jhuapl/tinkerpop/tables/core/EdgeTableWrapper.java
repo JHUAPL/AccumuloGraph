@@ -30,8 +30,10 @@ import org.apache.accumulo.core.iterators.user.RegExFilter;
 import org.apache.accumulo.core.util.PeekingIterator;
 import org.apache.hadoop.io.Text;
 
+
+import org.apache.tinkerpop.gremlin.structure.Edge;
+
 import com.tinkerpop.blueprints.CloseableIterable;
-import com.tinkerpop.blueprints.Edge;
 
 import edu.jhuapl.tinkerpop.AccumuloByteSerializer;
 import edu.jhuapl.tinkerpop.AccumuloEdge;

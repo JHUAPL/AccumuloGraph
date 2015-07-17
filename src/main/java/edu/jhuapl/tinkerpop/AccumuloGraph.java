@@ -14,32 +14,25 @@
  */
 package edu.jhuapl.tinkerpop;
 
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 import java.util.SortedSet;
 
 import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.BatchDeleter;
 import org.apache.accumulo.core.client.MutationsRejectedException;
 import org.apache.accumulo.core.client.admin.TableOperations;
-import org.apache.accumulo.core.data.Range;
 import org.apache.commons.configuration.Configuration;
 import org.apache.hadoop.io.Text;
+import org.apache.tinkerpop.gremlin.process.computer.GraphComputer;
+import org.apache.tinkerpop.gremlin.structure.Edge;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Transaction;
+import org.apache.tinkerpop.gremlin.structure.Vertex;
+import org.apache.tinkerpop.gremlin.structure.util.GraphFactory;
 
-import com.tinkerpop.blueprints.Edge;
-import com.tinkerpop.blueprints.Element;
-import com.tinkerpop.blueprints.Features;
-import com.tinkerpop.blueprints.Graph;
-import com.tinkerpop.blueprints.GraphFactory;
-import com.tinkerpop.blueprints.GraphQuery;
-import com.tinkerpop.blueprints.Index;
-import com.tinkerpop.blueprints.IndexableGraph;
-import com.tinkerpop.blueprints.KeyIndexableGraph;
-import com.tinkerpop.blueprints.Parameter;
-import com.tinkerpop.blueprints.Vertex;
-import com.tinkerpop.blueprints.util.DefaultGraphQuery;
 import com.tinkerpop.blueprints.util.ExceptionFactory;
 
 import edu.jhuapl.tinkerpop.cache.ElementCaches;
@@ -59,7 +52,7 @@ import edu.jhuapl.tinkerpop.cache.ElementCaches;
  * <li>Hadoop integration</li>
  * </ol>
  */
-public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
+public class AccumuloGraph implements Graph {
 
   private final GlobalInstances globals;
 
@@ -91,7 +84,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     try {
       globals = new GlobalInstances(config, config.getConnector()
           .createMultiTableBatchWriter(config.getBatchWriterConfig()),
-          new ElementCaches(config));
+          new ElementCaches(config), this);
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
@@ -106,12 +99,9 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return globals;
   }
 
-  @Override
-  public Features getFeatures() {
-    return AccumuloFeatures.get();
-  }
 
-  @Override
+
+//  @Override
   public Vertex addVertex(Object id) {
     if (id == null) {
       id = AccumuloGraphUtils.generateId();
@@ -137,13 +127,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return vert;
   }
   
-  /**
-   * 
-   * @return an immutable copy of the configuration running this graph
-   */
-  public Configuration getConfiguration(){
-    return globals.getConfig().getConfiguration();
-  }
+
   
   /**
    * Flushes the backing writers so the data is persisted.
@@ -154,7 +138,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   }
   
 
-  @Override
+ // @Override
   public Vertex getVertex(Object id) {
     if (id == null) {
       throw ExceptionFactory.vertexIdCanNotBeNull();
@@ -192,12 +176,12 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return vertex;
   }
 
-  @Override
+//  @Override
   public void removeVertex(Vertex vertex) {
     vertex.remove();
   }
 
-  @Override
+ // @Override
   public Iterable<Vertex> getVertices() {
     return globals.getVertexWrapper().getVertices();
   }
@@ -216,23 +200,36 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
   public Iterable<Vertex> getVerticesInRange(Object fromId, Object toId) {
     return globals.getVertexWrapper().getVerticesInRange(fromId, toId);
   }
-
+  
   @Override
-  public Iterable<Vertex> getVertices(String key, Object value) {
-    AccumuloGraphUtils.validateProperty(key, value);
-    if (globals.getConfig().getAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
-      return globals.getVertexKeyIndexWrapper().getVertices(key, value);
-    } else {
-      return globals.getVertexWrapper().getVertices(key, value);
+  public Iterator<Vertex> vertices(Object... vertexIds) {
+    if(vertexIds.length==0){
+      return globals.getVertexWrapper().getVertices().iterator();
+    }else{
+      List<Vertex> edges = new ArrayList<Vertex>(vertexIds.length);
+      for(Object id : vertexIds){
+        edges.add(getVertex(id));
+      }
+      return edges.iterator();
     }
   }
 
-  @Override
+  //@Override
+  public Iterable<Vertex> getVertices(String key, Object value) {
+    AccumuloGraphUtils.validateProperty(key, value);
+   // if (globals.getConfig().getAutoIndex() || getIndexedKeys(Vertex.class).contains(key)) {
+   //   return globals.getVertexKeyIndexWrapper().getVertices(key, value);
+   // } else {
+      return globals.getVertexWrapper().getVertices(key, value);
+   // }
+  }
+
+ // @Override
   public Edge addEdge(Object id, Vertex outVertex, Vertex inVertex, String label) {
     return ((AccumuloVertex) outVertex).addEdge(id, label, inVertex);
   }
 
-  @Override
+  //@Override
   public Edge getEdge(Object id) {
     if (id == null) {
       throw ExceptionFactory.edgeIdCanNotBeNull();
@@ -273,38 +270,41 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return edge;
   }
 
-  @Override
+//  @Override
   public void removeEdge(Edge edge) {
     edge.remove();
   }
 
   @Override
-  public Iterable<Edge> getEdges() {
-    return globals.getEdgeWrapper().getEdges();
-  }
-
-  @Override
-  public Iterable<Edge> getEdges(String key, Object value) {
-    AccumuloGraphUtils.nullCheckProperty(key, value);
-    if (key.equalsIgnoreCase("label")) {
-      key = Constants.LABEL;
-    }
-
-    if (globals.getConfig().getAutoIndex() || getIndexedKeys(Edge.class).contains(key)) {
-      return globals.getEdgeKeyIndexWrapper().getEdges(key, value);
-    } else {
-      return globals.getEdgeWrapper().getEdges(key, value);
+  public Iterator<Edge> edges(Object... ids) {
+    if(ids.length==0){
+      return globals.getEdgeWrapper().getEdges().iterator();
+    }else{
+      List<Edge> edges = new ArrayList<Edge>(ids.length);
+      for(Object id : ids){
+        edges.add(getEdge(id));
+      }
+      return edges.iterator();
     }
   }
 
-  // TODO Eventually
-  @Override
-  public GraphQuery query() {
-    return new DefaultGraphQuery(this);
-  }
+//  @Override
+//  public Iterable<Edge> getEdges(String key, Object value) {
+//    AccumuloGraphUtils.nullCheckProperty(key, value);
+//    if (key.equalsIgnoreCase("label")) {
+//      key = Constants.LABEL;
+//    }
+//
+//    if (globals.getConfig().getAutoIndex() || getIndexedKeys(Edge.class).contains(key)) {
+//      return globals.getEdgeKeyIndexWrapper().getEdges(key, value);
+//    } else {
+//      return globals.getEdgeWrapper().getEdges(key, value);
+//    }
+//  }
+
 
   @Override
-  public void shutdown() {
+  public void close() {
     try {
       globals.getMtbw().close();
       globals.getVertexWrapper().close();
@@ -321,136 +321,136 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     return AccumuloGraphConfiguration.ACCUMULO_GRAPH_CLASS.getSimpleName().toLowerCase();
   }
 
-  @SuppressWarnings("rawtypes")
-  @Override
-  public <T extends Element> Index<T> createIndex(String indexName,
-      Class<T> indexClass, Parameter... indexParameters) {
-    if (indexClass == null) {
-      throw ExceptionFactory.classForElementCannotBeNull();
-    }
-    else if (globals.getConfig().getIndexableGraphDisabled()) {
-      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
-    }
+//  @SuppressWarnings("rawtypes")
+//  @Override
+//  public <T extends Element> Index<T> createIndex(String indexName,
+//      Class<T> indexClass, Parameter... indexParameters) {
+//    if (indexClass == null) {
+//      throw ExceptionFactory.classForElementCannotBeNull();
+//    }
+//    else if (globals.getConfig().getIndexableGraphDisabled()) {
+//      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
+//    }
+//
+//    for (Index<?> index : globals.getIndexMetadataWrapper().getIndices()) {
+//      if (index.getIndexName().equals(indexName)) {
+//        throw ExceptionFactory.indexAlreadyExists(indexName);
+//      }
+//    }
+//
+//    return globals.getIndexMetadataWrapper().createIndex(indexName, indexClass);
+//  }
+//
+//  @Override
+//  public <T extends Element> Index<T> getIndex(String indexName, Class<T> indexClass) {
+//    if (indexClass == null) {
+//      throw ExceptionFactory.classForElementCannotBeNull();
+//    }
+//    else if (globals.getConfig().getIndexableGraphDisabled()) {
+//      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
+//    }
+//
+//    return globals.getIndexMetadataWrapper().getIndex(indexName, indexClass);
+//  }
+//
+//  @Override
+//  public Iterable<Index<? extends Element>> getIndices() {
+//    if (globals.getConfig().getIndexableGraphDisabled()) {
+//      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
+//    }
+//    return globals.getIndexMetadataWrapper().getIndices();
+//  }
 
-    for (Index<?> index : globals.getIndexMetadataWrapper().getIndices()) {
-      if (index.getIndexName().equals(indexName)) {
-        throw ExceptionFactory.indexAlreadyExists(indexName);
-      }
-    }
+//  @Override
+//  public void dropIndex(String indexName) {
+//    if (globals.getConfig().getIndexableGraphDisabled())
+//      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
+//
+//    for (Index<? extends Element> index : getIndices()) {
+//      if (index.getIndexName().equals(indexName)) {
+//        globals.getIndexMetadataWrapper().clearIndexNameEntry(indexName, index.getIndexClass());
+//
+//        try {
+//          globals.getConfig().getConnector().tableOperations().delete(globals.getConfig()
+//              .getNamedIndexTableName(indexName));
+//        } catch (Exception e) {
+//          throw new AccumuloGraphException(e);
+//        }
+//
+//        return;
+//      }
+//    }
+//
+//    throw new AccumuloGraphException("Index does not exist: "+indexName);
+//  }
 
-    return globals.getIndexMetadataWrapper().createIndex(indexName, indexClass);
-  }
+//  @Override
+//  public <T extends Element> void dropKeyIndex(String key, Class<T> elementClass) {
+//    // TODO Move below to somewhere appropriate.
+//    if (elementClass == null) {
+//      throw ExceptionFactory.classForElementCannotBeNull();
+//    }
+//
+//    globals.getIndexMetadataWrapper().clearKeyMetadataEntry(key, elementClass);
+//
+//    String table = null;
+//    if (elementClass.equals(Vertex.class)) {
+//      table = globals.getConfig().getVertexKeyIndexTableName();
+//    } else {
+//      table = globals.getConfig().getEdgeKeyIndexTableName();
+//    }
+//    BatchDeleter bd = null;
+//    try {
+//      bd = globals.getConfig().getConnector().createBatchDeleter(table, globals.getConfig().getAuthorizations(), globals.getConfig().getMaxWriteThreads(), globals.getConfig().getBatchWriterConfig());
+//      bd.setRanges(Collections.singleton(new Range()));
+//      bd.fetchColumnFamily(new Text(key));
+//      bd.delete();
+//    } catch (Exception e) {
+//      throw new AccumuloGraphException(e);
+//    } finally {
+//      if (bd != null)
+//        bd.close();
+//    }
+//    globals.checkedFlush();
+//  }
 
-  @Override
-  public <T extends Element> Index<T> getIndex(String indexName, Class<T> indexClass) {
-    if (indexClass == null) {
-      throw ExceptionFactory.classForElementCannotBeNull();
-    }
-    else if (globals.getConfig().getIndexableGraphDisabled()) {
-      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
-    }
+//  @SuppressWarnings("rawtypes")
+//  @Override
+//  public <T extends Element> void createKeyIndex(String key,
+//      Class<T> elementClass, Parameter... indexParameters) {
+//    // TODO Move below to somewhere appropriate.
+//    if (elementClass == null) {
+//      throw ExceptionFactory.classForElementCannotBeNull();
+//    }
+//
+//    // Add key to indexed keys list.
+//    globals.getIndexMetadataWrapper().writeKeyMetadataEntry(key, elementClass);
+//    globals.checkedFlush();
+//
+//    // Reindex graph.
+//    globals.getKeyIndexTableWrapper(elementClass).rebuildIndex(key, elementClass);
+//    globals.getVertexKeyIndexWrapper().dump();
+//    globals.checkedFlush();
+//  }
 
-    return globals.getIndexMetadataWrapper().getIndex(indexName, indexClass);
-  }
-
-  @Override
-  public Iterable<Index<? extends Element>> getIndices() {
-    if (globals.getConfig().getIndexableGraphDisabled()) {
-      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
-    }
-    return globals.getIndexMetadataWrapper().getIndices();
-  }
-
-  @Override
-  public void dropIndex(String indexName) {
-    if (globals.getConfig().getIndexableGraphDisabled())
-      throw new UnsupportedOperationException("IndexableGraph is disabled via the configuration");
-
-    for (Index<? extends Element> index : getIndices()) {
-      if (index.getIndexName().equals(indexName)) {
-        globals.getIndexMetadataWrapper().clearIndexNameEntry(indexName, index.getIndexClass());
-
-        try {
-          globals.getConfig().getConnector().tableOperations().delete(globals.getConfig()
-              .getNamedIndexTableName(indexName));
-        } catch (Exception e) {
-          throw new AccumuloGraphException(e);
-        }
-
-        return;
-      }
-    }
-
-    throw new AccumuloGraphException("Index does not exist: "+indexName);
-  }
-
-  @Override
-  public <T extends Element> void dropKeyIndex(String key, Class<T> elementClass) {
-    // TODO Move below to somewhere appropriate.
-    if (elementClass == null) {
-      throw ExceptionFactory.classForElementCannotBeNull();
-    }
-
-    globals.getIndexMetadataWrapper().clearKeyMetadataEntry(key, elementClass);
-
-    String table = null;
-    if (elementClass.equals(Vertex.class)) {
-      table = globals.getConfig().getVertexKeyIndexTableName();
-    } else {
-      table = globals.getConfig().getEdgeKeyIndexTableName();
-    }
-    BatchDeleter bd = null;
-    try {
-      bd = globals.getConfig().getConnector().createBatchDeleter(table, globals.getConfig().getAuthorizations(), globals.getConfig().getMaxWriteThreads(), globals.getConfig().getBatchWriterConfig());
-      bd.setRanges(Collections.singleton(new Range()));
-      bd.fetchColumnFamily(new Text(key));
-      bd.delete();
-    } catch (Exception e) {
-      throw new AccumuloGraphException(e);
-    } finally {
-      if (bd != null)
-        bd.close();
-    }
-    globals.checkedFlush();
-  }
-
-  @SuppressWarnings("rawtypes")
-  @Override
-  public <T extends Element> void createKeyIndex(String key,
-      Class<T> elementClass, Parameter... indexParameters) {
-    // TODO Move below to somewhere appropriate.
-    if (elementClass == null) {
-      throw ExceptionFactory.classForElementCannotBeNull();
-    }
-
-    // Add key to indexed keys list.
-    globals.getIndexMetadataWrapper().writeKeyMetadataEntry(key, elementClass);
-    globals.checkedFlush();
-
-    // Reindex graph.
-    globals.getKeyIndexTableWrapper(elementClass).rebuildIndex(key, elementClass);
-    globals.getVertexKeyIndexWrapper().dump();
-    globals.checkedFlush();
-  }
-
-  @Override
-  public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
-    return globals.getIndexMetadataWrapper().getIndexedKeys(elementClass);
-  }
+//  @Override
+//  public <T extends Element> Set<String> getIndexedKeys(Class<T> elementClass) {
+//    return globals.getIndexMetadataWrapper().getIndexedKeys(elementClass);
+//  }
 
   /**
    * Clear out this graph. This drops and recreates the backing tables.
    */
   public void clear() {
-    shutdown();
+    close();
 
     try {
       TableOperations tableOps = globals.getConfig()
           .getConnector().tableOperations();
-      for (Index<? extends Element> index : getIndices()) {
-        tableOps.delete(((AccumuloIndex<? extends Element>)
-            index).getTableName());
-      }
+//      for (Index<? extends Element> index : getIndices()) {
+//        tableOps.delete(((AccumuloIndex<? extends Element>)
+//            index).getTableName());
+//      }
 
       for (String table : globals.getConfig().getTableNames()) {
         if (tableOps.exists(table)) {
@@ -482,5 +482,47 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
     } catch (Exception e) {
       throw new AccumuloGraphException(e);
     }
+  }
+
+
+
+
+
+  @Override
+  public Vertex addVertex(Object... keyValues) {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public <C extends GraphComputer> C compute(Class<C> graphComputerClass) throws IllegalArgumentException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public GraphComputer compute() throws IllegalArgumentException {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+
+
+
+  @Override
+  public Transaction tx() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Variables variables() {
+    // TODO Auto-generated method stub
+    return null;
+  }
+
+  @Override
+  public Configuration configuration() {
+    return globals.getConfig().getConfiguration();
   }
 }

@@ -48,8 +48,8 @@ import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.event.ConfigurationEvent;
 import org.apache.commons.configuration.event.ConfigurationListener;
 import org.apache.hadoop.io.Text;
+import org.apache.tinkerpop.gremlin.structure.Graph;
 
-import com.tinkerpop.blueprints.Graph;
 import com.tinkerpop.blueprints.IndexableGraph;
 import com.tinkerpop.blueprints.KeyIndexableGraph;
 

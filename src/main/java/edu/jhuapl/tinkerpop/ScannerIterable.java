@@ -21,9 +21,10 @@ import org.apache.accumulo.core.client.ScannerBase;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.util.PeekingIterator;
+import org.apache.tinkerpop.gremlin.structure.Element;
 
 import com.tinkerpop.blueprints.CloseableIterable;
-import com.tinkerpop.blueprints.Element;
+
 
 /**
  * TODO

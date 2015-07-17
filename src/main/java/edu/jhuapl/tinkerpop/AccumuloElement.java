@@ -14,9 +14,13 @@
  */
 package edu.jhuapl.tinkerpop;
 
+import java.util.Collections;
 import java.util.Set;
 
-import com.tinkerpop.blueprints.Element;
+import org.apache.tinkerpop.gremlin.structure.Element;
+import org.apache.tinkerpop.gremlin.structure.Graph;
+import org.apache.tinkerpop.gremlin.structure.Property;
+
 import com.tinkerpop.blueprints.Index;
 import com.tinkerpop.blueprints.util.StringFactory;
 
@@ -58,33 +62,33 @@ public abstract class AccumuloElement implements Element {
     }
   }
 
+//  @Override
+//  public <T> T property(String key) {
+//    makeCache();
+//
+//    // Get from property cache.
+//    T value = propertyCache.get(key);
+//
+//    // If not cached, get it from the backing table.
+//    if (value == null) {
+//      value = globals.getElementWrapper(type).readProperty(this, key);
+//    }
+//
+//    // Cache the new value.
+//    if (value != null) {
+//      propertyCache.put(key, value);
+//    }
+//
+//    return value;
+//  }
+
   @Override
-  public <T> T getProperty(String key) {
-    makeCache();
-
-    // Get from property cache.
-    T value = propertyCache.get(key);
-
-    // If not cached, get it from the backing table.
-    if (value == null) {
-      value = globals.getElementWrapper(type).readProperty(this, key);
-    }
-
-    // Cache the new value.
-    if (value != null) {
-      propertyCache.put(key, value);
-    }
-
-    return value;
+  public Set<String> keys() {
+    return Collections.unmodifiableSet(globals.getElementWrapper(type).readPropertyKeys(this));
   }
 
   @Override
-  public Set<String> getPropertyKeys() {
-    return globals.getElementWrapper(type).readPropertyKeys(this);
-  }
-
-  @Override
-  public void setProperty(String key, Object value) {
+  public <V> Property<V> property(String key, V value) {
     makeCache();
     globals.getKeyIndexTableWrapper(type).setPropertyForIndex(this, key, value);
     // MDL 31 Dec 2014:  The above calls getProperty, so this
@@ -92,6 +96,7 @@ public abstract class AccumuloElement implements Element {
     globals.getElementWrapper(type).writeProperty(this, key, value);
     globals.checkedFlush();
     setPropertyInMemory(key, value);
+    return new AccumuloProperty<V>(this, key, value);
   }
 
   /**
@@ -105,7 +110,7 @@ public abstract class AccumuloElement implements Element {
     propertyCache.put(key, value);
   }
 
-  @Override
+  
   public <T> T removeProperty(String key) {
     if (StringFactory.LABEL.equals(key) ||
         Constants.LABEL.equals(key)) {
@@ -113,7 +118,7 @@ public abstract class AccumuloElement implements Element {
     }
 
     makeCache();
-    T value = getProperty(key);
+    T value = (T) property(key).value();
     if (value != null) {
       globals.getElementWrapper(type).clearProperty(this, key);
       globals.checkedFlush();
@@ -164,9 +169,14 @@ public abstract class AccumuloElement implements Element {
     makeCache();
     return propertyCache.get(key);
   }
+  
+  @Override
+  public Graph graph() {
+    return globals.getGraph();
+  }
 
   @Override
-  public Object getId() {
+  public Object id() {
     return id;
   }
 

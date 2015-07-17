@@ -235,16 +235,16 @@ public final class AccumuloBulkIngester {
     copy.setCreate(false).setClear(false);
 
     AccumuloGraph g = (AccumuloGraph) GraphFactory.open(copy.getConfiguration());
-    for (String key : g.getIndexedKeys(Vertex.class)) {
-      g.dropKeyIndex(key, Vertex.class);
-      g.createKeyIndex(key, Vertex.class);
-    }
-
-    for (String key : g.getIndexedKeys(Edge.class)) {
-      g.dropKeyIndex(key, Edge.class);
-      g.createKeyIndex(key, Edge.class);
-    }
-    g.shutdown();
+//    for (String key : g.getIndexedKeys(Vertex.class)) {
+//      g.dropKeyIndex(key, Vertex.class);
+//      g.createKeyIndex(key, Vertex.class);
+//    }
+//
+//    for (String key : g.getIndexedKeys(Edge.class)) {
+//      g.dropKeyIndex(key, Edge.class);
+//      g.createKeyIndex(key, Edge.class);
+//    }
+    g.close();
 
     // TODO ... other house cleaning/verification?
 
