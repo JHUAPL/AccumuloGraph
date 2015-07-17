@@ -51,7 +51,7 @@ public class MapReduceVertex extends MapReduceElement implements Vertex, Seriali
     outEdges = new LinkedList<Edge>();
   }
 
-  void prepareEdge(String id, String src, String label, String dest) {
+  MapReduceEdge prepareEdge(String id, String src, String label, String dest) {
     MapReduceEdge mre = new MapReduceEdge(parent, id, src, label, dest);
     if (src.equals(getId())) {
       outEdges.add(mre);
@@ -61,6 +61,7 @@ public class MapReduceVertex extends MapReduceElement implements Vertex, Seriali
     if (dest.equals(getId())) {
       inEdges.add(mre);
     }
+    return mre;
   }
 
   @Override

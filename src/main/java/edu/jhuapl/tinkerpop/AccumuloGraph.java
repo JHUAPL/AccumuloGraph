@@ -136,6 +136,23 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
 
     return vert;
   }
+  
+  /**
+   * 
+   * @return an immutable copy of the configuration running this graph
+   */
+  public Configuration getConfiguration(){
+    return globals.getConfig().getConfiguration();
+  }
+  
+  /**
+   * Flushes the backing writers so the data is persisted.
+   * @throws MutationsRejectedException
+   */
+  public void flush() throws MutationsRejectedException{
+    globals.getMtbw().flush();
+  }
+  
 
   @Override
   public Vertex getVertex(Object id) {
