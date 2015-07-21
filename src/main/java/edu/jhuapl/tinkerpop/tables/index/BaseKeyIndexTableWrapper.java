@@ -37,7 +37,6 @@ public abstract class BaseKeyIndexTableWrapper extends BaseIndexValuesTableWrapp
 
   /**
    * Rebuild this index for the given table.
-   * @param table
    * @param key
    */
   public void rebuildIndex(String key, Class<? extends Element> elementClass) {

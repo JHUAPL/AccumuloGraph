@@ -84,10 +84,10 @@ public abstract class BaseIndexValuesTableWrapper extends BaseTableWrapper {
   /**
    * Add the property to this index.
    * 
-   * <p/>Note that this requires a round-trip to Accumulo to see
+   * <br>Note that this requires a round-trip to Accumulo to see
    * if the property exists if the provided key has an index.
    * So for best performance, create indices after bulk ingest.
-   * <p/>If the force parameter is true, set the property regardless
+   * <br>If the force parameter is true, set the property regardless
    * of whether indexing is enabled for the given key. This is needed
    * for {@link IndexableGraph} operations.
    * @param element

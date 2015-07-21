@@ -128,7 +128,7 @@ public abstract class AccumuloElement implements Element {
 
   /**
    * Remove element from all named indexes.
-   * @param element
+   *
    */
   protected void removeElementFromNamedIndexes() {
     for (Index<? extends Element> index : globals.getIndexMetadataWrapper().getIndices()) {

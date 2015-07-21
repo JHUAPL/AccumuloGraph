@@ -65,7 +65,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
   /**
    * Read the given property from the backing table
    * for the given element id.
-   * @param id
+   * @param element
    * @param key
    * @return
    */
@@ -106,7 +106,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
    * If propertyKeys is null, read all properties.
    * If the element has no properties, return an empty Map.
    * If the element does not exist, return null.
-   * @param id
+   * @param element
    * @param propertyKeys
    * @return
    */
@@ -152,7 +152,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
 
   /**
    * Get all property keys for the given element id.
-   * @param id
+   * @param element
    * @return
    */
   public Set<String> readPropertyKeys(Element element) {
@@ -179,7 +179,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
 
   /**
    * Delete the property entry from property table.
-   * @param id
+   * @param element
    * @param key
    */
   public void clearProperty(Element element, String key) {
@@ -190,7 +190,7 @@ public abstract class ElementTableWrapper extends BaseTableWrapper {
 
   /**
    * Write the given property to the property table.
-   * @param id
+   * @param element
    * @param key
    * @param value
    */

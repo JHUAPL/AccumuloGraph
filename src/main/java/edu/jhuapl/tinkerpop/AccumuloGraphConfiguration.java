@@ -473,7 +473,7 @@ implements Serializable, Cloneable {
    * If the <tt>property</tt> parameter is null, this sets the default timeout
    * for all properties. Otherwise, only the specified property's timeout
    * is set.
-   * <p/>
+   * <br><br>
    * The default is unset (no caching).
    * 
    * @param millis
@@ -639,7 +639,7 @@ implements Serializable, Cloneable {
   }
 
   /**
-   * Column visibility.<p/>
+   * Column visibility.<br><br>
    * <strong>NOTE:</strong> Currently unused.
    * @param colVis
    * @return
@@ -734,7 +734,7 @@ implements Serializable, Cloneable {
    * flushed to Accumulo.
    * However, this incurs significant overhead. For applications at scale
    * that do not require immediate consistency, this flag allows the user
-   * to lessen the TinkerPop restriction.<p/>
+   * to lessen the TinkerPop restriction.<br><br>
    * This is enabled by default to support the expected TinkerPop behavior.
    * However, it is strongly recommended that this option be disabled.
    * 
@@ -752,7 +752,7 @@ implements Serializable, Cloneable {
 
   /**
    * Name of the graph to create. Storage tables will be prefixed with this value.
-   * <p/>Note: Accumulo only allows table names with alphanumeric and underscore
+   * <br><br>Note: Accumulo only allows table names with alphanumeric and underscore
    * characters.
    * @param name
    * @return
@@ -835,7 +835,7 @@ implements Serializable, Cloneable {
   }
 
   /**
-   * Labels of graph edges to preload when fetching elements.<p/>
+   * Labels of graph edges to preload when fetching elements.<br><br>
    * <strong>TODO</strong> Currently unused.
    * @param edgeLabels
    * @return
@@ -925,7 +925,7 @@ implements Serializable, Cloneable {
 
   /**
    * Create a {@link Connector} from this configuration.
-   * <p/>Note: Once this is called, the configuration may not be modified.
+   * <br><br>Note: Once this is called, the configuration may not be modified.
    * @return
    * @throws AccumuloException
    * @throws AccumuloSecurityException

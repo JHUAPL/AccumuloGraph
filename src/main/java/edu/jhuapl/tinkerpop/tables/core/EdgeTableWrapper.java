@@ -59,7 +59,7 @@ public class EdgeTableWrapper extends ElementTableWrapper {
    * Write the given edge to the edge table. Does not
    * currently write the edge's properties.
    * 
-   * <p/>Note: This only adds the edge information. Vertex
+   * <br><br>Note: This only adds the edge information. Vertex
    * endpoint information needs to be written to the vertex
    * table via {@link VertexTableWrapper}.
    * @param edge

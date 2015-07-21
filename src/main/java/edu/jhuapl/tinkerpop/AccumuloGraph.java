@@ -49,7 +49,7 @@ import edu.jhuapl.tinkerpop.cache.ElementCaches;
  * Apache Accumulo as the backend. This combines the many benefits and flexibility
  * of Blueprints with the scalability and performance of Accumulo.
  * 
- * <p/>In addition to the basic Blueprints functionality, we provide a number of
+ * <br><br>In addition to the basic Blueprints functionality, we provide a number of
  * enhanced features, including:
  * <ol>
  * <li>Indexing implementations via IndexableGraph and KeyIndexableGraph</li>
@@ -208,7 +208,7 @@ public class AccumuloGraph implements Graph, KeyIndexableGraph, IndexableGraph {
    * representations of the given ids. If fromId or
    * toId is null, use negative infinity and positive
    * infinity, respectively.
-   * <p/>Note: This does not use indexes.
+   * <br><br>Note: This does not use indexes.
    * @param fromId
    * @param toId
    * @return
