@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
     <link href='https://fonts.googleapis.com/css?family=Architects+Daughter' rel='stylesheet' type='text/css'>
     <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
     <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print">
 
     <!--[if lt IE 9]>
@@ -77,10 +77,10 @@ in more detail.</p>
 
 <p>First, to instantiate an in-memory graph:</p>
 
-<div class="highlight highlight-java"><pre><span class="pl-stj">Configuration</span> cfg <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">AccumuloGraphConfiguration</span>()
-  .setInstanceType(<span class="pl-stj">InstanceType</span><span class="pl-k">.</span><span class="pl-stj">Mock</span>)
-  .setGraphName(<span class="pl-s1"><span class="pl-pds">"</span>graph<span class="pl-pds">"</span></span>);
-<span class="pl-k">return</span> <span class="pl-stj">GraphFactory</span><span class="pl-k">.</span>open(cfg);</pre></div>
+<div class="highlight highlight-java"><pre><span class="pl-smi">Configuration</span> cfg <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">AccumuloGraphConfiguration</span>()
+  .setInstanceType(<span class="pl-smi">InstanceType</span><span class="pl-k">.</span><span class="pl-smi">Mock</span>)
+  .setGraphName(<span class="pl-s"><span class="pl-pds">"</span>graph<span class="pl-pds">"</span></span>);
+<span class="pl-k">return</span> <span class="pl-smi">GraphFactory</span><span class="pl-k">.</span>open(cfg);</pre></div>
 
 <p>This creates a "Mock" instance which holds the graph in memory.
 You can now use all the Blueprints and AccumuloGraph-specific functionality
@@ -90,14 +90,14 @@ purposes.</p>
 
 <p>To use an actual Accumulo cluster, use the following:</p>
 
-<div class="highlight highlight-java"><pre><span class="pl-stj">Configuration</span> cfg <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">AccumuloGraphConfiguration</span>()
-  .setInstanceType(<span class="pl-stj">InstanceType</span><span class="pl-k">.</span><span class="pl-stj">Distributed</span>)
-  .setZooKeeperHosts(<span class="pl-s1"><span class="pl-pds">"</span>zookeeper-host<span class="pl-pds">"</span></span>)
-  .setInstanceName(<span class="pl-s1"><span class="pl-pds">"</span>instance-name<span class="pl-pds">"</span></span>)
-  .setUser(<span class="pl-s1"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>setPassword(<span class="pl-s1"><span class="pl-pds">"</span>password<span class="pl-pds">"</span></span>)
-  .setGraphName(<span class="pl-s1"><span class="pl-pds">"</span>graph<span class="pl-pds">"</span></span>)
+<div class="highlight highlight-java"><pre><span class="pl-smi">Configuration</span> cfg <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">AccumuloGraphConfiguration</span>()
+  .setInstanceType(<span class="pl-smi">InstanceType</span><span class="pl-k">.</span><span class="pl-smi">Distributed</span>)
+  .setZooKeeperHosts(<span class="pl-s"><span class="pl-pds">"</span>zookeeper-host<span class="pl-pds">"</span></span>)
+  .setInstanceName(<span class="pl-s"><span class="pl-pds">"</span>instance-name<span class="pl-pds">"</span></span>)
+  .setUser(<span class="pl-s"><span class="pl-pds">"</span>user<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>setPassword(<span class="pl-s"><span class="pl-pds">"</span>password<span class="pl-pds">"</span></span>)
+  .setGraphName(<span class="pl-s"><span class="pl-pds">"</span>graph<span class="pl-pds">"</span></span>)
   .setCreate(<span class="pl-c1">true</span>);
-<span class="pl-k">return</span> <span class="pl-stj">GraphFactory</span><span class="pl-k">.</span>open(cfg);</pre></div>
+<span class="pl-k">return</span> <span class="pl-smi">GraphFactory</span><span class="pl-k">.</span>open(cfg);</pre></div>
 
 <p>This directs AccumuloGraph to use a "Distributed" Accumulo
 instance, and sets the appropriate ZooKeeper parameters,
@@ -223,16 +223,16 @@ exchanges consistency guarantees for high speed ingest.</p>
 <p>The following is an example of how to use the bulk ingester to
 ingest a simple graph:</p>
 
-<div class="highlight highlight-java"><pre><span class="pl-stj">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
-<span class="pl-stj">AccumuloBulkIngester</span> ingester <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">AccumuloBulkIngester</span>(cfg);
+<div class="highlight highlight-java"><pre><span class="pl-smi">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
+<span class="pl-smi">AccumuloBulkIngester</span> ingester <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">AccumuloBulkIngester</span>(cfg);
 <span class="pl-c">// Add a vertex.</span>
-ingester<span class="pl-k">.</span>addVertex(<span class="pl-s1"><span class="pl-pds">"</span>A<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>finish();
+ingester<span class="pl-k">.</span>addVertex(<span class="pl-s"><span class="pl-pds">"</span>A<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>finish();
 <span class="pl-c">// Add another vertex with properties.</span>
-ingester<span class="pl-k">.</span>addVertex(<span class="pl-s1"><span class="pl-pds">"</span>B<span class="pl-pds">"</span></span>)
-  .add(<span class="pl-s1"><span class="pl-pds">"</span>P1<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>V1<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>add(<span class="pl-s1"><span class="pl-pds">"</span>P2<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>V2<span class="pl-pds">"</span></span>)
+ingester<span class="pl-k">.</span>addVertex(<span class="pl-s"><span class="pl-pds">"</span>B<span class="pl-pds">"</span></span>)
+  .add(<span class="pl-s"><span class="pl-pds">"</span>P1<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>V1<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>add(<span class="pl-s"><span class="pl-pds">"</span>P2<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>V2<span class="pl-pds">"</span></span>)
   .finish();
 <span class="pl-c">// Add an edge.</span>
-ingester<span class="pl-k">.</span>addEdge(<span class="pl-s1"><span class="pl-pds">"</span>A<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>B<span class="pl-pds">"</span></span>, <span class="pl-s1"><span class="pl-pds">"</span>edge<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>finish();
+ingester<span class="pl-k">.</span>addEdge(<span class="pl-s"><span class="pl-pds">"</span>A<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>B<span class="pl-pds">"</span></span>, <span class="pl-s"><span class="pl-pds">"</span>edge<span class="pl-pds">"</span></span>)<span class="pl-k">.</span>finish();
 <span class="pl-c">// Shutdown and compact tables.</span>
 ingester<span class="pl-k">.</span>shutdown(<span class="pl-c1">true</span>);</pre></div>
 
@@ -248,26 +248,46 @@ have undefined behavior.</p>
 format implementations. <code>VertexInputFormat</code> and <code>EdgeInputFormat</code>
 allow vertex and edge inputs to mappers, respectively. Use as follows:</p>
 
-<div class="highlight highlight-java"><pre><span class="pl-stj">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
+<div class="highlight highlight-java"><pre><span class="pl-smi">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
 
 <span class="pl-c">// For vertices:</span>
-<span class="pl-stj">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">Job</span>();
-j<span class="pl-k">.</span>setInputFormatClass(<span class="pl-stj">VertexInputFormat</span><span class="pl-k">.</span>class);
-<span class="pl-stj">VertexInputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);
+<span class="pl-smi">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">Job</span>();
+j<span class="pl-k">.</span>setInputFormatClass(<span class="pl-smi">VertexInputFormat</span><span class="pl-k">.</span>class);
+<span class="pl-smi">VertexInputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);
 
 <span class="pl-c">// For edges:</span>
-<span class="pl-stj">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">Job</span>();
-j<span class="pl-k">.</span>setInputFormatClass(<span class="pl-stj">EdgeInputFormat</span><span class="pl-k">.</span>class);
-<span class="pl-stj">EdgeInputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);</pre></div>
+<span class="pl-smi">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">Job</span>();
+j<span class="pl-k">.</span>setInputFormatClass(<span class="pl-smi">EdgeInputFormat</span><span class="pl-k">.</span>class);
+<span class="pl-smi">EdgeInputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);</pre></div>
 
 <p><code>ElementOutputFormat</code> allows writing to an AccumuloGraph from
 reducers. Use as follows:</p>
 
-<div class="highlight highlight-java"><pre><span class="pl-stj">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
+<div class="highlight highlight-java"><pre><span class="pl-smi">AccumuloGraphConfiguration</span> cfg <span class="pl-k">=</span> <span class="pl-c1">...</span>;
 
-<span class="pl-stj">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-stj">Job</span>();
-j<span class="pl-k">.</span>setOutputFormatClass(<span class="pl-stj">ElementOutputFormat</span><span class="pl-k">.</span>class);
-<span class="pl-stj">ElementOutputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);</pre></div>
+<span class="pl-smi">Job</span> j <span class="pl-k">=</span> <span class="pl-k">new</span> <span class="pl-smi">Job</span>();
+j<span class="pl-k">.</span>setOutputFormatClass(<span class="pl-smi">ElementOutputFormat</span><span class="pl-k">.</span>class);
+<span class="pl-smi">ElementOutputFormat</span><span class="pl-k">.</span>setAccumuloGraphConfiguration(j, cfg);</pre></div>
+
+<h2>
+<a id="rexster-configuration" class="anchor" href="#rexster-configuration" aria-hidden="true"><span class="octicon octicon-link"></span></a>Rexster Configuration</h2>
+
+<p>Below is a snippet to show an example of AccumuloGraph integration with Rexster. For a complete list of options for configuration, see <a href="https://github.com/JHUAPL/AccumuloGraph/blob/master/src/main/java/edu/jhuapl/tinkerpop/AccumuloGraphConfiguration.java#L110"><code>AccumuloGraphConfiguration$Keys</code></a> </p>
+
+<div class="highlight highlight-xml"><pre>&lt;<span class="pl-ent">graph</span>&gt;
+    &lt;<span class="pl-ent">graph-enabled</span>&gt;true&lt;/<span class="pl-ent">graph-enabled</span>&gt;
+    &lt;<span class="pl-ent">graph-name</span>&gt;myGraph&lt;/<span class="pl-ent">graph-name</span>&gt;
+    &lt;<span class="pl-ent">graph-type</span>&gt;edu.jhuapl.tinkerpop.AccumuloRexsterGraphConfiguration&lt;/<span class="pl-ent">graph-type</span>&gt;
+    &lt;<span class="pl-ent">properties</span>&gt;
+        &lt;<span class="pl-ent">blueprints</span>.accumulo.instance.type&gt;Distributed&lt;/<span class="pl-ent">blueprints</span>.accumulo.instance.type&gt;
+        &lt;<span class="pl-ent">blueprints</span>.accumulo.instance&gt;accumulo&lt;/<span class="pl-ent">blueprints</span>.accumulo.instance&gt;
+        &lt;<span class="pl-ent">blueprints</span>.accumulo.zkhosts&gt;zk1,zk2,zk3&lt;/<span class="pl-ent">blueprints</span>.accumulo.zkhosts&gt;
+        &lt;<span class="pl-ent">blueprints</span>.accumulo.user&gt;user&lt;/<span class="pl-ent">blueprints</span>.accumulo.user&gt;
+        &lt;<span class="pl-ent">blueprints</span>.accumulo.password&gt;password&lt;/<span class="pl-ent">blueprints</span>.accumulo.password&gt;
+    &lt;/<span class="pl-ent">properties</span>&gt;
+    &lt;<span class="pl-ent">extensions</span>&gt;
+    &lt;/<span class="pl-ent">extensions</span>&gt;
+&lt;/<span class="pl-ent">graph</span>&gt;</pre></div>
         </section>
 
         <aside id="sidebar">
